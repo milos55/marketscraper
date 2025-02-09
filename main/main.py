@@ -60,14 +60,24 @@ async def fetch_ads(url, start_page, end_page, batch_size):
                 for ad, image_ad in zip(helper, image_helper):
                     try:
                         title = ad.find('a', class_='SearchAdTitle').text.strip()
-                        price = ad.find('span', class_='search-ad-price').text.strip().replace('\r\n', '').replace(' ', '')
+                        price_text = ad.find('span', class_='search-ad-price').text.strip().replace('\r\n', '').replace(' ', '')
+                        currency = ad.find('span', class_='search-ad-price')
                         category = ad.find('a', class_='text-secondary').find('small').text if ad.find('a', class_='text-secondary').find('small') else None
                         rk5adlink = baseurl + ad.find('a', class_='SearchAdTitle')['href']
 
                         image_url = image_ad.find("div", class_="ad-image")["style"].split("url(")[-1].split(")")[0].strip("'\"")
                         image_url = "https:" + image_url if image_url.startswith("//") else image_url
 
-                        ad_data = {"title": title, "price": price, "category": category, "link": rk5adlink, "image_url": image_url}
+                        price = ''
+                        currency = ''
+                        for char in price_text:
+                            if char.isdigit() or char == '.': 
+                                price += char
+                            else:
+                                currency = price_text[len(price):]
+                                break
+
+                        ad_data = {"title": title, "price": price, "currency": currency, "category": category, "link": rk5adlink, "image_url": image_url}
 
                         if rk5adlink:
                             ad_response = await fetch_page(session, rk5adlink)
@@ -111,11 +121,11 @@ async def save_to_db(ads):
 
             await conn.execute(
                 """
-                INSERT INTO reklami (title, price, category, link, description, phone, date, image_url)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                INSERT INTO reklami (title, price, currency, category, link, description, phone, date, image_url)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 ON CONFLICT (link) DO NOTHING;
                 """,
-                ad["title"], ad["price"], ad["category"], ad["link"], 
+                ad["title"], ad["price"], ad["currency"], ad["category"], ad["link"], 
                 ad["description"], ad["phone"], ad["date"], ad["image_url"]
             )
         except Exception as e:
@@ -130,8 +140,8 @@ async def main(url, start_page, end_page, batch_size):
 
 
 # broj na strane tuj !! BITNO !!
-start_page = 20
-end_page = 30
+start_page = 60
+end_page = 65
 batch_size = 5
 url = "https://www.reklama5.mk/Search?city=&cat=0&q="
 

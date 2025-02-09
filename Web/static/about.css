@@ -1,0 +1,45 @@
+
+body.flex-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+
+body.about-page main {
+    display: block;
+    margin: 0 auto;
+    width: 80%;
+}
+
+.title {
+    text-align: justify;
+    margin-top: 20px;
+    color: #f2f2f2;
+}
+
+.text {
+    text-align: justify;
+    margin-top: 20px;
+    text-indent: 1rem;
+    color: #f2f2f2;
+}
+
+li.list-item {
+    text-align: left;
+    margin-top: 20px;
+    text-indent: 4rem;
+    color: #f2f2f2;
+}
+
+.about-container {
+    background-color: #948979;
+    color: #f2f2f2;
+    border-radius: 50px;
+    padding: 20px;
+    margin-top: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+    padding-bottom: 40px;
+    box-shadow: 20px 20px 15px 10px black;
+}

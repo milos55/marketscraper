@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html land="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='navbar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    {% block head %}{% endblock head %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" crossorigin="anonymous"></script>
+    <title>{% block title %}Реклама 5 Читач{% endblock %}</title>
+</head>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const toggleBtn = document.querySelector('.toggle_btn'); // Select the toggle button
+        const dropdownMenu = document.querySelector('.dropdown_menu'); // Select the dropdown menu
+
+        if (toggleBtn && dropdownMenu) { // Ensure elements exist before adding event listeners
+            toggleBtn.addEventListener('click', () => {
+                dropdownMenu.classList.toggle('active'); // Toggle active class
+            });
+
+            // Optional: Close dropdown when clicking outside
+            document.addEventListener('click', (event) => {
+                if (!toggleBtn.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                    dropdownMenu.classList.remove('active');
+                }
+            });
+
+            // Close menu when resizing back to desktop
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 992) {
+                    dropdownMenu.classList.remove('active');
+                }
+            });
+        }
+    });
+</script>
+
+
+<body class="{% block body_class %}flex-layout{% endblock %}">
+    <header>
+        <div class="navbar">
+            <div class="logo"><a href="#">Reklama5 Scraper</a></div>
+            <ul class="links">
+                <li><a href="/"><i class="fa-solid fa-house"></i> Дома</li></a>
+                <li><a href="/about"><i class="fa-solid fa-circle-info"></i> Инфо</li></a>
+                <li><a href="/contact"><i class="fa-solid fa-address-book"></i> Контакт</li></a>
+            </ul>
+            {% if request.path == '/' %}
+            <a href="#" class="action-btn">Влези  <i class="fa-solid fa-arrow-right"></i></a>
+            {% endif %}
+            <div class="toggle_btn">
+                <i class="fa-solid fa-bars"></i>
+            </div>
+            
+            <div class="dropdown_menu">
+                <a href="/"><li><i class="fa-solid fa-house"></i> Дома</li></a>
+                <a href="/about"><li><i class="fa-solid fa-circle-info"></i> Инфо</li></a>
+                <a href="/contact"><li><i class="fa-solid fa-address-book"></i> Контакт</li></a>
+                {% if request.path == '/' %}
+                <li><a href="#" class="action-btn">Влези  <i class="fa-solid fa-arrow-right"></i></a></li>
+                {% endif %}
+            </div>
+        </div>   
+    </header>
+
+    <main style="flex: 1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Милош Смиљковиќ</p>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block body_class %}about{% endblock body_class %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='about.css') }}">
+{% endblock head %}
+
+
+
+    {% block content %}
+        <div class="about-container">
+        <h1 class="title"><i class="fa-solid fa-circle-info"></i> Информации</h1>
+        <h2 class="text"><i class="fa-solid fa-gears"></i> Како работи</h2>
+        <ol>
+            <li class="list-item">1. Избери категорија: Кликни на соодветната категорија.</li>
+            <li class="list-item">2. Избери подкатегорија</li>
+            <li class="list-item">3. Внеси број на страни за пребарување</li>
+            <li class="list-item">4. Внеси зборови за кои се пребарува одделени со запирка: Автоматски бара и на Македонски и Латински.</li>
+        </ol>
+        </div>   
+            
+    {% endblock content %}
+    
+
+    

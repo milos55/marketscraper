@@ -1,0 +1,175 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    min-height: 100vh;
+    background: #f2f2f2;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+li{
+    list-style: none;
+    color: #f2f2f2;
+}
+
+a{
+    text-decoration: none;
+    color: #f2f2f2;
+}
+
+a:hover{
+    color: burlywood;
+    transition: 0.2s;
+    border: #fff;
+    border-width: 5px;
+}
+
+header{
+    position: relative;
+    padding: 0 2rem;
+}
+
+.navbar{
+    width: 100%;
+    height: 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.navbar .logo{
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.navbar .links{
+    display: flex;
+    gap: 2rem;
+}
+
+.navbar .toggle_btn{
+    color: #f2f2f2;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: none;
+}
+
+.action-btn{
+    
+    background-color: #948979;
+    color: #f2f2f2;
+    padding: 0.5rem 1rem;
+    border: none;
+    outline: none;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: scale 0.2s ease;
+}
+
+.action-btn:hover{
+    scale: 1.05;
+}
+
+.action-btn:active{
+    scale: 0.95;
+}
+
+.dropdown_menu {
+    display: flex;
+    position: absolute;
+    right: 10rem;
+    top: 60px;
+    width: 250px;
+    background: #948979;
+    backdrop-filter: blur(10px);
+    border-bottom-right-radius: 1rem;
+    border-bottom-left-radius: 1rem;
+    overflow: hidden;
+    display: none; /* Start hidden */
+}
+
+.dropdown_menu.active {
+    display: flex;
+    flex-direction: column; /* Show when active */
+}
+
+.dropdown_menu li {    
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+.dropdown_menu li:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.dropdown_menu .action-btn {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    border: none;
+    outline: none;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: scale 0.2s ease;
+    background-color: #DFD0B8;
+    color: #333a3f;
+}
+
+/* Ensure menu replaces hidden navbar on mobile */
+@media (max-width: 992px) {
+    .navbar .links,
+    .navbar .action-btn {
+        display: none;
+    }
+
+    .navbar .toggle_btn {
+        display: block;
+    }
+
+    .dropdown_menu {
+        width: 100%;
+        left: 0;
+        right: 0;
+        text-align: center;
+    }
+    
+    .dropdown_menu .action-btn {
+        width: 100%;
+        display: block;
+        justify-content: center;
+    }
+}
+
+
+@media(max-width: 576px){
+    .dropdown_menu{
+        left: 15em;
+        width: unset;
+    }
+
+    .dropdown_menu .action-btn {
+        width: 100%;
+        display: block;
+        justify-content: center;
+    }
+}
+
+

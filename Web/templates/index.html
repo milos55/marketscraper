@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+
+{% block content %}
+    <div id="main-container" class="container" style="display: none;">
+        <div class="parent-container-search-bar">
+            <div class="search-bar">
+                <div>
+                    <button class="dropdown-cat-btn"><i class="fa-solid fa-bars"></i> Категории</button>
+                    <ul class="dropdown-cat-menu">
+                        {% for category in categories %}
+                            <li>
+                                <a href="#" class="dropdown-item" 
+                                   data-category-name="{{ category }}">
+                                   {{ category }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <!-- Search Input and Page Input -->
+                <input type="text" class="search-input" id="search-input" placeholder="Monitor, tdi , tsi">
+                <button class="search-btn" id="search-btn" onclick="handleSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </div>
+        </div>
+        <div class="checkbox-container">
+            <div class="checkbox-div">
+                <input type='checkbox' id='checkbox-title' class="checkbox" value="1" checked>
+                <label for="checkbox-title"> Барај по наслов</label>
+            </div>
+            <div class="checkbox-div">
+                <input type='checkbox' id='checkbox-desc' class="checkbox" value="1" checked>
+                <label for="checkbox-desc"> Барај по опис</label>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ads Block (Hidden Initially) -->
+    <div id="ads-container" class="block" style="display: none;">
+        <div class="ads-header">
+            <h2>Филтрирани огласи</h2>
+            <button id="back-button" class="btn-back" onclick="goBack()">Back</button>
+        </div>
+        <div class="ads-grid"></div>
+    </div>
+
+    <script>
+        let selectedCategory = null;  // Store the selected category globally
+
+        // Function to show the main content
+        document.addEventListener("DOMContentLoaded", function () {
+            const getStartedBtns = document.querySelectorAll(".action-btn"); // Select all buttons
+            const mainContainer = document.getElementById("main-container");
+
+            // Initially hide the main content
+            if (mainContainer) {
+                mainContainer.style.display = "none";
+            }
+
+            getStartedBtns.forEach((btn) => {
+                // Check if the button has been clicked before
+                if (localStorage.getItem("getStartedClicked") === "true") {
+                    btn.style.display = "none"; // Hide the button
+                    if (mainContainer) {
+                        mainContainer.style.display = "block"; // Show main content
+                    }
+                } else {
+                    // Add click event listener for each button
+                    btn.addEventListener("click", function (event) {
+                        // Hide all "Get Started" buttons
+                        getStartedBtns.forEach((b) => (b.style.display = "none"));
+
+                        // Set flag in localStorage to hide button on future visits
+                        localStorage.setItem("getStartedClicked", "true");
+
+                        // Show the main content
+                        if (mainContainer) {
+                            mainContainer.style.display = "block";
+                        }
+                        window.location.hash = "#";
+                    });
+                }
+            });
+        });
+
+        // Function to show the dropdown menu
+        document.addEventListener("DOMContentLoaded", function () {
+            const dropdownBtn = document.querySelector(".dropdown-cat-btn");
+            const dropdownMenu = document.querySelector(".dropdown-cat-menu");
+
+            // Toggle dropdown menu on button click
+            dropdownBtn.addEventListener("click", function () {
+                dropdownMenu.style.display = dropdownMenu.style.display === "block" ? "none" : "block";
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener("click", function (event) {
+                if (!dropdownBtn.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                    dropdownMenu.style.display = "none";
+                }
+            });
+
+            // Handle category selection
+            dropdownMenu.addEventListener("click", function (event) {
+                if (event.target.classList.contains("dropdown-item")) {
+                    const categoryName = event.target.getAttribute("data-category-name");
+                    console.log("Selected Category:", categoryName);
+                    selectedCategory = categoryName;  // Save selected category
+                }
+            });
+        });
+
+        // Function to handle search
+        function handleSearch() {
+            const searchInput = document.getElementById('search-input').value;
+            const searchTitle = document.getElementById('checkbox-title').checked;
+            const searchDesc = document.getElementById('checkbox-desc').checked;
+
+            if (!selectedCategory) {
+                alert("Изберете категорија прво.");
+                return;
+            }
+
+            // Fetch ads by category and filter them
+            fetch('/fetch_ads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category: selectedCategory }),
+            })
+            .then(response => response.json())
+            .then(ads => {
+                // Process keywords
+                let keywords = searchInput ? searchInput.split(',').map(k => k.trim()) : [];
+
+                // Filter ads based on keywords and checkbox states
+                fetch('/search_ads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ads: ads, keywords: keywords, search_title: searchTitle, search_desc: searchDesc }),
+                })
+                .then(response => response.json())
+                .then(filteredAds => {
+                    let adsContainer = document.getElementById('ads-container');
+                    let adsGrid = adsContainer.querySelector(".ads-grid");
+
+                    // Hide main container and show ads container
+                    document.getElementById('main-container').style.display = "none";
+                    adsContainer.style.display = "block";
+
+                    // Display filtered ads
+                    let adsHtml = "";
+                    filteredAds.forEach(ad => {
+                        adsHtml += `
+                            <a href="${ad.adlink}" target="_blank" style="text-decoration: none;">
+                                <div class="ad-block">
+                                    <div class="ad-title"><p>${ad.adtitle}</p></div>
+                                    <div class="ad-info">
+                                        <p id="ad-date">${ad.addate}</p><p id="ad-price">${ad.adprice}</p>
+                                    </div>
+                                    <div class="ad-description">${ad.addesc}</div>
+                                </div>
+                            </a>`;
+                    });
+
+                    // Insert ads inside `.ads-grid`
+                    adsGrid.innerHTML = adsHtml;
+                });
+            });
+        }
+
+        // Function to go back from ads
+        function goBack() {
+            let mainContainer = document.getElementById('main-container');
+            let adsContainer = document.getElementById('ads-container');
+
+            // Show main container
+            mainContainer.style.display = "block";
+
+            // Hide ads container
+            adsContainer.style.display = "none";
+        }
+    </script>
+{% endblock content %}
+</html>
