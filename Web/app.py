@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from ..main.ad import Ad
 
 app = Flask(__name__, static_folder='static')
 
@@ -11,7 +10,44 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-#Removed reklama class as Ad class already exists
+
+# Define the Ad class here directly, as per your request
+class Ad(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    url = db.Column(db.String(255), nullable=False)
+    image_url = db.Column(db.String(255), nullable=True)
+    category = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(100), nullable=True)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    price = db.Column(db.Float, nullable=True)
+    currency = db.Column(db.String(10), nullable=True)
+    store = db.Column(db.String(100), nullable=True)
+
+    def __init__(self, title, description, url, image_url, category, phone, date, price, currency, store):
+        self.title = title
+        self.description = description
+        self.url = url
+        self.image_url = image_url
+        self.category = category
+        self.phone = phone
+        self.date = date
+        self.price = price
+        self.currency = currency
+        self.store = store
+
+    def to_dict(self):
+        return {
+            'adlink': self.url,
+            'adtitle': self.title,
+            'adprice': self.price,
+            'adcurrency': self.currency,
+            'addate': self.date.strftime("%d.%m.%Y %H:%M") if self.date else "N/A",
+            'addesc': self.description,
+            'adstore': self.store
+        }
+
 
 @app.route('/')
 def index():
@@ -20,14 +56,15 @@ def index():
     categories = [category[0] for category in categories if category[0]]  # Filter out None values
     return render_template('index.html', categories=categories)
 
+
 @app.route('/fetch_ads', methods=['POST'])
 def fetch_ads():
     data = request.json
     category = data.get('category')
-    
+
     # Fetch ads from the database based on the category
     ads = Ad.query.filter_by(category=category).all()
-    
+
     # Convert the ads to a list of dictionaries
     ads_list = [{
         'adlink': ad.url,
@@ -38,8 +75,9 @@ def fetch_ads():
         'addesc': ad.description,
         'adstore': ad.store
     } for ad in ads]
-    
+
     return jsonify(ads_list)
+
 
 @app.route('/search_ads', methods=['POST'])
 def search_ads():
@@ -51,6 +89,7 @@ def search_ads():
 
     results = search_ads_and_update_progress(ads, keywords, search_title, search_desc)
     return jsonify(results)
+
 
 def search_ads_and_update_progress(ads, keywords, search_title=True, search_desc=True):
     results = []
@@ -70,13 +109,16 @@ def search_ads_and_update_progress(ads, keywords, search_title=True, search_desc
             results.append(ad)
     return results
 
+
 @app.route('/about')
 def about():
     return render_template('about.html')
 
+
 @app.route('/contact')
 def contact():
     return render_template('contact.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
