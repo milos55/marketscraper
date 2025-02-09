@@ -1,3 +1,7 @@
+# Created by Milos Smiljkovikj
+# Github: https://github.com/milos55
+# Date: 08/02/2025
+
 import aiohttp
 import asyncio
 import asyncpg
@@ -68,6 +72,7 @@ async def fetch_ads(url, start_page, end_page, batch_size):
                         image_url = image_ad.find("div", class_="ad-image")["style"].split("url(")[-1].split(")")[0].strip("'\"")
                         image_url = "https:" + image_url if image_url.startswith("//") else image_url
 
+                        # Splits price and currency think it's dirty mbye fix in next
                         price = ''
                         currency = ''
                         for char in price_text:
@@ -77,7 +82,17 @@ async def fetch_ads(url, start_page, end_page, batch_size):
                                 currency = price_text[len(price):]
                                 break
 
-                        ad_data = {"title": title, "price": price, "currency": currency, "category": category, "link": rk5adlink, "image_url": image_url}
+                        domain_part = baseurl.split("//")[1]
+
+                        if domain_part.startswith("www."):
+                            domain_part = domain_part[4:]
+
+                        store = domain_part.split('.')[0]
+
+                        if store == "it":
+                            store = "it.mk" # Dirty but works fix in next plz
+
+                        ad_data = {"title": title, "price": price, "currency": currency, "category": category, "link": rk5adlink, "image_url": image_url, "store": store}
 
                         if rk5adlink:
                             ad_response = await fetch_page(session, rk5adlink)
@@ -118,15 +133,15 @@ async def save_to_db(ads):
             elif ad["date"] == "N/A":
                 ad["date"] = None  
   
-
+            # Database update check if good
             await conn.execute(
                 """
-                INSERT INTO reklami (title, price, currency, category, link, description, phone, date, image_url)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                INSERT INTO reklami (title, price, currency, category, link, description, phone, date, image_url, store)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                 ON CONFLICT (link) DO NOTHING;
                 """,
                 ad["title"], ad["price"], ad["currency"], ad["category"], ad["link"], 
-                ad["description"], ad["phone"], ad["date"], ad["image_url"]
+                ad["description"], ad["phone"], ad["date"], ad["image_url"], ad["store"] #add subcategory if needed for better search unless implemetned in other way
             )
         except Exception as e:
             print(f"Error inserting ad: {e}")
