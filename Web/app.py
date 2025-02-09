@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from ..main.ad import Ad
 
 app = Flask(__name__, static_folder='static')
 
@@ -10,23 +11,12 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# Define the Reklami model to match the database table
-class Reklami(db.Model):
-    __tablename__ = 'reklami'
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String)
-    price = db.Column(db.String)
-    category = db.Column(db.String)
-    link = db.Column(db.String, unique=True)
-    description = db.Column(db.String)
-    phone = db.Column(db.String)
-    date = db.Column(db.DateTime)
-    image_url = db.Column(db.String)
+#Removed reklama class as Ad class already exists
 
 @app.route('/')
 def index():
     # Fetch unique categories from the database
-    categories = db.session.query(Reklami.category).distinct().all()
+    categories = db.session.query(Ad.category).distinct().all()
     categories = [category[0] for category in categories if category[0]]  # Filter out None values
     return render_template('index.html', categories=categories)
 
@@ -36,15 +26,17 @@ def fetch_ads():
     category = data.get('category')
     
     # Fetch ads from the database based on the category
-    ads = Reklami.query.filter_by(category=category).all()
+    ads = Ad.query.filter_by(category=category).all()
     
     # Convert the ads to a list of dictionaries
     ads_list = [{
-        'adlink': ad.link,
+        'adlink': ad.url,
         'adtitle': ad.title,
         'adprice': ad.price,
+        'adcurrency': ad.currency,
         'addate': ad.date.strftime("%d.%m.%Y %H:%M") if ad.date else "N/A",
-        'addesc': ad.description
+        'addesc': ad.description,
+        'adstore': ad.store
     } for ad in ads]
     
     return jsonify(ads_list)

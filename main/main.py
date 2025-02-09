@@ -7,6 +7,13 @@ import asyncio
 import asyncpg
 from bs4 import BeautifulSoup
 from datetime import datetime
+from ad import Ad
+
+
+
+
+
+#CONFIG
 
 DB_CONFIG = {
     "user": "milos55",
@@ -15,6 +22,20 @@ DB_CONFIG = {
     "host": "localhost",
     "port": 5432,
 }
+#Made config parameters in seperate block for readability and scalability
+
+START_PAGE = 60
+END_PAGE = 65
+BATCH_SIZE = 5
+URL = "https://www.reklama5.mk/Search?city=&cat=0&q="
+
+
+
+
+
+
+
+#MAIN CODE
 
 async def fetch_page(session, url):
     headers = {
@@ -65,83 +86,64 @@ async def fetch_ads(url, start_page, end_page, batch_size):
                     try:
                         title = ad.find('a', class_='SearchAdTitle').text.strip()
                         price_text = ad.find('span', class_='search-ad-price').text.strip().replace('\r\n', '').replace(' ', '')
-                        currency = ad.find('span', class_='search-ad-price')
                         category = ad.find('a', class_='text-secondary').find('small').text if ad.find('a', class_='text-secondary').find('small') else None
                         rk5adlink = baseurl + ad.find('a', class_='SearchAdTitle')['href']
 
                         image_url = image_ad.find("div", class_="ad-image")["style"].split("url(")[-1].split(")")[0].strip("'\"")
                         image_url = "https:" + image_url if image_url.startswith("//") else image_url
 
-                        # Splits price and currency think it's dirty mbye fix in next
-                        price = ''
-                        currency = ''
-                        for char in price_text:
-                            if char.isdigit() or char == '.': 
-                                price += char
-                            else:
-                                currency = price_text[len(price):]
-                                break
+                        # Changed. Better and readible
+                        price = ''.join(filter(str.isdigit, price_text))
+                        currency = price_text[len(price):]
 
-                        domain_part = baseurl.split("//")[1]
+                        store = "reklama5"  # Script only works for reklama5, other scripts will be needed for other sites (different web structure)
 
-                        if domain_part.startswith("www."):
-                            domain_part = domain_part[4:]
+                        #Updated to work with class
+                        ad = Ad(title, None, rk5adlink, image_url, category, None, None, price, currency, store)
 
-                        store = domain_part.split('.')[0]
-
-                        if store == "it":
-                            store = "it.mk" # Dirty but works fix in next plz
-
-                        ad_data = {"title": title, "price": price, "currency": currency, "category": category, "link": rk5adlink, "image_url": image_url, "store": store}
-
-                        if rk5adlink:
-                            ad_response = await fetch_page(session, rk5adlink)
-                            if ad_response is None:
-                                continue
-
+                        #Ti ga 2 put proverues dali postoi link (preko rk5adlink i ad_response), sg ga proverue 1 put
+                        #Code reformated to work with class (more readible and functional)
+                        ad_response = await fetch_page(session, rk5adlink)
+                        if ad_response:
                             ad_soup = BeautifulSoup(ad_response, "html.parser")
-                            description = ad_soup.find('p', class_='mt-3').text.strip() if ad_soup.find('p', class_='mt-3') else None
-                            phone = ad_soup.find('h6').get_text(strip=True) if ad_soup.find('h6') else None
-                            date_elements = ad_soup.find_all('div', class_='col-4 align-self-center')
-                            if len(date_elements) > 2:
-                                date_span = date_elements[2].find('span')
-                                date = date_span.text.strip() if date_span else 'N/A'
-                                date = convert_today_date(date)
-                            else:
-                                date = 'N/A'
+                            ad.description = ad_soup.find('p', class_='mt-3').text.strip() if ad_soup.find('p', class_='mt-3') else None
+                            ad.phone = ad_soup.find('h6').get_text(strip=True) if ad_soup.find('h6') else None
+                            date_element = ad_soup.find_all('div', class_='col-4 align-self-center')
+                            ad.date = convert_today_date(date_element[2].find('span').text.strip()) if len(date_element) > 2 else None  
 
-                            ad_data.update({"description": description, "phone": phone, "date": date})
+                        ads.append(ad)
 
-                        ads.append(ad_data)
 
+                    #Check page on which an error occured
                     except Exception as e:
                         print(f"Error processing ad on page {page_num}: {e}")
 
             print(f"Finished scraping pages {batch_start} to {batch_end}")
             await save_to_db(ads)
+            #Test lowest time with no error
             await asyncio.sleep(2)
 
     return ads
 
+#Updated to work with class ad
 async def save_to_db(ads):
     conn = await asyncpg.connect(**DB_CONFIG)
     
     for ad in ads:
         try:
-            if isinstance(ad["date"], str) and ad["date"] != "N/A":
-                ad["date"] = datetime.strptime(ad["date"], "%d.%m.%Y %H:%M")
-            elif ad["date"] == "N/A":
-                ad["date"] = None  
+            if isinstance(ad.date, str) and ad.date != "N/A":
+                ad.date = datetime.strptime(ad.date, "%d.%m.%Y %H:%M")
+            elif ad.date == "N/A":
+                ad.date = None  
   
-            # Database update check if good
             await conn.execute(
                 """
-                INSERT INTO reklami (title, price, currency, category, link, description, phone, date, image_url, store)
+                INSERT INTO reklami (title, description, link, image_url, category, phone, date, price, currency, store)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                 ON CONFLICT (link) DO NOTHING;
                 """,
-                ad["title"], ad["price"], ad["currency"], ad["category"], ad["link"], 
-                ad["description"], ad["phone"], ad["date"], ad["image_url"], ad["store"] #add subcategory if needed for better search unless implemetned in other way
+                ad.title, ad.description, ad.url, ad.image_url, ad.category, 
+                ad.phone, ad.date, ad.price, ad.currency, ad.store
             )
         except Exception as e:
             print(f"Error inserting ad: {e}")
@@ -154,11 +156,6 @@ async def main(url, start_page, end_page, batch_size):
     await save_to_db(ads)
 
 
-# broj na strane tuj !! BITNO !!
-start_page = 60
-end_page = 65
-batch_size = 5
-url = "https://www.reklama5.mk/Search?city=&cat=0&q="
 
 if __name__ == "__main__":
     asyncio.run(main(url, start_page, end_page, batch_size))

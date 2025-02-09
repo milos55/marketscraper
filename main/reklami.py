@@ -1,5 +1,4 @@
 import psycopg2
-from psycopg2 import sql
 
 def connect_to_db():
     conn = psycopg2.connect(
@@ -9,39 +8,30 @@ def connect_to_db():
         password="smil55"
     )
     return conn
-
+#Added store, currency, image_url
 def create_table(conn):
     with conn.cursor() as cursor:
         cursor.execute("""
-            CREATE TABLE reklami (
+              CREATE TABLE IF NOT EXISTS reklami (
                 id SERIAL PRIMARY KEY,
                 title TEXT,
-                price TEXT,
-                category TEXT,
-                link TEXT,
                 description TEXT,
+                link TEXT,
+                image_url TEXT,
+                category TEXT,
                 phone TEXT,
                 date TEXT
+                price TEXT,
+                currency TEXT,
+                store TEXT
             )
         """)
     conn.commit()
 
-def insert_data(conn, data):
-    with conn.cursor() as cursor:
-        for ad in ads:
-            cursor.execute(
-                """
-                INSERT INTO reklami (title, price, category, link, description, phone, date)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """,
-                (ad_data['title'], ad_data['price'], ad_data['category'], ad_data['link'], ad_data['description'], ad_data['phone'], ad_data['date'])
-            )
-    conn.commit()
-
-def store_ads_in_db(ads):
+def setup_database():
     conn = connect_to_db()
     create_table(conn)
-    insert_data(conn, ads)
     conn.close()
 
-store_ads_in_db(ads)
+if __name__ == "__main__":
+    setup_database()
