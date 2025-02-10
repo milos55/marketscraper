@@ -92,13 +92,13 @@ async def fetch_ads(url, start_page, end_page, batch_size):
                         image_url = image_ad.find("div", class_="ad-image")["style"].split("url(")[-1].split(")")[0].strip("'\"")
                         image_url = "https:" + image_url if image_url.startswith("//") else image_url
 
-                        # Changed. Better and readible
-                        price = ''.join(filter(str.isdigit, price_text))
-                        currency = price_text[len(price):]
+                        # FIXED MISO 10.02.25 proveri za efikasnost
+                        pos = next((i for i, c in enumerate(price_text) if not c.isdigit() and c != '.'), len(price_text))
+                        price, currency = (price_text[:pos], price_text[pos:]) if any(c.isdigit() for c in price_text) else ('', price_text)
 
                         store = "reklama5"  # Script only works for reklama5, other scripts will be needed for other sites (different web structure)
 
-                        #Updated to work with class
+                        #Updated to work with class !! IMPLEMENTRAJ MESTO VAR STORE DA VIKA SAMO REKLAMA5 VIDI ROLLBACK main.py ili nemoze !!
                         ad = Ad(title, None, rk5adlink, image_url, category, None, None, price, currency, store)
 
                         #Ti ga 2 put proverues dali postoi link (preko rk5adlink i ad_response), sg ga proverue 1 put
