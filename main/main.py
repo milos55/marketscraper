@@ -93,8 +93,10 @@ async def fetch_ads(url, start_page, end_page, batch_size):
                         image_url = "https:" + image_url if image_url.startswith("//") else image_url
 
                         # FIXED MISO 10.02.25 proveri za efikasnost
-                        pos = next((i for i, c in enumerate(price_text) if not c.isdigit() and c != '.'), len(price_text))
-                        price, currency = (price_text[:pos], price_text[pos:]) if any(c.isdigit() for c in price_text) else ('', price_text)
+                        pos = next((i for i, c in enumerate(price_text) if not (c.isdigit() or c == '.')), len(price_text))
+                        price_str = price_text[:pos].replace('.', '')
+                        price = int(price_str) if price_str else 0
+                        currency = price_text[pos:]
 
                         store = "reklama5"  # Script only works for reklama5, other scripts will be needed for other sites (different web structure)
 
