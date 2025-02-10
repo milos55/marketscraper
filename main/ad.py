@@ -1,9 +1,9 @@
 class Ad:
-    def __init__(self, title, description, url, image_url, category, phone, date, price, currency,store):
+    def __init__(self, title, description, link, image_url, category, phone, date, price, currency,store):
         self.title = title
         self.description = description
-        self.url = url
-        self.image_url = image_url
+        self.link = url # link e url ne url radi citlivost
+        self.image_url = image_url 
         self.category = category
         self.phone = phone
         self.date = date

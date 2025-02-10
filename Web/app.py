@@ -10,13 +10,13 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-
 # Define the Ad class here directly, as per your request
 class Ad(db.Model):
+    __tablename__ = "reklami" #test 1
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    url = db.Column(db.String(255), nullable=False)
+    link = db.Column(db.String(255), nullable=False)
     image_url = db.Column(db.String(255), nullable=True)
     category = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(100), nullable=True)
@@ -25,10 +25,10 @@ class Ad(db.Model):
     currency = db.Column(db.String(10), nullable=True)
     store = db.Column(db.String(100), nullable=True)
 
-    def __init__(self, title, description, url, image_url, category, phone, date, price, currency, store):
+    def __init__(self, title, description, link, image_url, category, phone, date, price, currency, store):
         self.title = title
         self.description = description
-        self.url = url
+        self.link = url
         self.image_url = image_url
         self.category = category
         self.phone = phone
@@ -39,7 +39,7 @@ class Ad(db.Model):
 
     def to_dict(self):
         return {
-            'adlink': self.url,
+            'adlink': self.link,
             'adtitle': self.title,
             'adprice': self.price,
             'adcurrency': self.currency,
@@ -54,6 +54,9 @@ def index():
     # Fetch unique categories from the database
     categories = db.session.query(Ad.category).distinct().all()
     categories = [category[0] for category in categories if category[0]]  # Filter out None values
+
+    print(f"categories: ", categories) #debug remove in production
+
     return render_template('index.html', categories=categories)
 
 
@@ -67,7 +70,7 @@ def fetch_ads():
 
     # Convert the ads to a list of dictionaries
     ads_list = [{
-        'adlink': ad.url,
+        'adlink': ad.link,
         'adtitle': ad.title,
         'adprice': ad.price,
         'adcurrency': ad.currency,

@@ -26,7 +26,7 @@ DB_CONFIG = {
 
 START_PAGE = 60
 END_PAGE = 65
-BATCH_SIZE = 5
+BATCH_SIZE = 5 + 1 #dirty hack, to not create a secondary variable
 URL = "https://www.reklama5.mk/Search?city=&cat=0&q="
 
 
@@ -37,7 +37,7 @@ URL = "https://www.reklama5.mk/Search?city=&cat=0&q="
 
 #MAIN CODE
 
-async def fetch_page(session, url):
+async def fetch_page(session, URL):
     headers = {
         "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
         "Accept-Language": "en-US,en;q=0.9",
@@ -46,9 +46,9 @@ async def fetch_page(session, url):
         "Upgrade-Insecure-Requests": "1",
     }
 
-    async with session.get(url, headers=headers) as response:
+    async with session.get(URL, headers=headers) as response:
         if response.status != 200:
-            print(f"Page failed to load: {url} (status code {response.status})")
+            print(f"Page failed to load: {URL} (status code {response.status})")
             return None
         return await response.text()
 
@@ -58,16 +58,16 @@ def convert_today_date(date_str):
         return date_str.replace("Денес", today)
     return date_str
 
-async def fetch_ads(url, start_page, end_page, batch_size):
+async def fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE):
     baseurl = "https://www.reklama5.mk"
     ads = []
     
     async with aiohttp.ClientSession() as session:
-        for batch_start in range(start_page, end_page + 1, batch_size):
-            batch_end = min(batch_start + batch_size - 1, end_page)
+        for batch_start in range(START_PAGE, END_PAGE + 1, BATCH_SIZE):
+            batch_end = min(batch_start + BATCH_SIZE - 1, END_PAGE)
             print(f"Scraping pages {batch_start} to {batch_end}")
 
-            tasks = [fetch_page(session, f"{url}&page={page}") for page in range(batch_start, batch_end + 1)]
+            tasks = [fetch_page(session, f"{URL}&page={page}") for page in range(batch_start, batch_end + 1)]
             pages_responses = await asyncio.gather(*tasks)
 
             for page_num, page_content in zip(range(batch_start, batch_end + 1), pages_responses):
@@ -144,7 +144,7 @@ async def save_to_db(ads):
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                 ON CONFLICT (link) DO NOTHING;
                 """,
-                ad.title, ad.description, ad.url, ad.image_url, ad.category, 
+                ad.title, ad.description, ad.link, ad.image_url, ad.category, 
                 ad.phone, ad.date, ad.price, ad.currency, ad.store
             )
         except Exception as e:
@@ -152,12 +152,12 @@ async def save_to_db(ads):
 
     await conn.close()
 
-async def main(url, start_page, end_page, batch_size):
-    ads = await fetch_ads(url, start_page, end_page, batch_size)
+async def main(URL, START_PAGE, END_PAGE, BATCH_SIZE):
+    ads = await fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE)
     print(f"Scraped {len(ads)} ads.")
     await save_to_db(ads)
 
 
 
 if __name__ == "__main__":
-    asyncio.run(main(url, start_page, end_page, batch_size))
+    asyncio.run(main(URL, START_PAGE, END_PAGE, BATCH_SIZE))
