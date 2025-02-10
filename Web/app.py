@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, date
 
 app = Flask(__name__, static_folder='static')
 
@@ -20,7 +20,7 @@ class Ad(db.Model):
     image_url = db.Column(db.String(255), nullable=True)
     category = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(100), nullable=True)
-    date = db.Column(db.DateTime, default=datetime.utcnow)
+    date = db.Column(db.Date, default=date.today)
     price = db.Column(db.Float, nullable=True)
     currency = db.Column(db.String(10), nullable=True)
     store = db.Column(db.String(100), nullable=True)
@@ -43,7 +43,7 @@ class Ad(db.Model):
             'adtitle': self.title,
             'adprice': self.price,
             'adcurrency': self.currency,
-            'addate': self.date.strftime("%d.%m.%Y %H:%M") if self.date else "N/A",
+            'addate': self.date.strftime("%d.%m.%Y") if self.date else "N/A",
             'addesc': self.description,
             'adstore': self.store
         }
@@ -74,7 +74,7 @@ def fetch_ads():
         'adtitle': ad.title,
         'adprice': ad.price,
         'adcurrency': ad.currency,
-        'addate': ad.date.strftime("%d.%m.%Y %H:%M") if ad.date else "N/A",
+        'addate': ad.date.strftime("%d.%m.%Y") if ad.date else "N/A",
         'addesc': ad.description,
         'adstore': ad.store
     } for ad in ads]
