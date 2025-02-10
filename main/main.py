@@ -10,7 +10,7 @@ from datetime import datetime
 
 # broj na strane tuj !! BITNO !!
 start_page = 1
-end_page = 2
+end_page = 50
 batch_size = 5
 url = "https://www.reklama5.mk/Search?city=&cat=0&q="
 
@@ -79,8 +79,10 @@ async def fetch_ads(url, start_page, end_page, batch_size):
                         image_url = "https:" + image_url if image_url.startswith("//") else image_url
 
                         # NOVO ZA PRICE IMPLEMENT IN MAIN !! URGENT !!
-                        pos = next((i for i, c in enumerate(price_text) if not c.isdigit() and c != '.'), len(price_text))
-                        price, currency = (price_text[:pos], price_text[pos:]) if any(c.isdigit() for c in price_text) else ('', price_text)
+                        pos = next((i for i, c in enumerate(price_text) if not (c.isdigit() or c == '.')), len(price_text))
+                        price_str = price_text[:pos].replace('.', '')
+                        price = int(price_str) if price_str else 0
+                        currency = price_text[pos:]
                         # U STORE SAMO REKLAMA5 NAMESTO VAR !! UREGENT !!
                         ad_data = {"title": title, "price": price, "currency": currency, "category": category, "link": rk5adlink, "image_url": image_url, "store": "reklama5"}
 
