@@ -34,19 +34,6 @@ footer {
 .btn:active {
     opacity: 0.3;
 }
-.btn-back {
-    background-color: #3c5b6f;
-    color: #f2f2f2;
-    border-radius: 5px;
-    border: 3px solid #333a3f;
-    width: 80px;
-    height: 40px;
-    display: inline-flex;
-    text-align: center;
-    align-items: center;
-    justify-content: center;
-    transition: 0.2s;
-}
 .container {
     display: flex;
     justify-content: space-between;
@@ -86,7 +73,7 @@ footer {
 }
 
 #ads-container {
-    display: none;
+    display: block;
     padding: 20px;
 }
 
@@ -94,6 +81,11 @@ footer {
     display: flexbox;
     align-items: flex-start;
     gap: 15px;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.ads-hidden {
+    opacity: 0;
 }
 
 .ads-header {
@@ -113,12 +105,13 @@ footer {
     border-radius: 8px;
     background-color: #3c5b6f;
     text-align: justify;
-    transition: 0.3s ease-in-out;
+    transition: transform 0.3s ease, opacity 0.3s ease;
     text-decoration: none;
 }
 
 .ad-block:hover {
     opacity: 0.7;
+    transform: scale(1.01);
 }
 
 .ad-block p {
@@ -379,6 +372,36 @@ input::-webkit-inner-spin-button {
     input[type=number] {
         -moz-appearance: textfield;
     }
+
+.dropdown-date-btn  {
+    background-color: transparent;
+    border: none;
+    padding: 10px;
+}
+
+.dropdown-date-menu {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    z-index: 1;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    border-radius: 20px;
+    border: #333333 1px solid;
+}
+
+.dropdown-date-item-btn {
+    display: flex;
+    padding: 8px 16px;
+    text-decoration: none;
+    color: #333a3f;
+    background-color: transparent;
+    border: none;
+}
+
+.dropdown-date-item-btn:hover {
+    transform: scale(1.25);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
 
 @media (max-width: 600px) {
     .search-bar {

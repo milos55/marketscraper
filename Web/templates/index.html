@@ -21,6 +21,15 @@
                 </div>
                 <!-- Search Input and Page Input -->
                 <input type="text" class="search-input" id="search-input" placeholder="Monitor, tdi , tsi">
+                <div>
+                    <button class="dropdown-date-btn">Сортирај</button>
+                    <ul class="dropdown-date-menu">
+                        <li><button class="dropdown-date-item-btn">Најнови</button></li>
+                        <li><button class="dropdown-date-item-btn">Најстари</button></li>
+                        <li><button class="dropdown-date-item-btn">Најефтини</button></li>
+                        <li><button class="dropdown-date-item-btn">Најскапи</button></li>
+                    </ul>
+                </div>
                 <button class="search-btn" id="search-btn" onclick="handleSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
             </div>
         </div>
@@ -37,10 +46,9 @@
     </div>
     
     <!-- Ads Block (Hidden Initially) -->
-    <div id="ads-container" class="block" style="display: none;">
+    <div id="ads-container" class="block">
         <div class="ads-header">
             <h2>Филтрирани огласи</h2>
-            <button id="back-button" class="btn-back" onclick="goBack()">Back</button>
         </div>
         <div class="ads-grid"></div>
     </div>
@@ -105,81 +113,142 @@
             dropdownMenu.addEventListener("click", function (event) {
                 if (event.target.classList.contains("dropdown-item")) {
                     const categoryName = event.target.getAttribute("data-category-name");
-                    console.log("Selected Category:", categoryName);
                     selectedCategory = categoryName;  // Save selected category
                 }
             });
         });
+        
+        // Function to show the dropdown menu for sorting via date or price
+        document.addEventListener("DOMContentLoaded", function () {
+            const DropdownDateBtn = document.querySelector(".dropdown-date-btn");
+            const DropdownDateMenu = document.querySelector(".dropdown-date-menu");
 
-        // Function to handle search
-        function handleSearch() {
-            const searchInput = document.getElementById('search-input').value;
-            const searchTitle = document.getElementById('checkbox-title').checked;
-            const searchDesc = document.getElementById('checkbox-desc').checked;
+            // Toggle dropdown menu on button click
+            DropdownDateBtn.addEventListener("click", function () {
+                DropdownDateMenu.style.display = DropdownDateMenu.style.display === "block" ? "none" : "block";
+            });
 
-            if (!selectedCategory) {
-                alert("Изберете категорија прво.");
-                return;
-            }
+            const sortButtons = document.querySelectorAll(".dropdown-date-item-btn");
 
-            // Fetch ads by category and filter them
-            fetch('/fetch_ads', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ category: selectedCategory }),
-            })
-            .then(response => response.json())
-            .then(ads => {
-                // Process keywords
-                let keywords = searchInput ? searchInput.split(',').map(k => k.trim()) : [];
-
-                // Filter ads based on keywords and checkbox states
-                fetch('/search_ads', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ads: ads, keywords: keywords, search_title: searchTitle, search_desc: searchDesc }),
-                })
-                .then(response => response.json())
-                .then(filteredAds => {
-                    let adsContainer = document.getElementById('ads-container');
-                    let adsGrid = adsContainer.querySelector(".ads-grid");
-
-                    // Hide main container and show ads container
-                    document.getElementById('main-container').style.display = "none";
-                    adsContainer.style.display = "block";
-
-                    // Display filtered ads
-                    let adsHtml = "";
-                    filteredAds.forEach(ad => {
-                        adsHtml += `
-                            <a href="${ad.adlink}" target="_blank" style="text-decoration: none;">
-                                <div class="ad-block">
-                                    <div class="ad-title"><p>${ad.adtitle}</p></div>
-                                    <div class="ad-info">
-                                        <p id="ad-date">${ad.addate}</p><p id="ad-price">${ad.adprice}${ad.adcurrency}</p>
-                                    </div>
-                                    <div class="ad-description">${ad.addesc}</div>
-                                </div>
-                            </a>`;
-                    });
-
-                    // Insert ads inside `.ads-grid`
-                    adsGrid.innerHTML = adsHtml;
+            sortButtons.forEach(button => {
+                button.addEventListener("click", function () {
+                    const sortType = this.textContent.trim(); // Get the button text
+                    handleSearch(sortType); // Call handleSearch with the sorting type
                 });
             });
-        }
+        });
 
-        // Function to go back from ads
-        function goBack() {
-            let mainContainer = document.getElementById('main-container');
-            let adsContainer = document.getElementById('ads-container');
+        // Function to handle search
+    document.addEventListener("DOMContentLoaded", function () {
+        const sortButtons = document.querySelectorAll(".dropdown-date-item-btn");
 
-            // Show main container
-            mainContainer.style.display = "block";
+        sortButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                const sortType = this.textContent.trim();
+                handleSearch(sortType);
+            });
+        });
+    });
 
-            // Hide ads container
-            adsContainer.style.display = "none";
-        }
+    document.addEventListener("DOMContentLoaded", function () {
+        fetchAllAds(); // Fetch all ads when the page loads
+
+        const sortButtons = document.querySelectorAll(".dropdown-date-item-btn");
+        sortButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                const sortType = this.textContent.trim();
+                handleSearch(sortType);
+            });
+        });
+
+        // Handle category selection
+        document.querySelector(".dropdown-cat-menu").addEventListener("click", function (event) {
+            if (event.target.classList.contains("dropdown-item")) {
+                selectedCategory = event.target.getAttribute("data-category-name");
+                handleSearch(); // Re-filter ads
+            }
+        });
+    });
+
+    let allAds = []; // Store all ads globally
+
+    function fetchAllAds() {
+        fetch('/fetch_ads', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ category: null }) // Fetch all ads
+        })
+        .then(response => response.json())
+        .then(ads => {
+            allAds = ads; // Store all ads globally
+            displayAds(allAds); // Show all ads initially
+        });
+    }
+
+    function handleSearch(sortType = "") {
+    const searchInput = document.getElementById('search-input').value.trim().toLowerCase();
+    const searchTitle = document.getElementById('checkbox-title').checked;
+    const searchDesc = document.getElementById('checkbox-desc').checked;
+    const adsGrid = document.querySelector(".ads-grid");
+    
+
+    // Step 1: Filter by category (if selected)
+    let filteredAds = selectedCategory 
+        ? allAds.filter(ad => ad.adcategory === selectedCategory) 
+        : [...allAds];
+
+    // Step 2: Apply keyword filtering ONLY if search input is NOT empty
+    if (searchInput.length > 0) {
+        let keywords = searchInput.split(',').map(k => k.trim().toLowerCase());
+        filteredAds = filteredAds.filter(ad => {
+            let match = false;
+            if (searchTitle) match = keywords.every(keyword => ad.adtitle.toLowerCase().includes(keyword));
+            if (searchDesc && !match) match = keywords.every(keyword => ad.addesc.toLowerCase().includes(keyword));
+            return match;
+        });
+    }
+
+    // Step 3: Apply sorting
+    if (sortType === "Најнови") {
+        filteredAds.sort((a, b) => new Date(b.addate) - new Date(a.addate));
+    } else if (sortType === "Најстари") {
+        filteredAds.sort((a, b) => new Date(a.addate) - new Date(b.addate));
+    } else if (sortType === "Најефтини") {
+        filteredAds.sort((a, b) => a.adprice - b.adprice);
+    } else if (sortType === "Најскапи") {
+        filteredAds.sort((a, b) => b.adprice - a.adprice);
+    }
+
+    displayAds(filteredAds);
+    }
+
+    function displayAds(ads) {
+        const adsGrid = document.querySelector(".ads-grid");
+        adsGrid.innerHTML = ""; // Clear current ads
+
+        let adsHtml = ads.length > 0 ? "" : "<p>Нема огласи за оваа категорија.</p>"; // Show message if empty
+
+        ads.forEach(ad => {
+            adsHtml += `
+                <a href="${ad.adlink}" target="_blank" style="text-decoration: none;">
+                    <div class="ad-block">
+                        <div class="ad-title"><p>${ad.adtitle}</p></div>
+                        <div class="ad-info">
+                            <p id="ad-date">${ad.addate}</p><p id="ad-price">${ad.adprice}${ad.adcurrency}</p>
+                        </div>
+                        <div class="ad-description">${ad.addesc}</div>
+                    </div>
+                </a>`;
+        });
+
+        adsGrid.innerHTML = adsHtml; // Append new ads
+    }
+
+    // Handle live search input
+    document.getElementById("search-input").addEventListener("input", function () {
+        handleSearch();
+    });
+        
     </script>
 {% endblock content %}
 </html>

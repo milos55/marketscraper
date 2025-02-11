@@ -43,6 +43,7 @@ class Ad(db.Model):
             'adtitle': self.title,
             'adprice': self.price,
             'adcurrency': self.currency,
+            'adcategory': self.category, # Need for filter by category check in prod
             'addate': self.date.strftime("%d.%m.%Y") if self.date else "N/A",
             'addesc': self.description,
             'adstore': self.store
@@ -55,8 +56,6 @@ def index():
     categories = db.session.query(Ad.category).distinct().all()
     categories = [category[0] for category in categories if category[0]]  # Filter out None values
 
-    print(f"categories: ", categories) #debug remove in production
-
     return render_template('index.html', categories=categories)
 
 
@@ -64,22 +63,31 @@ def index():
 def fetch_ads():
     data = request.json
     category = data.get('category')
+    sort_type = data.get('sort')
 
-    # Fetch ads from the database based on the category
-    ads = Ad.query.filter_by(category=category).all()
+    query = Ad.query
 
-    # Convert the ads to a list of dictionaries
-    ads_list = [{
-        'adlink': ad.link,
-        'adtitle': ad.title,
-        'adprice': ad.price,
-        'adcurrency': ad.currency,
-        'addate': ad.date.strftime("%d.%m.%Y") if ad.date else "N/A",
-        'addesc': ad.description,
-        'adstore': ad.store
-    } for ad in ads]
+    if category:
+        category = category.strip()
+        query = query.filter_by(category=category)
+        
+
+    # Sorting logic
+    if sort_type == "Најнови":
+        query = query.order_by(Ad.date.desc())
+    elif sort_type == "Најстари":
+        query = query.order_by(Ad.date.asc())
+    elif sort_type == "Најефтини":
+        query = query.order_by(Ad.price.asc())
+    elif sort_type == "Најскапи":
+        query = query.order_by(Ad.price.desc())
+
+    ads = query.all()
+
+    ads_list = [ad.to_dict() for ad in ads]
 
     return jsonify(ads_list)
+
 
 
 @app.route('/search_ads', methods=['POST'])
