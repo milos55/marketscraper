@@ -42,6 +42,14 @@
                 <input type='checkbox' id='checkbox-desc' class="checkbox" value="1" checked>
                 <label for="checkbox-desc"> Барај по опис</label>
             </div>
+            <div class="checkbox-div">
+                <input type='checkbox' id='checkbox-podogovor' class="checkbox" value="0" unchecked>
+                <label for="checkbox-podogovor"> Отстрани огласи По Договор</label>
+            </div>
+            <div class="checkbox-div">
+                <input type='checkbox' id='checkbox-price-1' class="checkbox" value="0" unchecked>
+                <label for="checkbox-price-1"> Отстрани огласи со цена 1</label>
+            </div>
         </div>
     </div>
     
@@ -53,6 +61,7 @@
         <div class="ads-grid"></div>
     </div>
 
+    <!-- There is surplus code here somewhere can't fix now-->
     <script>
         let selectedCategory = null;  // Store the selected category globally
 
@@ -185,42 +194,66 @@
         });
     }
 
+
+    // Add event listeners for checkbox changes for podogovor and price1
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("podogovorCheckbox").addEventListener("change", handleSearch);
+        document.getElementById("price1Checkbox").addEventListener("change", handleSearch);
+        document.getElementById("search-input").addEventListener("input", handleSearch);
+        document.getElementById("checkbox-title").addEventListener("change", handleSearch);
+        document.getElementById("checkbox-desc").addEventListener("change", handleSearch);
+    });
+
+
     function handleSearch(sortType = "") {
-    const searchInput = document.getElementById('search-input').value.trim().toLowerCase();
-    const searchTitle = document.getElementById('checkbox-title').checked;
-    const searchDesc = document.getElementById('checkbox-desc').checked;
-    const adsGrid = document.querySelector(".ads-grid");
+    
+        const searchInput = document.getElementById('search-input').value.trim().toLowerCase();
+        const searchTitle = document.getElementById('checkbox-title').checked;
+        const searchDesc = document.getElementById('checkbox-desc').checked;
+        const podogovor = document.getElementById('checkbox-podogovor').checked;
+        const price1 = document.getElementById('checkbox-price-1').checked;
+        const adsGrid = document.querySelector(".ads-grid");
     
 
-    // Step 1: Filter by category (if selected)
-    let filteredAds = selectedCategory 
-        ? allAds.filter(ad => ad.adcategory === selectedCategory) 
-        : [...allAds];
+        // Step 1: Filter by category (if selected)
+        let filteredAds = selectedCategory 
+            ? allAds.filter(ad => ad.adcategory === selectedCategory) 
+            : [...allAds];
 
-    // Step 2: Apply keyword filtering ONLY if search input is NOT empty
-    if (searchInput.length > 0) {
-        let keywords = searchInput.split(',').map(k => k.trim().toLowerCase());
-        filteredAds = filteredAds.filter(ad => {
-            let match = false;
-            if (searchTitle) match = keywords.every(keyword => ad.adtitle.toLowerCase().includes(keyword));
-            if (searchDesc && !match) match = keywords.every(keyword => ad.addesc.toLowerCase().includes(keyword));
-            return match;
-        });
+        // Step 2: Apply keyword filtering ONLY if search input is NOT empty
+        if (searchInput.length > 0) {
+            let keywords = searchInput.split(',').map(k => k.trim().toLowerCase());
+            filteredAds = filteredAds.filter(ad => {
+                let match = false;
+                if (searchTitle) match = keywords.every(keyword => ad.adtitle.toLowerCase().includes(keyword));
+                if (searchDesc && !match) match = keywords.every(keyword => ad.addesc.toLowerCase().includes(keyword));
+                return match;
+            });
+        }
+
+        // Remove ads that are 1MKD or 1EUR and remove ads that are "ПоДоговор"
+        if (podogovor) {
+                filteredAds = filteredAds.filter(ad => ad.adcurrency !== "ПоДоговор");
+            }
+        if (price1) {
+                filteredAds = filteredAds.filter(ad => ad.adprice !== 1);
+            }
+
+        // Step 3: Apply sorting
+        if (sortType === "Најнови") {
+            filteredAds.sort((a, b) => new Date(b.addate) - new Date(a.addate));
+        } else if (sortType === "Најстари") {
+            filteredAds.sort((a, b) => new Date(a.addate) - new Date(b.addate));
+        } else if (sortType === "Најефтини") {
+            filteredAds.sort((a, b) => a.adprice - b.adprice);
+        } else if (sortType === "Најскапи") {
+            filteredAds.sort((a, b) => b.adprice - a.adprice);
+        }
+
+        
+        displayAds(filteredAds);
     }
 
-    // Step 3: Apply sorting
-    if (sortType === "Најнови") {
-        filteredAds.sort((a, b) => new Date(b.addate) - new Date(a.addate));
-    } else if (sortType === "Најстари") {
-        filteredAds.sort((a, b) => new Date(a.addate) - new Date(b.addate));
-    } else if (sortType === "Најефтини") {
-        filteredAds.sort((a, b) => a.adprice - b.adprice);
-    } else if (sortType === "Најскапи") {
-        filteredAds.sort((a, b) => b.adprice - a.adprice);
-    }
-
-    displayAds(filteredAds);
-    }
 
     function displayAds(ads) {
         const adsGrid = document.querySelector(".ads-grid");
@@ -232,13 +265,26 @@
             adsHtml += `
                 <a href="${ad.adlink}" target="_blank" style="text-decoration: none;">
                     <div class="ad-block">
-                        <div class="ad-title"><p>${ad.adtitle}</p></div>
-                        <div class="ad-info">
-                            <p id="ad-date">${ad.addate}</p><p id="ad-price">${ad.adprice}${ad.adcurrency}</p>
+                        <div class="ad-header">
+                            <div class="ad-title-info">
+                                <div class="ad-title"><p>${ad.adtitle}</p></div>
+                                <div class="ad-info">
+                                    <p id="ad-date">${ad.addate}</p>
+                                    <p id="ad-price">
+                                        ${ad.adprice === 0 ?
+                                        (ad.adcurrency === "ПоДоговор" ? "По Договор" : ad.adcurrency) 
+                                        : ad.adprice + " " + (ad.adcurrency === "ПоДоговор" ? "По Договор" : ad.adcurrency)}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="ad-image"><img class="ad-img" src="${ad.adimage}"></div>
                         </div>
-                        <div class="ad-description">${ad.addesc}</div>
+                        <div class="ad-description">
+                            ${ad.addesc}
+                        </div>
                     </div>
-                </a>`;
+                </a>
+        `;
         });
 
         adsGrid.innerHTML = adsHtml; // Append new ads

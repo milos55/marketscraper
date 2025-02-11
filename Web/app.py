@@ -44,6 +44,7 @@ class Ad(db.Model):
             'adprice': self.price,
             'adcurrency': self.currency,
             'adcategory': self.category, # Need for filter by category check in prod
+            'adimage': self.image_url, # Need for AD images
             'addate': self.date.strftime("%d.%m.%Y") if self.date else "N/A",
             'addesc': self.description,
             'adstore': self.store
@@ -89,7 +90,7 @@ def fetch_ads():
     return jsonify(ads_list)
 
 
-
+# Redundant? Boro advise
 @app.route('/search_ads', methods=['POST'])
 def search_ads():
     data = request.json
@@ -101,7 +102,7 @@ def search_ads():
     results = search_ads_and_update_progress(ads, keywords, search_title, search_desc)
     return jsonify(results)
 
-
+# Redundant? Boro advise
 def search_ads_and_update_progress(ads, keywords, search_title=True, search_desc=True):
     results = []
     for ad in ads:
