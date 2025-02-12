@@ -71,7 +71,7 @@
         let selectedCategory = null; // Store the selected category globally
         let allAds = [];
         let currentPage = 1; // Track the current page
-        const adsPerPage = 48; // Define how many ads to display per page
+        const adsPerPage = 20; // Define how many ads to display per page
     
         // Function to show the main content
         document.addEventListener("DOMContentLoaded", function () {
@@ -161,8 +161,8 @@
             });
     
             // Add event listeners for checkbox changes for podogovor and price1
-            document.getElementById("podogovorCheckbox").addEventListener("change", handleSearch);
-            document.getElementById("price1Checkbox").addEventListener("change", handleSearch);
+            document.getElementById("checkbox-podogovor").addEventListener("change", handleSearch);
+            document.getElementById("checkbox-price-1").addEventListener("change", handleSearch);
             document.getElementById("search-input").addEventListener("input", handleSearch);
             document.getElementById("checkbox-title").addEventListener("change", handleSearch);
             document.getElementById("checkbox-desc").addEventListener("change", handleSearch);
@@ -252,7 +252,7 @@
                             </div>
                             <div class="ad-description">
                                 <div class="ad-description-text">${ad.addesc}</div>
-                                <div class="ad-image"><img class="ad-img" src="${ad.adimage}"></div>
+                                ${ad.adimage !== "/Content/images/noImage2.jpg" ? `<div class="ad-image"><img class="ad-img" src="${ad.adimage}" fetchpriority="high"></div>` : ""}
                             </div>
                         </div>
                     </a>
