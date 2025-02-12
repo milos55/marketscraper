@@ -59,22 +59,30 @@
             <h2>Филтрирани огласи</h2>
         </div>
         <div class="ads-grid"></div>
+        <div class="pagination">
+            <button class="page-btn" id="prev-page" onclick="changePage(-1)">Prev</button>
+            <span class="page-number" id="page-number">Page 1</span>
+            <button class="page-btn" id="next-page" onclick="changePage(1)">Next</button>
+        </div>
     </div>
 
     <!-- There is surplus code here somewhere can't fix now-->
     <script>
-        let selectedCategory = null;  // Store the selected category globally
-
+        let selectedCategory = null; // Store the selected category globally
+        let allAds = [];
+        let currentPage = 1; // Track the current page
+        const adsPerPage = 48; // Define how many ads to display per page
+    
         // Function to show the main content
         document.addEventListener("DOMContentLoaded", function () {
             const getStartedBtns = document.querySelectorAll(".action-btn"); // Select all buttons
             const mainContainer = document.getElementById("main-container");
-
+    
             // Initially hide the main content
             if (mainContainer) {
                 mainContainer.style.display = "none";
             }
-
+    
             getStartedBtns.forEach((btn) => {
                 // Check if the button has been clicked before
                 if (localStorage.getItem("getStartedClicked") === "true") {
@@ -87,10 +95,10 @@
                     btn.addEventListener("click", function (event) {
                         // Hide all "Get Started" buttons
                         getStartedBtns.forEach((b) => (b.style.display = "none"));
-
+    
                         // Set flag in localStorage to hide button on future visits
                         localStorage.setItem("getStartedClicked", "true");
-
+    
                         // Show the main content
                         if (mainContainer) {
                             mainContainer.style.display = "block";
@@ -99,25 +107,23 @@
                     });
                 }
             });
-        });
-
-        // Function to show the dropdown menu
-        document.addEventListener("DOMContentLoaded", function () {
+    
+            // Function to show the dropdown menu
             const dropdownBtn = document.querySelector(".dropdown-cat-btn");
             const dropdownMenu = document.querySelector(".dropdown-cat-menu");
-
+    
             // Toggle dropdown menu on button click
             dropdownBtn.addEventListener("click", function () {
                 dropdownMenu.style.display = dropdownMenu.style.display === "block" ? "none" : "block";
             });
-
+    
             // Close dropdown when clicking outside
             document.addEventListener("click", function (event) {
                 if (!dropdownBtn.contains(event.target) && !dropdownMenu.contains(event.target)) {
                     dropdownMenu.style.display = "none";
                 }
             });
-
+    
             // Handle category selection
             dropdownMenu.addEventListener("click", function (event) {
                 if (event.target.classList.contains("dropdown-item")) {
@@ -125,176 +131,137 @@
                     selectedCategory = categoryName;  // Save selected category
                 }
             });
-        });
-        
-        // Function to show the dropdown menu for sorting via date or price
-        document.addEventListener("DOMContentLoaded", function () {
+    
+            // Dropdown for sorting via date or price
             const DropdownDateBtn = document.querySelector(".dropdown-date-btn");
             const DropdownDateMenu = document.querySelector(".dropdown-date-menu");
-
+    
             // Toggle dropdown menu on button click
             DropdownDateBtn.addEventListener("click", function () {
                 DropdownDateMenu.style.display = DropdownDateMenu.style.display === "block" ? "none" : "block";
             });
-
+    
             const sortButtons = document.querySelectorAll(".dropdown-date-item-btn");
-
+    
             sortButtons.forEach(button => {
                 button.addEventListener("click", function () {
                     const sortType = this.textContent.trim(); // Get the button text
                     handleSearch(sortType); // Call handleSearch with the sorting type
                 });
             });
-        });
-
-        // Function to handle search
-    document.addEventListener("DOMContentLoaded", function () {
-        const sortButtons = document.querySelectorAll(".dropdown-date-item-btn");
-
-        sortButtons.forEach(button => {
-            button.addEventListener("click", function () {
-                const sortType = this.textContent.trim();
-                handleSearch(sortType);
-            });
-        });
-    });
-
-    document.addEventListener("DOMContentLoaded", function () {
-        fetchAllAds(); // Fetch all ads when the page loads
-
-        const sortButtons = document.querySelectorAll(".dropdown-date-item-btn");
-        sortButtons.forEach(button => {
-            button.addEventListener("click", function () {
-                const sortType = this.textContent.trim();
-                handleSearch(sortType);
-            });
-        });
-
-        // Handle category selection
-        document.querySelector(".dropdown-cat-menu").addEventListener("click", function (event) {
-            if (event.target.classList.contains("dropdown-item")) {
-                selectedCategory = event.target.getAttribute("data-category-name");
-                handleSearch(); // Re-filter ads
-            }
-        });
-    });
-
-    let allAds = []; // Store all ads globally
-
-    function fetchAllAds() {
-        fetch('/fetch_ads', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ category: null }) // Fetch all ads
-        })
-        .then(response => response.json())
-        .then(ads => {
-            allAds = ads; // Store all ads globally
-            displayAds(allAds); // Show all ads initially
-        });
-    }
-
-
-    // Add event listeners for checkbox changes for podogovor and price1
-    document.addEventListener("DOMContentLoaded", function () {
-        document.getElementById("podogovorCheckbox").addEventListener("change", handleSearch);
-        document.getElementById("price1Checkbox").addEventListener("change", handleSearch);
-        document.getElementById("search-input").addEventListener("input", handleSearch);
-        document.getElementById("checkbox-title").addEventListener("change", handleSearch);
-        document.getElementById("checkbox-desc").addEventListener("change", handleSearch);
-    });
-
-
-    function handleSearch(sortType = "") {
     
-        const searchInput = document.getElementById('search-input').value.trim().toLowerCase();
-        const searchTitle = document.getElementById('checkbox-title').checked;
-        const searchDesc = document.getElementById('checkbox-desc').checked;
-        const podogovor = document.getElementById('checkbox-podogovor').checked;
-        const price1 = document.getElementById('checkbox-price-1').checked;
-        const adsGrid = document.querySelector(".ads-grid");
+            fetchAllAds(); // Fetch all ads when the page loads
     
-
-        // Step 1: Filter by category (if selected)
-        let filteredAds = selectedCategory 
-            ? allAds.filter(ad => ad.adcategory === selectedCategory) 
-            : [...allAds];
-
-        // Step 2: Apply keyword filtering ONLY if search input is NOT empty
-        if (searchInput.length > 0) {
-            let keywords = searchInput.split(',').map(k => k.trim().toLowerCase());
-            filteredAds = filteredAds.filter(ad => {
-                let match = false;
-                if (searchTitle) match = keywords.every(keyword => ad.adtitle.toLowerCase().includes(keyword));
-                if (searchDesc && !match) match = keywords.every(keyword => ad.addesc.toLowerCase().includes(keyword));
-                return match;
+            // Handle category selection
+            document.querySelector(".dropdown-cat-menu").addEventListener("click", function (event) {
+                if (event.target.classList.contains("dropdown-item")) {
+                    selectedCategory = event.target.getAttribute("data-category-name");
+                    handleSearch(); // Re-filter ads
+                }
+            });
+    
+            // Add event listeners for checkbox changes for podogovor and price1
+            document.getElementById("podogovorCheckbox").addEventListener("change", handleSearch);
+            document.getElementById("price1Checkbox").addEventListener("change", handleSearch);
+            document.getElementById("search-input").addEventListener("input", handleSearch);
+            document.getElementById("checkbox-title").addEventListener("change", handleSearch);
+            document.getElementById("checkbox-desc").addEventListener("change", handleSearch);
+        });
+    
+        function fetchAllAds() {
+            fetch('/fetch_ads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category: null }) // Fetch all ads
+            })
+            .then(response => response.json())
+            .then(ads => {
+                allAds = ads; // Store all ads globally
+                displayAds(allAds); // Show all ads initially
             });
         }
-
-        // Remove ads that are 1MKD or 1EUR and remove ads that are "ПоДоговор"
-        if (podogovor) {
+    
+        function handleSearch(sortType = "") {
+            const searchInput = document.getElementById('search-input').value.trim().toLowerCase();
+            const searchTitle = document.getElementById('checkbox-title').checked;
+            const searchDesc = document.getElementById('checkbox-desc').checked;
+            const podogovor = document.getElementById('checkbox-podogovor').checked;
+            const price1 = document.getElementById('checkbox-price-1').checked;
+            const adsGrid = document.querySelector(".ads-grid");
+    
+            // Step 1: Filter by category (if selected)
+            let filteredAds = selectedCategory 
+                ? allAds.filter(ad => ad.adcategory === selectedCategory) 
+                : [...allAds];
+    
+            // Step 2: Apply keyword filtering ONLY if search input is NOT empty
+            if (searchInput.length > 0) {
+                let keywords = searchInput.split(',').map(k => k.trim().toLowerCase());
+                filteredAds = filteredAds.filter(ad => {
+                    let match = false;
+                    if (searchTitle) match = keywords.every(keyword => ad.adtitle.toLowerCase().includes(keyword));
+                    if (searchDesc && !match) match = keywords.every(keyword => ad.addesc.toLowerCase().includes(keyword));
+                    return match;
+                });
+            }
+    
+            // Remove ads that are 1MKD or 1EUR and remove ads that are "ПоДоговор"
+            if (podogovor) {
                 filteredAds = filteredAds.filter(ad => ad.adcurrency !== "ПоДоговор");
             }
-        if (price1) {
+            if (price1) {
                 filteredAds = filteredAds.filter(ad => ad.adprice !== 1);
             }
-
-        // Step 3: Apply sorting
-        if (sortType === "Најнови") {
-            filteredAds.sort((a, b) => new Date(b.addate) - new Date(a.addate));
-        } else if (sortType === "Најстари") {
-            filteredAds.sort((a, b) => new Date(a.addate) - new Date(b.addate));
-        } else if (sortType === "Најефтини") {
-            filteredAds.sort((a, b) => a.adprice - b.adprice);
-        } else if (sortType === "Најскапи") {
-            filteredAds.sort((a, b) => b.adprice - a.adprice);
+    
+            // Step 3: Apply sorting
+            if (sortType === "Најнови") {
+                filteredAds.sort((a, b) => new Date(b.addate) - new Date(a.addate));
+            } else if (sortType === "Најстари") {
+                filteredAds.sort((a, b) => new Date(a.addate) - new Date(b.addate));
+            } else if (sortType === "Најефтини") {
+                filteredAds.sort((a, b) => a.adprice - b.adprice);
+            } else if (sortType === "Најскапи") {
+                filteredAds.sort((a, b) => b.adprice - a.adprice);
+            }
+    
+            displayAds(filteredAds);
         }
-
-        
-        displayAds(filteredAds);
-    }
-
-
-    function displayAds(ads) {
-        const adsGrid = document.querySelector(".ads-grid");
-        adsGrid.innerHTML = ""; // Clear current ads
-
-        let adsHtml = ads.length > 0 ? "" : "<p>Нема огласи за оваа категорија.</p>"; // Show message if empty
-
-        ads.forEach(ad => {
-            adsHtml += `
-                <a href="${ad.adlink}" target="_blank" style="text-decoration: none;">
-                    <div class="ad-block">
-                        <div class="ad-header">
-                            <div class="ad-title-info">
-                                <div class="ad-title"><p>${ad.adtitle}</p></div>
-                                <div class="ad-info">
-                                    <p id="ad-date">${ad.addate}</p>
-                                    <p id="ad-price">
-                                        ${ad.adprice === 0 ?
-                                        (ad.adcurrency === "ПоДоговор" ? "По Договор" : ad.adcurrency) 
-                                        : ad.adprice + " " + (ad.adcurrency === "ПоДоговор" ? "По Договор" : ad.adcurrency)}
-                                    </p>
+    
+        function displayAds(ads) {
+            const adsGrid = document.querySelector(".ads-grid");
+            adsGrid.innerHTML = ""; // Clear current ads
+    
+            let adsHtml = ads.length > 0 ? "" : "<p>Нема огласи за оваа категорија.</p>"; // Show message if empty
+    
+            ads.forEach(ad => {
+                adsHtml += `
+                    <a href="${ad.adlink}" target="_blank" style="text-decoration: none;">
+                        <div class="ad-block">
+                            <div class="ad-header">
+                                <div class="ad-title-info">
+                                    <div class="ad-title"><p>${ad.adtitle}</p></div>
+                                    <div class="ad-info">
+                                        <p id="ad-date">${ad.addate}</p>
+                                        <p id="ad-price">
+                                            ${ad.adprice === 0 ? 
+                                            (ad.adcurrency === "ПоДоговор" ? "По Договор" : ad.adcurrency) 
+                                            : ad.adprice + " " + (ad.adcurrency === "ПоДоговор" ? "По Договор" : ad.adcurrency)}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="ad-image"><img class="ad-img" src="${ad.adimage}"></div>
+                            <div class="ad-description">
+                                <div class="ad-description-text">${ad.addesc}</div>
+                                <div class="ad-image"><img class="ad-img" src="${ad.adimage}"></div>
+                            </div>
                         </div>
-                        <div class="ad-description">
-                            ${ad.addesc}
-                        </div>
-                    </div>
-                </a>
-        `;
-        });
-
-        adsGrid.innerHTML = adsHtml; // Append new ads
-    }
-
-    // Handle live search input
-    document.getElementById("search-input").addEventListener("input", function () {
-        handleSearch();
-    });
-        
+                    </a>
+                `;
+            });
+    
+            adsGrid.innerHTML = adsHtml; // Append new ads
+        }
     </script>
+    
 {% endblock content %}
 </html>

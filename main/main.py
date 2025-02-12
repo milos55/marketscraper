@@ -24,8 +24,8 @@ DB_CONFIG = {
 }
 #Made config parameters in seperate block for readability and scalability
 
-START_PAGE = 60
-END_PAGE = 65
+START_PAGE = 1
+END_PAGE = 100
 BATCH_SIZE = 5 + 1 #dirty hack, to not create a secondary variable
 URL = "https://www.reklama5.mk/Search?city=&cat=0&q="
 
