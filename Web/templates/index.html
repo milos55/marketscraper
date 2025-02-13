@@ -324,7 +324,9 @@
                 const totalPages = Math.ceil(this.filteredAds.length / this.adsPerPage);
                 this.elements.pagination.prevBtn.disabled = this.currentPage === 1;
                 this.elements.pagination.nextBtn.disabled = this.currentPage === totalPages;
-                this.elements.pagination.pageNumber.textContent = `Page ${this.currentPage}`;
+                this.elements.pagination.pageNumber.innerHTML = `
+                    Page <input type="number" class="page-input" value="${this.currentPage}" min="1" max="${totalPages}" id="pageInput"> / ${totalPages}
+                `;
             }
         }
 

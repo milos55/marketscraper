@@ -480,6 +480,23 @@ h2 {
     background-color: transparent;
     border: none;
     padding: 10px;
+    font-weight: bold;
+}
+
+.page-btn:hover {
+    transform: scale(1.25);
+    transition: transform 0.15s ease;
+    color: burlywood;
+}
+
+.page-input {
+    color: #f2f2f2;
+    background-color: transparent;
+    border: none;
+    font-size: 15px;
+    width: 45px;
+    padding: 5px;
+    text-align: center;
 }
 
 /* Number Input Styles */
