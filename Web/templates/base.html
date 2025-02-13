@@ -42,15 +42,12 @@
 <body class="{% block body_class %}flex-layout{% endblock %}">
     <header>
         <div class="navbar">
-            <div class="logo"><a href="#">Reklama5 Scraper</a></div>
+            <div class="logo"><a href="#">Market Watcher</a></div>
             <ul class="links">
                 <li><a href="/"><i class="fa-solid fa-house"></i> Дома</li></a>
                 <li><a href="/about"><i class="fa-solid fa-circle-info"></i> Инфо</li></a>
                 <li><a href="/contact"><i class="fa-solid fa-address-book"></i> Контакт</li></a>
             </ul>
-            {% if request.path == '/' %}
-            <a href="#" class="action-btn">Влези  <i class="fa-solid fa-arrow-right"></i></a>
-            {% endif %}
             <div class="toggle_btn">
                 <i class="fa-solid fa-bars"></i>
             </div>

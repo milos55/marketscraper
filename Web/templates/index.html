@@ -3,265 +3,333 @@
 <html lang="en">
 
 {% block content %}
-    <div id="main-container" class="container" style="display: none;">
+    <div id="main-container" class="container">
         <div class="parent-container-search-bar">
             <div class="search-bar">
-                <div>
-                    <button class="dropdown-cat-btn"><i class="fa-solid fa-bars"></i> Категории</button>
+                <!-- Category Dropdown -->
+                <div class="dropdown">
+                    <button class="dropdown-cat-btn" aria-label="Categories">
+                        <i class="fa-solid fa-bars"></i> Категории
+                    </button>
                     <ul class="dropdown-cat-menu">
-                        {% for category in categories %}
-                            <li>
-                                <a href="#" class="dropdown-item" 
-                                   data-category-name="{{ category }}">
-                                   {{ category }}
-                                </a>
-                            </li>
-                        {% endfor %}
+                        <div class="grid-container">
+                            {% for category in categories %}
+                                <li>
+                                    <button class="category-btn" 
+                                            data-category="{{ category }}">
+                                        {{ category }}
+                                    </button>
+                                </li>
+                            {% endfor %}
+                        </div>
                     </ul>
                 </div>
-                <!-- Search Input and Page Input -->
-                <input type="text" class="search-input" id="search-input" placeholder="Monitor, tdi , tsi">
-                <div>
-                    <button class="dropdown-date-btn">Сортирај</button>
+                <!-- Search Input -->
+                <input type="text" 
+                       class="search-input" 
+                       id="search-input" 
+                       placeholder="Monitor, tdi, tsi"
+                       aria-label="Search input">
+
+                <!-- Sort Dropdown -->
+                <div class="dropdown">
+                    <button class="dropdown-date-btn" aria-label="Sort options">Сортирај</button>
                     <ul class="dropdown-date-menu">
-                        <li><button class="dropdown-date-item-btn">Најнови</button></li>
-                        <li><button class="dropdown-date-item-btn">Најстари</button></li>
-                        <li><button class="dropdown-date-item-btn">Најефтини</button></li>
-                        <li><button class="dropdown-date-item-btn">Најскапи</button></li>
+                        <li><button class="sort-btn" data-sort="newest">Најнови</button></li>
+                        <li><button class="sort-btn" data-sort="oldest">Најстари</button></li>
+                        <li><button class="sort-btn" data-sort="cheapest">Најефтини</button></li>
+                        <li><button class="sort-btn" data-sort="expensive">Најскапи</button></li>
                     </ul>
                 </div>
-                <button class="search-btn" id="search-btn" onclick="handleSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
+
+                <button class="search-btn" 
+                        id="search-btn" 
+                        aria-label="Search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
             </div>
         </div>
+
+        <!-- Search Options -->
         <div class="checkbox-container">
-            <div class="checkbox-div">
-                <input type='checkbox' id='checkbox-title' class="checkbox" value="1" checked>
-                <label for="checkbox-title"> Барај по наслов</label>
-            </div>
-            <div class="checkbox-div">
-                <input type='checkbox' id='checkbox-desc' class="checkbox" value="1" checked>
-                <label for="checkbox-desc"> Барај по опис</label>
-            </div>
-            <div class="checkbox-div">
-                <input type='checkbox' id='checkbox-podogovor' class="checkbox" value="0" unchecked>
-                <label for="checkbox-podogovor"> Отстрани огласи По Договор</label>
-            </div>
-            <div class="checkbox-div">
-                <input type='checkbox' id='checkbox-price-1' class="checkbox" value="0" unchecked>
-                <label for="checkbox-price-1"> Отстрани огласи со цена 1</label>
-            </div>
+            <label class="checkbox-div">
+                <input type="checkbox" id="checkbox-title" checked>
+                Барај по наслов
+            </label>
+            <label class="checkbox-div">
+                <input type="checkbox" id="checkbox-desc" checked>
+                Барај по опис
+            </label>
+            <label class="checkbox-div">
+                <input type="checkbox" id="checkbox-podogovor">
+                Отстрани огласи По Договор
+            </label>
+            <label class="checkbox-div">
+                <input type="checkbox" id="checkbox-price-1">
+                Отстрани огласи со цена 1
+            </label>
         </div>
     </div>
     
-    <!-- Ads Block (Hidden Initially) -->
+    <!-- Ads Container -->
     <div id="ads-container" class="block">
         <div class="ads-header">
             <h2>Филтрирани огласи</h2>
         </div>
         <div class="ads-grid"></div>
-        <div class="pagination">
-            <button class="page-btn" id="prev-page" onclick="changePage(-1)">Prev</button>
-            <span class="page-number" id="page-number">Page 1</span>
-            <button class="page-btn" id="next-page" onclick="changePage(1)">Next</button>
+        <div class="pagination-container">
+            <div class="pagination">
+                <button class="page-btn" id="prev-page">Prev</button>
+                <span class="page-number">Page 1</span>
+                <button class="page-btn" id="next-page">Next</button>
+            </div>
         </div>
     </div>
 
-    <!-- There is surplus code here somewhere can't fix now-->
     <script>
-        let selectedCategory = null; // Store the selected category globally
-        let allAds = [];
-        let currentPage = 1; // Track the current page
-        const adsPerPage = 20; // Define how many ads to display per page
-    
-        // Function to show the main content
-        document.addEventListener("DOMContentLoaded", function () {
-            const getStartedBtns = document.querySelectorAll(".action-btn"); // Select all buttons
-            const mainContainer = document.getElementById("main-container");
-    
-            // Initially hide the main content
-            if (mainContainer) {
-                mainContainer.style.display = "none";
+        class AdsManager {
+            constructor() {
+                this.allAds = [];
+                this.currentPage = 1;
+                this.adsPerPage = 48;
+                this.selectedCategory = null;
+                this.currentSort = null;
+                this.filteredAds = [];
+                
+                this.initializeElements();
+                this.setupEventListeners();
+                this.fetchAllAds();
             }
-    
-            getStartedBtns.forEach((btn) => {
-                // Check if the button has been clicked before
-                if (localStorage.getItem("getStartedClicked") === "true") {
-                    btn.style.display = "none"; // Hide the button
-                    if (mainContainer) {
-                        mainContainer.style.display = "block"; // Show main content
+
+            initializeElements() {
+                this.elements = {
+                    mainContainer: document.getElementById('main-container'),
+                    searchInput: document.getElementById('search-input'),
+                    adsGrid: document.querySelector('.ads-grid'),
+                    categoryMenu: document.querySelector('.dropdown-cat-menu'),
+                    dateMenu: document.querySelector('.dropdown-date-menu'),
+                    categoryBtn: document.querySelector('.dropdown-cat-btn'),
+                    dateBtn: document.querySelector('.dropdown-date-btn'),
+                    checkboxes: {
+                        title: document.getElementById('checkbox-title'),
+                        desc: document.getElementById('checkbox-desc'),
+                        podogovor: document.getElementById('checkbox-podogovor'),
+                        price1: document.getElementById('checkbox-price-1')
+                    },
+                    pagination: {
+                        prevBtn: document.getElementById('prev-page'),
+                        nextBtn: document.getElementById('next-page'),
+                        pageNumber: document.querySelector('.page-number')
                     }
-                } else {
-                    // Add click event listener for each button
-                    btn.addEventListener("click", function (event) {
-                        // Hide all "Get Started" buttons
-                        getStartedBtns.forEach((b) => (b.style.display = "none"));
-    
-                        // Set flag in localStorage to hide button on future visits
-                        localStorage.setItem("getStartedClicked", "true");
-    
-                        // Show the main content
-                        if (mainContainer) {
-                            mainContainer.style.display = "block";
-                        }
-                        window.location.hash = "#";
+                };
+            }
+
+            setupEventListeners() {
+                // Dropdowns
+                this.elements.categoryBtn.addEventListener('click', () => {
+                    this.elements.categoryMenu.style.display = 
+                        this.elements.categoryMenu.style.display === 'block' ? 'none' : 'block';
+                });
+
+                this.elements.dateBtn.addEventListener('click', () => {
+                    this.elements.dateMenu.style.display = 
+                        this.elements.dateMenu.style.display === 'block' ? 'none' : 'block';
+                });
+
+                // Close dropdowns when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.matches('.dropdown-cat-btn')) {
+                        this.elements.categoryMenu.style.display = 'none';
+                    }
+                    if (!e.target.matches('.dropdown-date-btn')) {
+                        this.elements.dateMenu.style.display = 'none';
+                    }
+                });
+
+                // Category selection
+                document.querySelectorAll('.category-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.selectedCategory = e.target.dataset.category;
+                        this.elements.categoryMenu.style.display = 'none';
+                        this.currentPage = 1;
+                        this.handleSearch();
+                    });
+                });
+
+                // Sort selection
+                document.querySelectorAll('.sort-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.currentSort = e.target.dataset.sort;
+                        this.elements.dateMenu.style.display = 'none';
+                        this.handleSearch();
+                    });
+                });
+
+                // Search input
+                let debounceTimer;
+                this.elements.searchInput.addEventListener('input', () => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => this.handleSearch(), 300);
+                });
+
+                // Checkboxes
+                Object.values(this.elements.checkboxes).forEach(checkbox => {
+                    checkbox.addEventListener('change', () => this.handleSearch());
+                });
+
+                // Pagination
+                this.elements.pagination.prevBtn.addEventListener('click', () => {
+                    if (this.currentPage > 1) {
+                        this.currentPage--;
+                        this.displayAds();
+                    }
+                    document.body.scrollTo({top: 0, behavior: 'smooth'});
+                    document.documentElement.scrollTo({top: 0, behavior: 'smooth'});
+                });
+
+                this.elements.pagination.nextBtn.addEventListener('click', () => {
+                    const maxPages = Math.ceil(this.filteredAds.length / this.adsPerPage);
+                    if (this.currentPage < maxPages) {
+                        this.currentPage++;
+                        this.displayAds();
+                    }
+
+                    // Scroll to the top
+                    document.body.scrollTo({top: 0, behavior: 'smooth'});
+                    document.documentElement.scrollTo({top: 0, behavior: 'smooth'});
+                });
+            }
+
+            async fetchAllAds() {
+                try {
+                    const response = await fetch('/fetch_ads', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ category: null })
+                    });
+                    this.allAds = await response.json();
+                    this.handleSearch();
+                } catch (error) {
+                    console.error('Error fetching ads:', error);
+                    this.elements.adsGrid.innerHTML = '<p>Error loading ads. Please try again later.</p>';
+                }
+            }
+
+            filterAds() {
+                const searchTerms = this.elements.searchInput.value.trim().toLowerCase().split(',').map(term => term.trim());
+                
+                let filtered = this.allAds;
+
+                // Category filter
+                if (this.selectedCategory) {
+                    filtered = filtered.filter(ad => ad.adcategory === this.selectedCategory);
+                }
+
+                // Search terms filter
+                if (searchTerms[0] !== '') {
+                    filtered = filtered.filter(ad => {
+                        const titleMatch = this.elements.checkboxes.title.checked && 
+                            searchTerms.every(term => ad.adtitle.toLowerCase().includes(term));
+                        const descMatch = this.elements.checkboxes.desc.checked && 
+                            searchTerms.every(term => ad.addesc.toLowerCase().includes(term));
+                        return titleMatch || descMatch;
                     });
                 }
-            });
-    
-            // Function to show the dropdown menu
-            const dropdownBtn = document.querySelector(".dropdown-cat-btn");
-            const dropdownMenu = document.querySelector(".dropdown-cat-menu");
-    
-            // Toggle dropdown menu on button click
-            dropdownBtn.addEventListener("click", function () {
-                dropdownMenu.style.display = dropdownMenu.style.display === "block" ? "none" : "block";
-            });
-    
-            // Close dropdown when clicking outside
-            document.addEventListener("click", function (event) {
-                if (!dropdownBtn.contains(event.target) && !dropdownMenu.contains(event.target)) {
-                    dropdownMenu.style.display = "none";
+
+                // Price filters
+                if (this.elements.checkboxes.podogovor.checked) {
+                    filtered = filtered.filter(ad => ad.adcurrency !== "ПоДоговор");
                 }
-            });
-    
-            // Handle category selection
-            dropdownMenu.addEventListener("click", function (event) {
-                if (event.target.classList.contains("dropdown-item")) {
-                    const categoryName = event.target.getAttribute("data-category-name");
-                    selectedCategory = categoryName;  // Save selected category
+                if (this.elements.checkboxes.price1.checked) {
+                    filtered = filtered.filter(ad => ad.adprice !== 1);
                 }
-            });
-    
-            // Dropdown for sorting via date or price
-            const DropdownDateBtn = document.querySelector(".dropdown-date-btn");
-            const DropdownDateMenu = document.querySelector(".dropdown-date-menu");
-    
-            // Toggle dropdown menu on button click
-            DropdownDateBtn.addEventListener("click", function () {
-                DropdownDateMenu.style.display = DropdownDateMenu.style.display === "block" ? "none" : "block";
-            });
-    
-            const sortButtons = document.querySelectorAll(".dropdown-date-item-btn");
-    
-            sortButtons.forEach(button => {
-                button.addEventListener("click", function () {
-                    const sortType = this.textContent.trim(); // Get the button text
-                    handleSearch(sortType); // Call handleSearch with the sorting type
-                });
-            });
-    
-            fetchAllAds(); // Fetch all ads when the page loads
-    
-            // Handle category selection
-            document.querySelector(".dropdown-cat-menu").addEventListener("click", function (event) {
-                if (event.target.classList.contains("dropdown-item")) {
-                    selectedCategory = event.target.getAttribute("data-category-name");
-                    handleSearch(); // Re-filter ads
+
+                return filtered;
+            }
+
+            sortAds(ads) {
+                const sortedAds = [...ads];
+                switch (this.currentSort) {
+                    case 'newest':
+                        sortedAds.sort((a, b) => new Date(b.addate) - new Date(a.addate));
+                        break;
+                    case 'oldest':
+                        sortedAds.sort((a, b) => new Date(a.addate) - new Date(b.addate));
+                        break;
+                    case 'cheapest':
+                        sortedAds.sort((a, b) => parseFloat(a.adprice) - parseFloat(b.adprice));
+                        break;
+                    case 'expensive':
+                        sortedAds.sort((a, b) => parseFloat(b.adprice) - parseFloat(a.adprice));
+                        break;
                 }
-            });
-    
-            // Add event listeners for checkbox changes for podogovor and price1
-            document.getElementById("checkbox-podogovor").addEventListener("change", handleSearch);
-            document.getElementById("checkbox-price-1").addEventListener("change", handleSearch);
-            document.getElementById("search-input").addEventListener("input", handleSearch);
-            document.getElementById("checkbox-title").addEventListener("change", handleSearch);
-            document.getElementById("checkbox-desc").addEventListener("change", handleSearch);
-        });
-    
-        function fetchAllAds() {
-            fetch('/fetch_ads', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ category: null }) // Fetch all ads
-            })
-            .then(response => response.json())
-            .then(ads => {
-                allAds = ads; // Store all ads globally
-                displayAds(allAds); // Show all ads initially
-            });
-        }
-    
-        function handleSearch(sortType = "") {
-            const searchInput = document.getElementById('search-input').value.trim().toLowerCase();
-            const searchTitle = document.getElementById('checkbox-title').checked;
-            const searchDesc = document.getElementById('checkbox-desc').checked;
-            const podogovor = document.getElementById('checkbox-podogovor').checked;
-            const price1 = document.getElementById('checkbox-price-1').checked;
-            const adsGrid = document.querySelector(".ads-grid");
-    
-            // Step 1: Filter by category (if selected)
-            let filteredAds = selectedCategory 
-                ? allAds.filter(ad => ad.adcategory === selectedCategory) 
-                : [...allAds];
-    
-            // Step 2: Apply keyword filtering ONLY if search input is NOT empty
-            if (searchInput.length > 0) {
-                let keywords = searchInput.split(',').map(k => k.trim().toLowerCase());
-                filteredAds = filteredAds.filter(ad => {
-                    let match = false;
-                    if (searchTitle) match = keywords.every(keyword => ad.adtitle.toLowerCase().includes(keyword));
-                    if (searchDesc && !match) match = keywords.every(keyword => ad.addesc.toLowerCase().includes(keyword));
-                    return match;
-                });
+                return sortedAds;
             }
-    
-            // Remove ads that are 1MKD or 1EUR and remove ads that are "ПоДоговор"
-            if (podogovor) {
-                filteredAds = filteredAds.filter(ad => ad.adcurrency !== "ПоДоговор");
+
+            handleSearch() {
+                this.filteredAds = this.sortAds(this.filterAds());
+                this.displayAds();
+                this.updatePagination();
             }
-            if (price1) {
-                filteredAds = filteredAds.filter(ad => ad.adprice !== 1);
+
+            displayAds() {
+                const start = (this.currentPage - 1) * this.adsPerPage;
+                const end = start + this.adsPerPage;
+                const pageAds = this.filteredAds.slice(start, end);
+
+                this.elements.adsGrid.innerHTML = pageAds.length ? 
+                    pageAds.map(ad => this.createAdHTML(ad)).join('') : 
+                    '<p>Нема огласи за оваа категорија.</p>';
+
+                this.updatePagination();
             }
-    
-            // Step 3: Apply sorting
-            if (sortType === "Најнови") {
-                filteredAds.sort((a, b) => new Date(b.addate) - new Date(a.addate));
-            } else if (sortType === "Најстари") {
-                filteredAds.sort((a, b) => new Date(a.addate) - new Date(b.addate));
-            } else if (sortType === "Најефтини") {
-                filteredAds.sort((a, b) => a.adprice - b.adprice);
-            } else if (sortType === "Најскапи") {
-                filteredAds.sort((a, b) => b.adprice - a.adprice);
-            }
-    
-            displayAds(filteredAds);
-        }
-    
-        function displayAds(ads) {
-            const adsGrid = document.querySelector(".ads-grid");
-            adsGrid.innerHTML = ""; // Clear current ads
-    
-            let adsHtml = ads.length > 0 ? "" : "<p>Нема огласи за оваа категорија.</p>"; // Show message if empty
-    
-            ads.forEach(ad => {
-                adsHtml += `
-                    <a href="${ad.adlink}" target="_blank" style="text-decoration: none;">
+
+            createAdHTML(ad) {
+                return `
+                    <a href="${ad.adlink}" target="_blank" class="ad-link">
                         <div class="ad-block">
                             <div class="ad-header">
                                 <div class="ad-title-info">
-                                    <div class="ad-title"><p>${ad.adtitle}</p></div>
+                                    <div class="ad-title">${ad.adtitle}</div>
                                     <div class="ad-info">
-                                        <p id="ad-date">${ad.addate}</p>
-                                        <p id="ad-price">
-                                            ${ad.adprice === 0 ? 
-                                            (ad.adcurrency === "ПоДоговор" ? "По Договор" : ad.adcurrency) 
-                                            : ad.adprice + " " + (ad.adcurrency === "ПоДоговор" ? "По Договор" : ad.adcurrency)}
-                                        </p>
+                                        <time datetime="${ad.addate}">${ad.addate}</time>
+                                        <span class="ad-price">
+                                            ${this.formatPrice(ad.adprice, ad.adcurrency)}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
                             <div class="ad-description">
                                 <div class="ad-description-text">${ad.addesc}</div>
-                                ${ad.adimage !== "/Content/images/noImage2.jpg" ? `<div class="ad-image"><img class="ad-img" src="${ad.adimage}" fetchpriority="high"></div>` : ""}
+                                ${this.getImageHTML(ad.adimage)}
                             </div>
                         </div>
                     </a>
                 `;
-            });
-    
-            adsGrid.innerHTML = adsHtml; // Append new ads
+            }
+
+            formatPrice(price, currency) {
+                if (currency === "ПоДоговор") return "По Договор";
+                return price === 0 ? currency : `${price} ${currency}`;
+            }
+
+            getImageHTML(imageUrl) {
+                if (imageUrl === "/Content/images/noImage2.jpg") return '';
+                return `<div class="ad-image">
+                    <img class="ad-img" src="${imageUrl}" loading="lazy" alt="">
+                </div>`;
+            }
+
+            updatePagination() {
+                const totalPages = Math.ceil(this.filteredAds.length / this.adsPerPage);
+                this.elements.pagination.prevBtn.disabled = this.currentPage === 1;
+                this.elements.pagination.nextBtn.disabled = this.currentPage === totalPages;
+                this.elements.pagination.pageNumber.textContent = `Page ${this.currentPage}`;
+            }
         }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => new AdsManager());
     </script>
-    
 {% endblock content %}
 </html>
