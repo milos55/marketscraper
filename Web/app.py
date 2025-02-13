@@ -131,6 +131,10 @@ def about():
 def contact():
     return render_template('contact.html')
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory('static','images','logo', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
 
 if __name__ == '__main__':
     app.run(debug=True)

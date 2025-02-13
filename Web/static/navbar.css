@@ -47,11 +47,14 @@ header{
     justify-content: space-between;
 }
 
-.navbar .logo{
-    font-size: 1.5rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+.logo{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo img{
+    width: 45px;
 }
 
 .navbar .links{
@@ -66,26 +69,12 @@ header{
     display: none;
 }
 
-.action-btn{
-    
-    background-color: #948979;
+.site-name {
     color: #f2f2f2;
-    padding: 0.5rem 1rem;
-    border: none;
-    outline: none;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: scale 0.2s ease;
-}
-
-.action-btn:hover{
-    scale: 1.05;
-}
-
-.action-btn:active{
-    scale: 0.95;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 .dropdown_menu {

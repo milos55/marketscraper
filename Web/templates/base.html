@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='navbar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo/favicon.png') }}">
+    <link rel="icon" type="image/x-con" href="{{ url_for('static', filename='images/logo/favicon.ico') }}">
     {% block head %}{% endblock head %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" crossorigin="anonymous"></script>
     <title>{% block title %}Реклама 5 Читач{% endblock %}</title>
@@ -42,7 +44,10 @@
 <body class="{% block body_class %}flex-layout{% endblock %}">
     <header>
         <div class="navbar">
-            <div class="logo"><a href="#">Market Watcher</a></div>
+            <div class="logo">
+                <img src="{{ url_for('static', filename='images/logo/favicon.ico') }}" alt="logo">
+                <h1 class="site-name">Market Watcher</h1>
+            </div>
             <ul class="links">
                 <li><a href="/"><i class="fa-solid fa-house"></i> Дома</li></a>
                 <li><a href="/about"><i class="fa-solid fa-circle-info"></i> Инфо</li></a>
