@@ -497,6 +497,7 @@ h2 {
     width: 45px;
     padding: 5px;
     text-align: center;
+    font-weight: bold;
 }
 
 /* Number Input Styles */
@@ -542,5 +543,16 @@ input[type=number] {
         flex-direction: column;
         align-items: center;
         text-align: center;
+    }
+
+    .pagination{
+        gap: 3px;
+    }
+    
+    .page-number,
+    .page-input,
+    .page-btn {
+        font-size: 14px;
+        padding: 3px;
     }
 }

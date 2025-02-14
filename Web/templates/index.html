@@ -75,13 +75,20 @@
     <div id="ads-container" class="block">
         <div class="ads-header">
             <h2>Филтрирани огласи</h2>
+            <div class="pagination-container">
+                <div class="pagination">
+                    <button class="page-btn prev-page">Prev</button>
+                    <span class="page-number">Page 1</span>
+                    <button class="page-btn next-page">Next</button>
+                </div>
+            </div>
         </div>
         <div class="ads-grid"></div>
         <div class="pagination-container">
             <div class="pagination">
-                <button class="page-btn" id="prev-page">Prev</button>
+                <button class="page-btn prev-page">Prev</button>
                 <span class="page-number">Page 1</span>
-                <button class="page-btn" id="next-page">Next</button>
+                <button class="page-btn next-page">Next</button>
             </div>
         </div>
     </div>
@@ -90,7 +97,7 @@
         class AdsManager {
             constructor() {
                 this.allAds = [];
-                this.currentPage = 1;
+                this.currentPage = this.getIntialPage();
                 this.adsPerPage = 48;
                 this.selectedCategory = null;
                 this.currentSort = null;
@@ -99,6 +106,17 @@
                 this.initializeElements();
                 this.setupEventListeners();
                 this.fetchAllAds();
+            }
+
+            getIntialPage() {
+                const path = window.location.pathname;
+                const pageMatch = path.match(/\/page\/(\d+)/);
+                return pageMatch ? parseInt(pageMatch[1]) : 1;
+            }
+
+            updateUrl(page) {
+                const newUrl = page === 1 ? '/' : `/page/${page}`;
+                history.pushState({page: page}, '', newUrl);
             }
 
             initializeElements() {
@@ -117,9 +135,9 @@
                         price1: document.getElementById('checkbox-price-1')
                     },
                     pagination: {
-                        prevBtn: document.getElementById('prev-page'),
-                        nextBtn: document.getElementById('next-page'),
-                        pageNumber: document.querySelector('.page-number')
+                        prevBtns: document.querySelectorAll('.prev-page'),
+                        nextBtns: document.querySelectorAll('.next-page'),
+                        pageNumbers: document.querySelectorAll('.page-number')
                     }
                 };
             }
@@ -178,27 +196,49 @@
                 });
 
                 // Pagination
-                this.elements.pagination.prevBtn.addEventListener('click', () => {
-                    if (this.currentPage > 1) {
-                        this.currentPage--;
+                if (this.elements.pagination.prevBtns) {
+                    this.elements.pagination.prevBtns.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            if (this.currentPage > 1) {
+                                this.handlePageChange(this.currentPage - 1);
+                            }
+                            this.scrollToTop();
+                        });
+                    });
+                }
+
+                if (this.elements.pagination.nextBtns) {
+                    this.elements.pagination.nextBtns.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const maxPages = Math.ceil(this.filteredAds.length / this.adsPerPage);
+                            if (this.currentPage < maxPages) {
+                                this.handlePageChange(this.currentPage + 1);
+                            }
+                            this.scrollToTop();
+                        });
+                    });
+                }
+
+                window.addEventListener('popstate', (event) => {
+                    if (event.state && event.state.page) {
+                        this.currentPage = event.state.page;
                         this.displayAds();
                     }
-                    document.body.scrollTo({top: 0, behavior: 'smooth'});
-                    document.documentElement.scrollTo({top: 0, behavior: 'smooth'});
-                });
-
-                this.elements.pagination.nextBtn.addEventListener('click', () => {
-                    const maxPages = Math.ceil(this.filteredAds.length / this.adsPerPage);
-                    if (this.currentPage < maxPages) {
-                        this.currentPage++;
-                        this.displayAds();
-                    }
-
-                    // Scroll to the top
-                    document.body.scrollTo({top: 0, behavior: 'smooth'});
-                    document.documentElement.scrollTo({top: 0, behavior: 'smooth'});
-                });
+                });              
             }
+
+            // Scroll to top for pagiantion
+            scrollToTop() {
+                document.body.scrollTo({ top: 0, behavior: 'smooth' });
+                document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            handlePageChange(newPage) {
+                this.currentPage = newPage;
+                this.updateUrl(newPage);
+                this.displayAds();
+            }
+
 
             async fetchAllAds() {
                 try {
@@ -314,7 +354,7 @@
             }
 
             getImageHTML(imageUrl) {
-                if (imageUrl === "/Content/images/noImage2.jpg") return '';
+                if (imageUrl === "/Content/images/noImage2.jpg") return `<img src="{{ url_for('static', filename='images/no-image.png') }}" alt="logo" height=100px width=100px>`;
                 return `<div class="ad-image">
                     <img class="ad-img" src="${imageUrl}" loading="lazy" alt="">
                 </div>`;
@@ -322,11 +362,53 @@
 
             updatePagination() {
                 const totalPages = Math.ceil(this.filteredAds.length / this.adsPerPage);
-                this.elements.pagination.prevBtn.disabled = this.currentPage === 1;
-                this.elements.pagination.nextBtn.disabled = this.currentPage === totalPages;
-                this.elements.pagination.pageNumber.innerHTML = `
-                    Page <input type="number" class="page-input" value="${this.currentPage}" min="1" max="${totalPages}" id="pageInput"> / ${totalPages}
-                `;
+                
+                if (this.elements.pagination.prevBtns) {
+                    this.elements.pagination.prevBtns.forEach(btn => {
+                        btn.disabled = this.currentPage === 1;
+                    });
+                }
+                
+                if (this.elements.pagination.nextBtns) {
+                    this.elements.pagination.nextBtns.forEach(btn => {
+                        btn.disabled = this.currentPage === totalPages;
+                    });
+                }
+
+                if (this.elements.pagination.pageNumbers) {
+                    this.elements.pagination.pageNumbers.forEach(pageNumber => {
+                        pageNumber.innerHTML = `
+                            Page <input type="number" class="page-input" value="${this.currentPage}" min="1" max="${totalPages}"> / ${totalPages}
+                        `;
+
+                        const pageInput = pageNumber.querySelector('.page-input');
+                        if (pageInput) {
+                            // Remove any existing event listeners
+                            const newPageInput = pageInput.cloneNode(true);
+                            pageInput.parentNode.replaceChild(newPageInput, pageInput);
+                            
+                            newPageInput.addEventListener('change', (e) => {
+                                const newPage = parseInt(e.target.value);
+                                if (newPage >= 1 && newPage <= totalPages) {
+                                    this.handlePageChange(newPage);
+                                } else {
+                                    e.target.value = this.currentPage;
+                                }
+                            });
+
+                            newPageInput.addEventListener('keypress', (e) => {
+                                if (e.key === 'Enter') {
+                                    const newPage = parseInt(e.target.value);
+                                    if (newPage >= 1 && newPage <= totalPages) {
+                                        this.handlePageChange(newPage);
+                                    } else {
+                                        e.target.value = this.currentPage;
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
             }
         }
 

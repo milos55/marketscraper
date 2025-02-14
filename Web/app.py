@@ -57,8 +57,13 @@ def index():
     categories = db.session.query(Ad.category).distinct().all()
     categories = [category[0] for category in categories if category[0]]  # Filter out None values
 
-    return render_template('index.html', categories=categories)
+    return render_template('index.html', categories=categories, current_page=1)
 
+@app.route('/page/<int:page_number>')
+def page(page_number):
+    categories = db.session.query(Ad.category).distinct().all()
+    categories = [category[0] for category in categories if category[0]]
+    return render_template('index.html', categories=categories, current_page=page_number)
 
 @app.route('/fetch_ads', methods=['POST'])
 def fetch_ads():
@@ -130,11 +135,6 @@ def about():
 @app.route('/contact')
 def contact():
     return render_template('contact.html')
-
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory('static','images','logo', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
 
 if __name__ == '__main__':
     app.run(debug=True)
