@@ -10,7 +10,7 @@
     <link rel="icon" type="image/x-con" href="{{ url_for('static', filename='images/logo/favicon.ico') }}">
     {% block head %}{% endblock head %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" crossorigin="anonymous"></script>
-    <title>{% block title %}Реклама 5 Читач{% endblock %}</title>
+    <title>{% block title %}Market Watcher{% endblock %}</title>
 </head>
 
 <script>
@@ -61,9 +61,6 @@
                 <a href="/"><li><i class="fa-solid fa-house"></i> Дома</li></a>
                 <a href="/about"><li><i class="fa-solid fa-circle-info"></i> Инфо</li></a>
                 <a href="/contact"><li><i class="fa-solid fa-address-book"></i> Контакт</li></a>
-                {% if request.path == '/' %}
-                <li><a href="#" class="action-btn">Влези  <i class="fa-solid fa-arrow-right"></i></a></li>
-                {% endif %}
             </div>
         </div>   
     </header>

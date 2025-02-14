@@ -127,7 +127,11 @@ h2 {
     transition: background-color 0.3s ease;
 }
 
-.sort-btn{
+.category-btn:hover {
+    background-color: burlywood;
+}
+
+.sort-btn, .search-type-btn {
     width: 100%;
     height: 100%;
     padding: 10px;
@@ -141,9 +145,7 @@ h2 {
     transition: background-color 0.3s ease;
 }
 
-.category-btn:hover {
-    background-color: burlywood;
-}
+
 
 /* Search Bar Components */
 .parent-container-search-bar {
@@ -238,13 +240,18 @@ h2 {
 
 /* Dropdown Menus */
 .dropdown-cat-btn,
-.dropdown-date-btn {
+.dropdown-date-btn,
+.dropdown-search-btn {
     background-color: transparent;
     border: none;
     padding: 10px;
 }
 
-.dropdown-date-menu {
+.dropdown-search-btn {
+    border-right: 1px solid #ccc;
+}
+
+.dropdown-date-menu, .dropdown-search-type-menu {
     display: none;
     position: absolute;
     background-color: #f4f3f2;
@@ -299,7 +306,8 @@ h2 {
 
 .dropdown:hover .dropdown-cat-menu,
 .dropdown:focus-within .dropdown-cat-menu,
-.dropdown:hover .dropdown-date-menu, .dropdown:focus-within .dropdown-date-menu {
+.dropdown:hover .dropdown-date-menu, .dropdown:focus-within .dropdown-date-menu,
+.dropdown:hover .dropdown-search-type-menu, .dropdown:focus-within .dropdown-search-type-menu {
     display: block !important;
 }
 
@@ -345,6 +353,10 @@ h2 {
     align-items: flex-start;
     gap: 15px;
     transition: opacity 0.3s ease-in-out;
+}
+
+.ads-grid.hidden {
+    opacity: 0;
 }
 
 .ads-header {
