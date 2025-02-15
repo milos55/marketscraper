@@ -155,6 +155,37 @@
                 };
             }
 
+            // Transliteration new
+            transliterate(text) {
+                const translitmap = {
+                    'a': 'а', 'b': 'б', 'v': 'в', 'g': 'г', 'd': 'д',
+                    'gj': 'ѓ', 'e': 'е', 'zh': 'ж', 'z': 'з', 'dz': 'ѕ',
+                    'i': 'и', 'j': 'ј', 'k': 'к', 'l': 'л', 'lj': 'љ',
+                    'm': 'м', 'n': 'н', 'nj': 'њ', 'o': 'о', 'p': 'п',
+                    'r': 'р', 's': 'с', 't': 'т', 'kj': 'ќ', 'u': 'у',
+                    'f': 'ф', 'h': 'х', 'c': 'ц', 'ch': 'ч', 'dj': 'џ',
+                    'sh': 'ш'
+                };
+            
+
+            let result = text.toLowerCase();
+
+            Object.entries(translitmap).forEach(([lat, cyr]) => {
+                if (lat.length > 1) {
+                    result = result.replace(new RegExp(lat, 'g'), cyr); // if is sh or similar will return ш            
+                }
+            });
+
+            Object.entries(translitmap).forEach(([lat, cyr]) => {
+                if (lat.length === 1) {
+                    result = result.replace(new RegExp(lat, 'g'), cyr);  // if is single element such as t or e or similar will return т, е
+                }
+            });
+
+            return result;
+            }
+            
+
             setupEventListeners() {
                 // Dropdowns
                 this.elements.categoryBtn.addEventListener('click', () => {
@@ -294,15 +325,33 @@
                 // Search terms filter
                 if (this.searchTerms[0] !== '') {
                     filtered = filtered.filter(ad => {
-                    const titleMatch = this.elements.checkboxes.title.checked && 
-                        (this.matchMethod === "every" ? 
-                            this.searchTerms.every(term => ad.adtitle.toLowerCase().includes(term)) :
-                            this.searchTerms.some(term => ad.adtitle.toLowerCase().includes(term)));
-                    const descMatch = this.elements.checkboxes.desc.checked && 
-                        (this.matchMethod === "every" ? 
-                            this.searchTerms.every(term => ad.addesc.toLowerCase().includes(term)) :
-                            this.searchTerms.some(term => ad.addesc.toLowerCase().includes(term)));
-                    return titleMatch || descMatch;
+                        const titleMatch = this.elements.checkboxes.title.checked && 
+                            (this.matchMethod === "every" ? 
+                                this.searchTerms.every(term => {
+                                    const transliteratedTerm = this.transliterate(term);
+                                    return ad.adtitle.toLowerCase().includes(term) || 
+                                        ad.adtitle.toLowerCase().includes(transliteratedTerm);
+                                }) :
+                                this.searchTerms.some(term => {
+                                    const transliteratedTerm = this.transliterate(term);
+                                    return ad.adtitle.toLowerCase().includes(term) || 
+                                        ad.adtitle.toLowerCase().includes(transliteratedTerm);
+                                }));
+
+                        const descMatch = this.elements.checkboxes.desc.checked && 
+                            (this.matchMethod === "every" ? 
+                                this.searchTerms.every(term => {
+                                    const transliteratedTerm = this.transliterate(term);
+                                    return ad.addesc.toLowerCase().includes(term) || 
+                                        ad.addesc.toLowerCase().includes(transliteratedTerm);
+                                }) :
+                                this.searchTerms.some(term => {
+                                    const transliteratedTerm = this.transliterate(term);
+                                    return ad.addesc.toLowerCase().includes(term) || 
+                                        ad.addesc.toLowerCase().includes(transliteratedTerm);
+                                }));
+
+                        return titleMatch || descMatch;
                     });
                 }
 
@@ -376,6 +425,7 @@
                                         </span>
                                     </div>
                                 </div>
+                                <div class="ad-phone">Телефон: ${this.formatPhone(ad.adphone)}</div>
                             </div>
                             <div class="ad-description">
                                 <div class="ad-description-text">${ad.addesc}</div>
@@ -392,7 +442,20 @@
                 return price === 0 ? currency : `${price} ${currency}`;
             }
 
-            // Display image on ad
+            // Format phone to be xxx-xxx-xxx instead of some being xxxxxxxxx or xxx xxx xxx
+            formatPhone(phone) {
+                if (!phone) return "N/A";
+
+                const cleanedPhone = phone.replace(/\D/g, '');
+
+                if (cleanedPhone.length === 9) {
+                    return cleanedPhone.replace(/(\d{3})(\d{3})(\d{3})/, '$1-$2-$3');
+                }
+
+                return phone;
+            }
+
+            // Display image on ad, lazy so images get loaded with less blocked erros best would be high-prio
             getImageHTML(imageUrl) {
                 if (imageUrl === "/Content/images/noImage2.jpg") return `<img src="{{ url_for('static', filename='images/no-image.png') }}" alt="logo" height=100px width=100px>`;
                 return `<div class="ad-image">

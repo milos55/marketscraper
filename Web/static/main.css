@@ -225,7 +225,7 @@ h2 {
     align-items: center;
     gap: 5px;
     padding: 7px;
-    color: #f2f2f2;
+    color: #f4f3f2;
     background-color: #3c5b6f;
     border: 2px solid #333333;
     border-radius: 15px;
@@ -391,7 +391,7 @@ h2 {
     font-weight: bold;
     color: #FFFFFF;
     margin-bottom: 15px;
-    border-bottom: 2px solid #f2f2f2;
+    border-bottom: 2px solid #f4f3f2;
     text-decoration: none;
 }
 
@@ -399,6 +399,11 @@ h2 {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+}
+
+.ad-phone {
+    font-size: 16px;
+    font-weight: bold;
 }
 
 .ad-title {
@@ -459,13 +464,13 @@ h2 {
 #ad-price {
     padding: 0 4px 2px;
     margin-left: 15px;
-    border-left: 2px solid #f2f2f2;
+    border-left: 2px solid #f4f3f2;
     border-radius: 4px;
 }
 
 #ad-date {
     padding: 0 4px 2px;
-    border-right: 2px solid #f2f2f2;
+    border-right: 2px solid #f4f3f2;
     border-radius: 4px;
 }
 
@@ -488,7 +493,7 @@ h2 {
 
 .page-number,
 .page-btn {
-    color: #f2f2f2;
+    color: #f4f3f2;
     background-color: transparent;
     border: none;
     padding: 10px;
@@ -502,7 +507,7 @@ h2 {
 }
 
 .page-input {
-    color: #f2f2f2;
+    color: #f4f3f2;
     background-color: transparent;
     border: none;
     font-size: 15px;

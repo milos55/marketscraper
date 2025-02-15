@@ -45,6 +45,7 @@ class Ad(db.Model):
             'adcurrency': self.currency,
             'adcategory': self.category, # Need for filter by category check in prod
             'adimage': self.image_url, # Need for AD images
+            'adphone': str(self.phone) if self.phone is not None else "N/A",
             'addate': self.date.strftime("%d.%m.%Y") if self.date else "N/A",
             'addesc': self.description,
             'adstore': self.store
@@ -93,39 +94,6 @@ def fetch_ads():
     ads_list = [ad.to_dict() for ad in ads]
 
     return jsonify(ads_list)
-
-
-# Redundant? Boro advise
-@app.route('/search_ads', methods=['POST'])
-def search_ads():
-    data = request.json
-    ads = data.get('ads')
-    keywords = data.get('keywords')
-    search_title = data.get('search_title', False)
-    search_desc = data.get('search_desc', False)
-
-    results = search_ads_and_update_progress(ads, keywords, search_title, search_desc)
-    return jsonify(results)
-
-# Redundant? Boro advise
-def search_ads_and_update_progress(ads, keywords, search_title=True, search_desc=True):
-    results = []
-    for ad in ads:
-        match_found = False
-        if search_title:
-            for keyword in keywords:
-                if keyword.lower() in ad.get("adtitle", "").lower():
-                    match_found = True
-                    break
-        if not match_found and search_desc:
-            for keyword in keywords:
-                if keyword.lower() in ad.get("addesc", "").lower():
-                    match_found = True
-                    break
-        if match_found:
-            results.append(ad)
-    return results
-
 
 @app.route('/about')
 def about():
