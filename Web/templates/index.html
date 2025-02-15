@@ -81,12 +81,12 @@
     <!-- Ads Container -->
     <div id="ads-container" class="block">
         <div class="ads-header">
-            <h2>Филтрирани огласи</h2>
+            <h2>Огласи</h2>
             <!-- Top Pagination -->
             <div class="pagination-container">
                 <div class="pagination">
                     <button class="page-btn prev-page">Prev</button>
-                    <span class="page-number">Page 1</span>
+                    <span class="page-number">Страна 1</span>
                     <button class="page-btn next-page">Next</button>
                 </div>
             </div>
@@ -96,7 +96,7 @@
         <div class="pagination-container">
             <div class="pagination">
                 <button class="page-btn prev-page">Prev</button>
-                <span class="page-number">Page 1</span>
+                <span class="page-number">Страна 1</span>
                 <button class="page-btn next-page">Next</button>
             </div>
         </div>
@@ -121,12 +121,12 @@
 
             getIntialPage() {
                 const path = window.location.pathname;
-                const pageMatch = path.match(/\/page\/(\d+)/);
+                const pageMatch = path.match(/\/Страна\/(\d+)/);
                 return pageMatch ? parseInt(pageMatch[1]) : 1;
             }
 
             updateUrl(page) {
-                const newUrl = page === 1 ? '/' : `/page/${page}`;
+                const newUrl = page === 1 ? '/' : `/Страна/${page}`;
                 history.pushState({page: page}, '', newUrl);
             }
 
@@ -482,7 +482,7 @@
                 if (this.elements.pagination.pageNumbers) {
                     this.elements.pagination.pageNumbers.forEach(pageNumber => {
                         pageNumber.innerHTML = `
-                            Page <input type="number" class="page-input" value="${this.currentPage}" min="1" max="${totalPages}"> / ${totalPages}
+                            Страна <input type="number" class="page-input" value="${this.currentPage}" min="1" max="${totalPages}"> / ${totalPages}
                         `;
 
                         const pageInput = pageNumber.querySelector('.page-input');
