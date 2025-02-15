@@ -59,6 +59,7 @@ header{
 
 .navbar .links{
     display: flex;
+    align-items: center;
     gap: 2rem;
 }
 
@@ -68,6 +69,24 @@ header{
     cursor: pointer;
     display: none;
 }
+
+.navbar .lang-menu{
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+}
+
+.navbar .lang-menu .lang-btn{
+    color: #f2f2f2;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.navbar .lang-menu img{
+    width: 20px;
+    height: 10px;
+}
+
 
 .site-name {
     color: #f2f2f2;
@@ -94,6 +113,7 @@ header{
 .dropdown_menu.active {
     display: flex;
     flex-direction: column; /* Show when active */
+    z-index: 1000;
 }
 
 .dropdown_menu li {    

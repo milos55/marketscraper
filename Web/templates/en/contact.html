@@ -1,0 +1,24 @@
+{% extends 'base_en.html' %}
+
+{% block body_class %}about{% endblock body_class %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='contact.css') }}">
+{% endblock head %}
+
+
+
+    {% block content %}
+        <div class="contact-container">
+        <h1 class="title"><i class="fa-solid fa-comments"></i> Found a problem on our site, help us fix it</h1>
+        <h2><a href="https://github.com/milos55/Reklama5scraper/issues/new/choose" class="contact-item" target="_blank"><i class="fa-solid fa-message"></i> Report a problem</a></h2>
+        <!--Temporary emails and contact change msmil-->
+        <h1 class="title"><i class="fa-solid fa-comment"></i> Ways to contact us</h1>
+        <h3><a href="mailto:xxxxxxx@gmail.com" class="contact-item"><i class="fa-solid fa-envelope"></i> xxxxx@gmail.com</a></h2>
+        <h3><a href="mailto:xxxxxxx@gmail.com" class="contact-item"><i class="fa-solid fa-envelope"></i> Email</a></h2>
+        <h3><a href="tel:+389 79 xxx xxx" class="contact-item"><i class="fa-solid fa-phone"></i> Phone</a></h2>
+        <h3><a href="tel:+389 78 xxx xxx" class="contact-item"><i class="fa-solid fa-phone"></i> Phone</a></h2>
+        </div>
+    {% endblock content %}
+    
+
+    

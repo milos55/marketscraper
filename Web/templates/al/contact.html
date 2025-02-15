@@ -1,0 +1,20 @@
+{% extends 'base_al.html' %}
+
+{% block body_class %}about{% endblock body_class %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='contact.css') }}">
+{% endblock head %}
+
+{% block content %}
+    <div class="contact-container">
+        <h1 class="title"><i class="fa-solid fa-comments"></i> Gjetët një problem në faqen tonë, na ndihmoni ta rregullojmë</h1>
+        <h2><a href="https://github.com/milos55/Reklama5scraper/issues/new/choose" class="contact-item" target="_blank"><i class="fa-solid fa-message"></i> Raporto një problem</a></h2>
+        <!-- Emails dhe kontakt të përkohshëm ndryshim msmil -->
+        <h1 class="title"><i class="fa-solid fa-comment"></i> Mënyra për të na kontaktuar</h1>
+        <h3><a href="mailto:xxxxxxx@gmail.com" class="contact-item"><i class="fa-solid fa-envelope"></i> xxxxx@gmail.com</a></h3>
+        <h3><a href="mailto:xxxxxxx@gmail.com" class="contact-item"><i class="fa-solid fa-envelope"></i> Email</a></h3>
+        <h3><a href="tel:+389 79 xxx xxx" class="contact-item"><i class="fa-solid fa-phone"></i> Telefoni</a></h3>
+        <h3><a href="tel:+389 78 xxx xxx" class="contact-item"><i class="fa-solid fa-phone"></i> Telefoni</a></h3>
+    </div>
+{% endblock content %}
+

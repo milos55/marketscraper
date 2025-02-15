@@ -1,0 +1,31 @@
+{% extends 'base_al.html' %}
+
+{% block body_class %}about{% endblock body_class %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='about.css') }}">
+{% endblock head %}
+
+
+
+    {% block content %}
+        <div class="about-container">
+        <h1 class="title"><i class="fa-solid fa-circle-info"></i> Informacione</h1>
+        <h2 class="text"><i class="fa-solid fa-gears"></i> Si funksionon</h2>
+        <ol>
+            <li class="list-item">1. Zgjidhni kategorin: Klikoni ne kategorine e perkateshme.</li>
+            <li class="list-item">2. Zgjidhni n kategori</li>
+            <li class="list-item">4. Vendosni fjale per te cilat kerkoni nga te ndare me presje: Kerkon automatikisht ne Shqip dhe Latin.</li>
+            <li class="list-item" style="text-indent: 100px;">4.1.  Zgjidhni metoden e kerkimit ne baredheni</li> <!--HACK fix later-->
+            <li class="list-item" style="text-indent: 100px;">4.2.  Zgjidhni metoden e renditjes (opcional)</li> <!--HACK fix later-->
+        </ol>
+        <h2 class="text"><i class="fa-solid fa-heart"></i> Pse ky sajte ekziston</h2>
+        <p class="text"> Kjo faqe ekziston sepse une kam qene i irituar qe te gjitha faqet e shqiptare per reklam b kerkonin vetem ne titull dhe nuk kane logjike te mire per kerkim, 
+                         prandaj kjo faqe e zgjidh kete probleme duke ofruar mundesine te kerkohet ne titull dhe permbajtje dhe te ket mundesine te zgjidhet metoda e kerkimit, 
+                         shpresoj qe ky sajte te jet i dobishem per dikend</p>
+        </div>   
+            
+    {% endblock content %}
+    
+    
+    
+

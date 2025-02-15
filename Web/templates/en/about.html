@@ -1,0 +1,31 @@
+{% extends 'base_en.html' %}
+
+{% block body_class %}about{% endblock body_class %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='about.css') }}">
+{% endblock head %}
+
+
+
+    {% block content %}
+        <div class="about-container">
+        <h1 class="title"><i class="fa-solid fa-circle-info"></i> Information</h1>
+        <h2 class="text"><i class="fa-solid fa-gears"></i> How it works</h2>
+        <ol>
+            <li class="list-item">1. Choose category: Click on the appropriate category.</li>
+            <li class="list-item">2. Choose subcategory</li>
+            <li class="list-item">4. Enter words to search for, separated by commas: Automatically searches in both Macedonian and Latin.</li>
+            <li class="list-item" style="text-indent: 100px;">4.1.  Choose search method from the dropdown</li> <!--HACK fix later-->
+            <li class="list-item" style="text-indent: 100px;">4.2.  Choose sorting method (optional)</li> <!--HACK fix later-->
+        </ol>
+        <h2 class="text"><i class="fa-solid fa-heart"></i> Why this site exists</h2>
+        <p class="text"> This site exists because I was annoyed that all Macedonian websites for ads search only by title and don't have good search logic, 
+                         so this site solves that by allowing search by title and description and having more options for search methods, 
+                         I hope this site will be useful to someone</p>
+        </div>   
+            
+    {% endblock content %}
+    
+
+    
+

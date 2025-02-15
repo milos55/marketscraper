@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date
 
@@ -54,17 +54,31 @@ class Ad(db.Model):
 
 @app.route('/')
 def index():
-    # Fetch unique categories from the database
-    categories = db.session.query(Ad.category).distinct().all()
-    categories = [category[0] for category in categories if category[0]]  # Filter out None values
+    lang = request.cookies.get('lang', 'mkd')
+    return redirect(url_for('index_lang', lang=lang))
 
-    return render_template('index.html', categories=categories, current_page=1)
+@app.route('/<lang>/')
+@app.route('/<lang>/page/<int:page_number>')
+def index_lang(lang, page_number=1):
+    if lang not in ['mkd', 'al', 'en']:
+        lang = 'mkd'  # Fallback to Macedonian if the language is invalid
 
-@app.route('/page/<int:page_number>')
-def page(page_number):
-    categories = db.session.query(Ad.category).distinct().all()
-    categories = [category[0] for category in categories if category[0]]
-    return render_template('index.html', categories=categories, current_page=page_number)
+    # Fetch ads for the specified page
+    per_page = 48  # Number of ads per page
+    ads_pagination = Ad.query.paginate(page=page_number, per_page=per_page, error_out=False)
+    ads = ads_pagination.items
+
+    # Render the template with ads and pagination data
+    return render_template(f'{lang}/index.html', ads=ads, current_page=page_number, pagination=ads_pagination)
+
+@app.route('/set_language/<lang>/')
+def set_language(lang):
+    if lang not in ['mkd', 'en', 'al']:
+        lang = 'mkd'
+
+    response = redirect(url_for('index_lang', lang=lang))
+    response.set_cookie('lang', lang, max_age=60*60*24*30)  # Store language in a cookie for 30 days
+    return response
 
 @app.route('/fetch_ads', methods=['POST'])
 def fetch_ads():
@@ -95,14 +109,20 @@ def fetch_ads():
 
     return jsonify(ads_list)
 
-@app.route('/about')
-def about():
-    return render_template('about.html')
+@app.route('/<lang>/about')
+def about(lang):
+    if lang not in ['mkd', 'en', 'al']:
+        lang = 'mkd'
+
+    return render_template(f'{lang}/about.html')
 
 
-@app.route('/contact')
-def contact():
-    return render_template('contact.html')
+@app.route('/<lang>/contact')
+def contact(lang):
+    if lang not in ['mkd', 'en', 'al']:
+        lang = 'mkd'
+
+    return render_template(f'{lang}/contact.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

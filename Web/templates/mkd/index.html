@@ -1,6 +1,4 @@
 {% extends 'base.html' %}
-<!DOCTYPE html>
-<html lang="en">
 
 {% block content %}
     <div id="main-container" class="container">
@@ -81,12 +79,12 @@
     <!-- Ads Container -->
     <div id="ads-container" class="block">
         <div class="ads-header">
-            <h2>Огласи</h2>
+            <h2>Филтрирани огласи</h2>
             <!-- Top Pagination -->
             <div class="pagination-container">
                 <div class="pagination">
                     <button class="page-btn prev-page">Prev</button>
-                    <span class="page-number">Страна 1</span>
+                    <span class="page-number">Page 1</span>
                     <button class="page-btn next-page">Next</button>
                 </div>
             </div>
@@ -96,7 +94,7 @@
         <div class="pagination-container">
             <div class="pagination">
                 <button class="page-btn prev-page">Prev</button>
-                <span class="page-number">Страна 1</span>
+                <span class="page-number">Page 1</span>
                 <button class="page-btn next-page">Next</button>
             </div>
         </div>
@@ -121,13 +119,20 @@
 
             getIntialPage() {
                 const path = window.location.pathname;
-                const pageMatch = path.match(/\/Страна\/(\d+)/);
+                const pageMatch = path.match(/\/page\/(\d+)/);
                 return pageMatch ? parseInt(pageMatch[1]) : 1;
             }
 
             updateUrl(page) {
-                const newUrl = page === 1 ? '/' : `/Страна/${page}`;
+                const lang = this.getLanguageFromUrl();
+                const newUrl = page === 1 ? '/${lang}/' : `/${lang}/page/${page}`;
                 history.pushState({page: page}, '', newUrl);
+            }
+
+            getLanguageFromUrl() {
+                const path = window.location.pathname;
+                const languageMatch = path.match(/\/(mkd|en|al)\//);
+                return languageMatch ? languageMatch[1] : 'mkd';
             }
 
             initializeElements() {
@@ -457,15 +462,27 @@
 
             // Display image on ad, lazy so images get loaded with less blocked erros best would be high-prio
             getImageHTML(imageUrl) {
-                if (imageUrl === "/Content/images/noImage2.jpg") return `<img src="{{ url_for('static', filename='images/no-image.png') }}" alt="logo" height=100px width=100px>`;
-                return `<div class="ad-image">
-                    <img class="ad-img" src="${imageUrl}" loading="lazy" alt="">
-                </div>`;
+                const placeholderImage = "{{ url_for('static', filename='images/no-image.png') }}";
+                
+                if (imageUrl === "/Content/images/noImage2.jpg") {
+                    return `<img src="${placeholderImage}" alt="No image available" height="100px" width="100px">`;
+                }
+                
+                return `
+                    <div class="ad-image">
+                        <img class="ad-img" 
+                            src="${imageUrl}" 
+                            loading="lazy" 
+                            alt="Ad image" 
+                            onerror="this.onerror=null; this.src='${placeholderImage}';">
+                    </div>
+                `;
             }
 
             // Update pagination when page change
             updatePagination() {
                 const totalPages = Math.ceil(this.filteredAds.length / this.adsPerPage);
+                const lang = this.getLanguageFromUrl();
                 
                 if (this.elements.pagination.prevBtns) {
                     this.elements.pagination.prevBtns.forEach(btn => {
@@ -520,4 +537,3 @@
         document.addEventListener('DOMContentLoaded', () => new AdsManager());
     </script>
 {% endblock content %}
-</html>
