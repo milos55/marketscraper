@@ -8,6 +8,7 @@ import asyncpg
 from bs4 import BeautifulSoup
 from datetime import datetime
 from ad import Ad
+import time
 
 
 
@@ -25,7 +26,7 @@ DB_CONFIG = {
 #Made config parameters in seperate block for readability and scalability
 
 START_PAGE = 1
-END_PAGE = 100
+END_PAGE = 1000
 BATCH_SIZE = 5 + 1 #dirty hack, to not create a secondary variable
 URL = "https://www.reklama5.mk/Search?city=&cat=0&q="
 
@@ -37,7 +38,7 @@ URL = "https://www.reklama5.mk/Search?city=&cat=0&q="
 
 #MAIN CODE
 
-async def fetch_page(session, URL):
+async def fetch_page(session, URL, retries=3, delay=2):
     headers = {
         "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
         "Accept-Language": "en-US,en;q=0.9",
@@ -46,11 +47,22 @@ async def fetch_page(session, URL):
         "Upgrade-Insecure-Requests": "1",
     }
 
-    async with session.get(URL, headers=headers) as response:
-        if response.status != 200:
-            print(f"Page failed to load: {URL} (status code {response.status})")
-            return None
-        return await response.text()
+    for attempt in range(retries):
+        try:
+            async with session.get(URL, headers=headers) as response:
+                if response.status == 200:
+                    return await response.text()
+                else:
+                    print(f"Attempt {attempt + 1}: Failed to fetch {URL} (status {response.status})")
+
+        except Exception as e:
+            print(f"Attempt {attempt + 1}: Error fetching {URL} - {e}")
+
+        if attempt < retries - 1:
+            await asyncio.sleep(delay)  # Wait before retrying
+
+    print(f"Giving up on {URL} after {retries} attempts.")
+    return None
 
 def convert_today_date(date_str):
     if date_str.startswith("Денес"):
@@ -153,9 +165,15 @@ async def save_to_db(ads):
     await conn.close()
 
 async def main(URL, START_PAGE, END_PAGE, BATCH_SIZE):
+    start_time = time.time()
+
     ads = await fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE)
     print(f"Scraped {len(ads)} ads.")
     await save_to_db(ads)
+
+    end_time = time.time()
+    total_time = end_time - start_time
+    print(f"Total time: {total_time:.2f} seconds")
 
 
 

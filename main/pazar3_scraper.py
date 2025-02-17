@@ -26,9 +26,15 @@ URL = "https://www.pazar3.mk/oglasi/"
 
 # MAIN CODE
 
-async def fetch_page(page, url):
-    await page.goto(url, wait_until="networkidle")
-    return await page.content()
+async def fetch_page(page, URL):
+    try:
+        await page.goto(URL, timeout=60000)
+        await page.wait_for_load_state("load")  # Ensure dynamic content loads
+        return await page.content()
+    except Exception as e:
+        print(f"Failed to load {URL}: {e}")
+        return None
+
 
 def convert_today_date(date_str):
     if date_str.startswith("Денес"):
@@ -41,7 +47,7 @@ async def fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE):
     ads = []
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(headless=False)
         page = await browser.new_page()
 
         for batch_start in range(START_PAGE, END_PAGE + 1, BATCH_SIZE):
@@ -49,39 +55,34 @@ async def fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE):
             print(f"Scraping pages {batch_start} to {batch_end}")
 
             for page_num in range(batch_start, batch_end + 1):
-                page_url = f"{URL}&page={page_num}"
-                page_content = await fetch_page(page, page_url)
+                page_url = f"{URL}?Page={page_num}"
+                await page.goto(page_url, timeout=60000)
+                await page.wait_for_load_state("load")
 
-                if page_content is None:
-                    print(f"Skipping page {page_num}: Invalid content")
-                    continue
+                ad_elements = await page.locator("div.class_of_ad_container").all()  # Adjust the selector!
 
-                soup = BeautifulSoup(page_content, "html.parser")
-
-                # Find all script tags with JSON-LD data
-                script_tags = soup.find_all('script', type='application/ld+json')
-                for script in script_tags:
+                for ad in ad_elements:
                     try:
-                        # Parse the JSON-LD data
-                        json_data = json.loads(script.string)
+                        title = await ad.locator("css=selector_for_title").inner_text()
+                        price = await ad.locator("css=selector_for_price").inner_text()
+                        date = await ad.locator("css=selector_for_date").inner_text()
+                        image = await ad.locator("css=selector_for_image").get_attribute("src")
+                        category = await ad.locator("css=selector_for_category").inner_text()
 
-                        # If the JSON-LD data is a list, iterate through it
-                        if isinstance(json_data, list):
-                            for item in json_data:
-                                if item.get("@type") == "Product":
-                                    process_ad(item, ads)
-                        # If the JSON-LD data is a dictionary, process it directly
-                        elif isinstance(json_data, dict):
-                            if json_data.get("@type") == "Product":
-                                process_ad(json_data, ads)
-                    except json.JSONDecodeError as e:
-                        print(f"Error decoding JSON-LD on page {page_num}: {e}")
+                        ads.append({
+                            "title": title.strip(),
+                            "price": price.strip(),
+                            "date": date.strip(),
+                            "image": image.strip() if image else None,
+                            "category": category.strip()
+                        })
+
                     except Exception as e:
-                        print(f"Error processing JSON-LD on page {page_num}: {e}")
+                        print(f"Error extracting ad data: {e}")
 
             print(f"Finished scraping pages {batch_start} to {batch_end}")
             await save_to_db(ads)
-            await asyncio.sleep(2)  # Add a delay to avoid rate limiting
+            await asyncio.sleep(2)  # Prevent rate limiting
 
         await browser.close()
 
