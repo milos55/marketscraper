@@ -149,7 +149,12 @@ async def save_to_db(ads):
                 ad.date = datetime.strptime(ad.date, "%d.%m.%Y %H:%M")
             elif ad.date == "N/A":
                 ad.date = None  
-  
+
+            required_fields = [ad.title, ad.description, ad.link, ad.image_url, ad.category, ad.phone, ad.date, ad.price, ad.currency, ad.store]
+            if any(field is None for field in required_fields): # Protection agaiisnt null values so it doesn't break code, most liklley a deleted ad so not important
+                print(f"Skipping ad {ad.link} with missing required fields.")
+                continue
+
             await conn.execute(
                 """
                 INSERT INTO reklami (title, description, link, image_url, category, phone, date, price, currency, store)

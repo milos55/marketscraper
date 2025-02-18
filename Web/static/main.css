@@ -209,6 +209,85 @@ h2 {
     font-size: 18px;
 }
 
+/* Slider Stlyes */
+.slider-container {
+    width: 350px;
+    height: 50px;
+    background: transparent;
+    padding: 20px;
+    border-radius: 8px;
+    position: relative;
+    margin-left: 180px;
+}
+.range-slider {
+    position: relative;
+    width: 100%;
+    height: 40px;
+}
+.range-track {
+    position: absolute;
+    height: 6px;
+    background: #007bff;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    transform: translateY(-50%);
+    border-radius: 5px;
+}
+input[type="range"] {
+    -webkit-appearance: none;
+    position: absolute;
+    width: 100%;
+    height: 40px;
+    background: transparent;
+    pointer-events: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #007bff;
+    border-radius: 50%;
+    cursor: pointer;
+    pointer-events: all;
+    position: relative;
+    z-index: 2;
+}
+
+#minBubble, #maxBubble {
+    position: absolute;
+    background: #007bff;
+    color: white;
+    padding: 5px 8px;
+    font-size: 14px;
+    border-radius: 5px;
+    transform: translateX(-50%);
+    top: -30px;
+    white-space: wrap;
+    width: 80px;
+}
+
+#minBubble::after, #maxBubble::after {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #007bff transparent transparent transparent;
+}
+
+.slider-line {
+    position: absolute;
+    top: 10px;  /* Adjust to place the line just above the slider */
+    width: 2px;  /* The thickness of the dotted line */
+    height: 20px; /* The length of the dotted line */
+    background-color: transparent;
+    border-left: 3px solid #4F6272; /* Red dotted line */
+    z-index: 1;
+}
+
 /* Checkbox Styles */
 .checkbox-container {
     display: flex;
