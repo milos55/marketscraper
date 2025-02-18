@@ -406,7 +406,7 @@
             displayAds() {
                 const start = (this.currentPage - 1) * this.adsPerPage;
                 const end = start + this.adsPerPage;
-                const pageAds = this.filteredAds.slice(start, end);
+                const pageAds = this.filteredAds.slice(0, end);
 
                 this.elements.adsGrid.innerHTML = pageAds.length ? 
                     pageAds.map(ad => this.createAdHTML(ad)).join('') : 
