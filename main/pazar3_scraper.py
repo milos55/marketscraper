@@ -2,8 +2,6 @@ import aiohttp
 import asyncio
 from bs4 import BeautifulSoup
 import time
-#TODO ADD CATEGORY
-
 
 # CONFIG
 START_PAGE = 1
@@ -119,10 +117,11 @@ async def fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE):
                         print(f"Link: {link}")
                         print(f"Location: {location if location else 'Not found'}")
                         print(f"Image URL: {image_url if image_url else 'Not found'}")
-                        print(f"Price: {price} {currency if currency else ''}")
+                        print(f"Price: {price if price else 'Not found'}")
+                        print(f"Currency: {currency if currency else 'Not found'}")
                         print(f"Phone: {phone_display}")
-                        print(f"Description: {description[:200] + '...' if description else 'Not found'}")  # Truncated
-                        print("=" * 80)
+                        print(f"Description: {description if description else 'Not found'}")  # Truncated
+                        print("=" * 30)
 
                     except Exception as e:
                         print(f"Error processing ad on page {page_num}: {e}")
