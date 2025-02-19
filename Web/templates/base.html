@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='navbar.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo/favicon.png') }}">
     <link rel="icon" type="image/x-con" href="{{ url_for('static', filename='images/logo/favicon.ico') }}">
     {% block head %}{% endblock head %}
@@ -13,33 +13,7 @@
     <title>{% block title %}Market Watcher{% endblock %}</title>
 </head>
 
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const toggleBtn = document.querySelector('.toggle_btn'); // Select the toggle button
-        const dropdownMenu = document.querySelector('.dropdown_menu'); // Select the dropdown menu
-
-        if (toggleBtn && dropdownMenu) { // Ensure elements exist before adding event listeners
-            toggleBtn.addEventListener('click', () => {
-                dropdownMenu.classList.toggle('active'); // Toggle active class
-            });
-
-            // Optional: Close dropdown when clicking outside
-            document.addEventListener('click', (event) => {
-                if (!toggleBtn.contains(event.target) && !dropdownMenu.contains(event.target)) {
-                    dropdownMenu.classList.remove('active');
-                }
-            });
-
-            // Close menu when resizing back to desktop
-            window.addEventListener('resize', () => {
-                if (window.innerWidth > 992) {
-                    dropdownMenu.classList.remove('active');
-                }
-            });
-        }
-    });
-</script>
-
+<script src="{{ url_for('static', filename='js/base.js') }}"></script>
 
 <body class="{% block body_class %}flex-layout{% endblock %}">
     <header>
