@@ -5,7 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5287c9fe-3a05-4dda-b0bf-0a33a740cc89" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Web/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/Web/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/ad.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/ad.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/pazar3_scraper.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/pazar3_scraper.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/reklami.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/reklami.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/rk5_scraper.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/rk5_scraper.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,19 +37,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.app.executor": "Run",
+    "Python.pazar3_scraper.executor": "Run",
+    "Python.reklami.executor": "Run",
+    "Python.rk5_scraper.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "master",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -62,11 +70,22 @@
       <option name="presentableId" value="Default" />
       <updated>1739059098190</updated>
       <workItem from="1739059101492" duration="3037000" />
-      <workItem from="1739119683961" duration="1911000" />
+      <workItem from="1739119683961" duration="2558000" />
+      <workItem from="1739206967108" duration="11000" />
+      <workItem from="1739207043685" duration="37000" />
+      <workItem from="1739887739522" duration="1678000" />
+      <workItem from="1739986795804" duration="2401000" />
+      <workItem from="1739989226280" duration="7107000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/marketscraper$pazar3_scraper.coverage" NAME="pazar3_scraper Coverage Results" MODIFIED="1739996051140" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/main" />
+    <SUITE FILE_PATH="coverage/marketscraper$rk5_scraper.coverage" NAME="rk5_scraper Coverage Results" MODIFIED="1739996364855" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/main" />
+    <SUITE FILE_PATH="coverage/marketscraper$app.coverage" NAME="app Coverage Results" MODIFIED="1739888879520" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Web" />
+    <SUITE FILE_PATH="coverage/marketscraper$reklami.coverage" NAME="reklami Coverage Results" MODIFIED="1739888024146" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/main" />
   </component>
 </project>
