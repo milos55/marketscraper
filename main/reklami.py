@@ -4,8 +4,8 @@ def connect_to_db():
     conn = psycopg2.connect(
         host="localhost",
         database="reklami",
-        user="milos55",
-        password="smil55"
+        user="boro",
+        password="boro1234"
     )
     return conn
 #Added store, currency, image_url
@@ -23,6 +23,7 @@ def create_table(conn):
                 date TEXT
                 price TEXT,
                 currency TEXT,
+                location TEXT,
                 store TEXT
             )
         """)

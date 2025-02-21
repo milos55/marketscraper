@@ -17,8 +17,8 @@ import time
 #CONFIG
 
 DB_CONFIG = {
-    "user": "milos55",
-    "password": "smil55",
+    "user": "boro",
+    "password": "boro1234",
     "database": "reklami",
     "host": "localhost",
     "port": 5432,
@@ -29,7 +29,7 @@ START_PAGE = 1
 END_PAGE = 10
 BATCH_SIZE = 5 #dirty hack, to not create a secondary variable
 URL = "https://www.reklama5.mk/Search?city=&cat=0&q="
-
+ASYNC_TIMEOUT = 2
 
 
 
@@ -73,7 +73,7 @@ def convert_today_date(date_str):
 async def fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE):
     baseurl = "https://www.reklama5.mk"
     ads = []
-    
+
     async with aiohttp.ClientSession() as session:
         for batch_start in range(START_PAGE, END_PAGE + 1, BATCH_SIZE):
             batch_end = min(batch_start + BATCH_SIZE - 1, END_PAGE)
@@ -104,6 +104,13 @@ async def fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE):
                         image_url = image_ad.find("div", class_="ad-image")["style"].split("url(")[-1].split(")")[0].strip("'\"")
                         image_url = "https:" + image_url if image_url.startswith("//") else image_url
 
+                        location_span = ad.find('span', class_='city-span')
+                        if location_span:
+                            location_text = location_span.text.strip()  # Extract text from the span
+                            location_text = location_text.replace('•', '').strip()  # Remove unwanted characters
+                        else:
+                            location_text = None
+
                         # FIXED MISO 10.02.25 proveri za efikasnost
                         pos = next((i for i, c in enumerate(price_text) if not (c.isdigit() or c == '.')), len(price_text))
                         price_str = price_text[:pos].replace('.', '')
@@ -113,7 +120,7 @@ async def fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE):
                         store = "reklama5"  # Script only works for reklama5, other scripts will be needed for other sites (different web structure)
 
                         #Updated to work with class !! IMPLEMENTRAJ MESTO VAR STORE DA VIKA SAMO REKLAMA5 VIDI ROLLBACK main.py ili nemoze !!
-                        ad = Ad(title, None, rk5adlink, image_url, category, None, None, price, currency, store)
+                        ad = Ad(title, None, rk5adlink, image_url, category, None, None, price, currency,location_text , store)
 
                         #Ti ga 2 put proverues dali postoi link (preko rk5adlink i ad_response), sg ga proverue 1 put
                         #Code reformated to work with class (more readible and functional)
@@ -123,7 +130,7 @@ async def fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE):
                             ad.description = ad_soup.find('p', class_='mt-3').text.strip() if ad_soup.find('p', class_='mt-3') else None
                             ad.phone = ad_soup.find('h6').get_text(strip=True) if ad_soup.find('h6') else None
                             date_element = ad_soup.find_all('div', class_='col-4 align-self-center')
-                            ad.date = convert_today_date(date_element[2].find('span').text.strip()) if len(date_element) > 2 else None  
+                            ad.date = convert_today_date(date_element[2].find('span').text.strip()) if len(date_element) > 2 else None
 
                         ads.append(ad)
 
@@ -135,20 +142,20 @@ async def fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE):
             print(f"Finished scraping pages {batch_start} to {batch_end}")
             await save_to_db(ads)
             #Test lowest time with no error
-            await asyncio.sleep(2)
+            await asyncio.sleep(ASYNC_TIMEOUT)
 
     return ads
 
 #Updated to work with class ad
 async def save_to_db(ads):
     conn = await asyncpg.connect(**DB_CONFIG)
-    
+
     for ad in ads:
         try:
             if isinstance(ad.date, str) and ad.date != "N/A":
                 ad.date = datetime.strptime(ad.date, "%d.%m.%Y %H:%M")
             elif ad.date == "N/A":
-                ad.date = None  
+                ad.date = None
 
             required_fields = [ad.title, ad.description, ad.link, ad.image_url, ad.category, ad.phone, ad.date, ad.price, ad.currency, ad.store]
             if any(field is None for field in required_fields): # Protection agaiisnt null values so it doesn't break code, most liklley a deleted ad so not important
@@ -157,19 +164,19 @@ async def save_to_db(ads):
 
             await conn.execute(
                 """
-                INSERT INTO reklami (title, description, link, image_url, category, phone, date, price, currency, store)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                INSERT INTO reklami (title, description, link, image_url, category, phone, date, price, currency,location ,store)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                 ON CONFLICT (link) DO NOTHING;
                 """,
-                ad.title, ad.description, ad.link, ad.image_url, ad.category, 
-                ad.phone, ad.date, ad.price, ad.currency, ad.store
+                ad.title, ad.description, ad.link, ad.image_url, ad.category,
+                ad.phone, ad.date, ad.price, ad.currency,ad.location ,ad.store
             )
         except Exception as e:
             print(f"Error inserting ad: {e}")
 
     await conn.close()
 
-async def main(URL, START_PAGE, END_PAGE, BATCH_SIZE):
+async def main():
     start_time = time.time()
 
     ads = await fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE)
@@ -181,6 +188,6 @@ async def main(URL, START_PAGE, END_PAGE, BATCH_SIZE):
     print(f"Total time: {total_time:.2f} seconds")
 
 
-
+#REMOVED PARAMS IN MAIN BECAUSE THEY ARE GLOBAL
 if __name__ == "__main__":
-    asyncio.run(main(URL, START_PAGE, END_PAGE, BATCH_SIZE))
+    asyncio.run(main())
