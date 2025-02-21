@@ -55,47 +55,52 @@
             </div>
         </div>
 
-        <!-- Price Slider-->
-        <div class="slider-container">
-            <div class="slider-title"><h4>Цена</h4></div>
-            <div class="range-slider">
-                <input type="range" id="minSlider" min="1" max="50000" value="1">
-                <input type="range" id="maxSlider" min="1" max="50000" value="50000">
-                <div class="range-track"></div>
-                <input type="number" id="minBubble" value="1">
-                <input type="number" id="maxBubble" value="50000">
-
-                <div id="minLine" class="slider-line"></div>
-                <div id="maxLine" class="slider-line"></div>
-                <div class="plus-circle" id="plus-circle">+</div>
-            </div>
-        </div>
-
-        <!-- Search Options -->
-        <div class="checkbox-container">
-            <label class="checkbox-div">
-                <input type="checkbox" id="checkbox-title" checked>
-                Барај по наслов
-            </label>
-            <label class="checkbox-div">
-                <input type="checkbox" id="checkbox-desc" checked>
-                Барај по опис
-            </label>
-            <label class="checkbox-div">
-                <input type="checkbox" id="checkbox-podogovor">
-                Отстрани огласи По Договор
-            </label>
-            <label class="checkbox-div">
-                <input type="checkbox" id="checkbox-price-1">
-                Отстрани огласи со цена 1
-            </label>
-        </div>
+        
+         
     </div>
     
     <!-- Ads Container -->
     <div id="ads-container" class="block">
         <div class="ads-header">
-            <h2>Филтрирани огласи</h2>
+            <button class="dropdown-filter-btn" id="filter-sidebar-btn" aria-label="Filter options"><i class="fa-solid fa-filter"></i> Филтрирај</button>
+            <div id="filter-sidebar" class="filter-sidebar">
+                <button class="close-filter-btn">&times;</button>
+                <h3>Филтри</h3>
+                <div class="price-selector-container">
+                    <div class="price-selector-title"><h4>Цена</h4></div>
+                    <div class="price-selector-input">
+                        <input type="number" id="min-price" placeholder="мин."> -
+                        <input type="number" id="max-price" placeholder="макс.">
+
+                        <label for="currency-select">Currency:</label>
+                        <select id="currency-select">
+                            <option value="MKD">MKD</option>
+                            <option value="EUR">EUR</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="checkbox-container">
+                    <label class="checkbox-div">
+                        <input type="checkbox" id="checkbox-title" checked>
+                        Барај по наслов
+                    </label>
+                    <label class="checkbox-div">
+                        <input type="checkbox" id="checkbox-desc" checked>
+                        Барај по опис
+                    </label>
+                    <label class="checkbox-div">
+                        <input type="checkbox" id="checkbox-podogovor">
+                        Отстрани огласи По Договор
+                    </label>
+                    <label class="checkbox-div">
+                        <input type="checkbox" id="checkbox-price-1">
+                        Отстрани огласи со цена 1
+                    </label>
+                </div>
+            </div>
+
+            <h2>Огласи</h2>
+            
             <!-- Top Pagination -->
             <div class="pagination-container">
                 <div class="pagination">
@@ -116,6 +121,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/index.js') }}"></script>
     
 {% endblock content %}

@@ -204,114 +204,6 @@ h2 {
     font-size: 18px;
 }
 
-.location-icon {
-    padding: 10px;
-    font-size: 18px;
-}
-
-/* Slider Stlyes */
-.slider-container {
-    width: 350px;
-    height: 50px;
-    background: transparent;
-    padding: 20px;
-    border-radius: 8px;
-    position: relative;
-    margin-left: 180px;
-    margin-bottom: 20px;
-}
-
-.slider-title{
-    position: relative;
-    justify-self: center;
-    font-weight: bold;
-    font-size: 16px;
-    bottom: 30px;
-}
-.range-slider {
-    position: relative;
-    width: 100%;
-    height: 40px;
-}
-.range-track {
-    position: absolute;
-    height: 6px;
-    background: #007bff;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    transform: translateY(-50%);
-    border-radius: 5px;
-}
-input[type="range"] {
-    -webkit-appearance: none;
-    position: absolute;
-    width: 100%;
-    height: 40px;
-    background: transparent;
-    pointer-events: none;
-}
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    background: #007bff;
-    border-radius: 50%;
-    cursor: pointer;
-    pointer-events: all;
-    position: relative;
-    z-index: 2;
-}
-
-#minBubble, #maxBubble {
-    position: absolute;
-    background: #007bff;
-    color: white;
-    padding: 5px 8px;
-    font-size: 14px;
-    border-radius: 5px;
-    transform: translateX(-50%);
-    top: -30px;
-    white-space: wrap;
-    width: 80px;
-}
-
-#minBubble::after, #maxBubble::after {
-    content: "";
-    position: absolute;
-    bottom: -5px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 5px;
-    border-style: solid;
-    border-color: #007bff transparent transparent transparent;
-}
-
-.slider-line {
-    position: absolute;
-    top: 10px;  /* Adjust to place the line just above the slider */
-    width: 2px;  /* The thickness of the dotted line */
-    height: 20px; /* The length of the dotted line */
-    background-color: transparent;
-    border-left: 3px solid #4F6272; /* Red dotted line */
-    z-index: 1;
-}
-
-.plus-circle {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background-color: blue;
-    color: white;
-    font-size: 26px;
-    font-weight: bold;
-    text-align: center;
-    border-radius: 50%;
-    line-height: 20px;
-    cursor: pointer;
-    transform: translate( 320px, 10px);
-}
-
 /* Checkbox Styles */
 .checkbox-container {
     display: flex;
@@ -445,6 +337,96 @@ input[type="range"]::-webkit-slider-thumb {
     transition: transform 0.15s ease;
 }
 
+/* Filter Sidebar Style */
+.filter-sidebar {
+    position: fixed;
+    top: 0;
+    left: -300px; /* Initially hidden */
+    width: 300px;
+    height: 100%;
+    background-color: #fff;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    overflow-y: auto;
+    transition: left 0.3s ease-in-out;
+    z-index: 1000;
+}
+
+.filter-sidebar.open {
+    left: 0;
+}
+
+.close-filter-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+}
+
+.filter-sidebar h3 {
+    margin-top: 40px;
+    font-size: 20px;
+    color: #333;
+}
+
+.price-selector-container {
+    margin-top: 20px;
+}
+
+.price-selector-title {
+    justify-items: center;
+}
+
+.price-selector-title h4 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.price-selector-input input {
+    width: 45%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.price-selector-input input {
+    border: 2px solid #333a3f;
+}
+
+.checkbox-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+}
+
+.checkbox-div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background-color: #3c5b6f;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+#filter-sidebar-btn {
+    background-color: #153448;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#filter-sidebar-btn:hover {
+    background-color: #102b37;
+}
+
+
 /* Ads Styling */
 #ads-container {
     display: block;
@@ -492,7 +474,7 @@ input[type="range"]::-webkit-slider-thumb {
 .ad-block p {
     font-size: 18px;
     font-weight: bold;
-    color: #FFFFFF;
+    color: #f4f3f2;
     margin-bottom: 15px;
     border-bottom: 2px solid #f4f3f2;
     text-decoration: none;
@@ -543,7 +525,7 @@ input[type="range"]::-webkit-slider-thumb {
 .ad-description {
     display: inline-flex;
     justify-content: space-between;
-    color: #FFFFFF;
+    color: #f4f3f2;
     margin-right: 10px;
     text-align: justify;
     text-decoration: none;
@@ -676,17 +658,4 @@ input[type=number] {
         padding: 3px;
     }
 
-    .slider-container {
-        width: 250px;
-        height: 50px;
-        background: transparent;
-        padding: 20px;
-        border-radius: 8px;
-        position: relative;
-        margin-left: 6vh;
-    }
-
-    .plus-circle{
-        transform: translate(220px, 10px);
-    }
 }
