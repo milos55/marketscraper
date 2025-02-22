@@ -1,3 +1,6 @@
+// Store data in memory to avoid storage limits
+window.adsCache = [];
+
 // Main AdsManager class - orchestrates the other components
 class AdsManager {
     constructor() {
@@ -66,33 +69,38 @@ class AdsManager {
         });
 
     }
-    
+
     async fetchAllAds() {
         try {
-            const response = await fetch('/fetch_ads', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ category: null })
-            });
-            this.allAds = await response.json();
-    
-            // Validate ads and add convertedPrices property
-            this.allAds = this.allAds.map(ad => {
-                if (typeof ad.adprice !== 'number' || !ad.adcurrency) {
-                    console.error("Invalid ad:", ad);
-                    return null; // Skip invalid ads
-                }
-                return { ...ad, convertedPrices: {} }; // Initialize convertedPrices
-            }).filter(ad => ad !== null); // Remove invalid ads
-    
-            // Precompute prices for the default currency
-            this.precomputePrices("MKD"); // Default to MKD
+            if (window.adsCache.length > 0) {
+                this.allAds = window.adsCache;
+            } else {
+                const response = await fetch('/fetch_ads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category: null })
+                });
+                this.allAds = await response.json();
+
+                this.allAds = this.allAds.map(ad => {
+                    if (typeof ad.adprice !== 'number' || !ad.adcurrency) {
+                        console.error("Invalid ad:", ad);
+                        return null;
+                    }
+                    return { ...ad, convertedPrices: {} };
+                }).filter(ad => ad !== null);
+
+                // Store ads in memory
+                window.adsCache = this.allAds;
+            }
+
+            this.precomputePrices("MKD");
             this.handleSearch();
         } catch (error) {
             console.error('Error fetching ads:', error);
             this.elements.adsGrid.innerHTML = '<p>Error loading ads. Please try again later.</p>';
         }
-    }
+    }   
     
     handleSearch() {
         this.uiManager.showSearchLoading();
@@ -108,9 +116,10 @@ class AdsManager {
     handlePageChange(newPage) {
         this.currentPage = newPage;
         this.urlManager.updateUrl(newPage);
-        this.displayAds();
+        this.displayAds(); // No need to fetch again
         this.uiManager.scrollToTop();
     }
+    
     
     displayAds() {
         const start = (this.currentPage - 1) * this.adsPerPage;
@@ -274,46 +283,46 @@ class FilterManager {
     
     applyPriceFilters(ads) {
         let filtered = [...ads];
-
+    
+        if (this.elements.checkboxes.price1.checked) {
+            filtered = filtered.filter(ad => normalizeCurrency(ad.adprice) !== 1);
+        }
+    
         // Get min and max price values
-        const minPrice = parseFloat(this.elements.priceSelector.minPrice.value);
-        const maxPrice = parseFloat(this.elements.priceSelector.maxPrice.value);
+        const minPriceInput = this.elements.priceSelector.minPrice.value;
+        const minPrice = minPriceInput ? parseFloat(minPriceInput) : 1;
+        const maxPrice = parseFloat(this.elements.priceSelector.maxPrice.value) || Infinity;
         const selectedCurrency = normalizeCurrency(this.elements.priceSelector.currencySelect.value);
-
+    
         // Validate minPrice and maxPrice
         if (isNaN(minPrice)) {
-            console.error("Invalid minPrice:", minPrice);
-            return filtered; // Skip filtering if minPrice is invalid
+            console.log("Invalid minPrice:", minPrice);
+            return filtered;
         }
         if (isNaN(maxPrice)) {
-            console.error("Invalid maxPrice:", maxPrice);
-            return filtered; // Skip filtering if maxPrice is invalid
+            return filtered;
         }
-
-        // Filter using precomputed prices
+    
+        // Filter ads
         filtered = filtered.filter(ad => {
-            // Skip ads with "ПоДоговор" currency
-            if (normalizeCurrency(ad.adcurrency) === "NEGOTIABLE") {
-                console.log("Skipping ad with ПоДоговор:", ad);
-                return false;
-            }
-
-            // Get the precomputed price for the selected currency
             const convertedPrice = ad.convertedPrices[selectedCurrency];
-
-            // Check if the converted price is within the range
-            if (convertedPrice < minPrice) {
+    
+            // **If min price is 1, include "По Договор" ads**
+            if (minPrice === 1 && normalizeCurrency(ad.adcurrency) === "NEGOTIABLE") {
+                return true;
+            }
+    
+            // **If min price is set by the user, exclude "По Договор" ads**
+            if (minPrice > 1 && normalizeCurrency(ad.adcurrency) === "NEGOTIABLE") {
                 return false;
             }
-            if (convertedPrice > maxPrice) {
-                return false;
-            }
-
-            return true;
+    
+            return convertedPrice >= minPrice && convertedPrice <= maxPrice;
         });
-
+    
         return filtered;
     }
+    
 
     convertPrice(price, fromCurrency, toCurrency) {
         const CURRENCY_RATES = {
