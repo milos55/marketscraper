@@ -53,54 +53,56 @@
                 </button>
             </div>
         </div>
-
-        <!-- Price Slider-->
-        <div class="slider-container">
-            <div class="slider-title"><h4>Çmimi</h4></div>
-            <div class="range-slider">
-                <input type="range" id="minSlider" min="1" max="50000" value="1">
-                <input type="range" id="maxSlider" min="1" max="50000" value="50000">
-                <div class="range-track"></div>
-                <input type="number" id="minBubble" value="1">
-                <input type="number" id="maxBubble" value="50000">
-
-                <div id="minLine" class="slider-line"></div>
-                <div id="maxLine" class="slider-line"></div>
-                <div class="plus-circle" id="plus-circle"></div>
-            </div>
-        </div>
-
-        <!-- Search Options -->
-        <div class="checkbox-container">
-            <label class="checkbox-div">
-                <input type="checkbox" id="checkbox-title" checked>
-                Kërko nga titulli
-            </label>
-            <label class="checkbox-div">
-                <input type="checkbox" id="checkbox-desc" checked>
-                Kërko nga përshkrimi
-            </label>
-            <label class="checkbox-div">
-                <input type="checkbox" id="checkbox-podogovor">
-                Fshih shpalljet sipas marrëveshjes
-            </label>
-            <label class="checkbox-div">
-                <input type="checkbox" id="checkbox-price-1">
-                Fshih shpalljet me çmim 1
-            </label>
-        </div>
     </div>
     
     <!-- Ads Container -->
     <div id="ads-container" class="block">
         <div class="ads-header">
-            <h2>Shpalljet</h2>
+            <button class="dropdown-filter-btn" id="filter-sidebar-btn" aria-label="Filter options"><i class="fa-solid fa-filter"></i> Filtër</button>
+            <div id="filter-sidebar" class="filter-sidebar">
+                <button class="close-filter-btn">&times;</button>
+                <h3>Filtra</h3>
+                <div class="price-selector-container">
+                    <div class="price-selector-title"><h4>Çmimi</h4></div>
+                    <div class="price-selector-input">
+                        <input type="number" id="min-price" placeholder="min."> -
+                        <input type="number" id="max-price" placeholder="maks.">
+
+                        <label for="currency-select">Monedha:</label>
+                        <select id="currency-select">
+                            <option value="MKD">MKD</option>
+                            <option value="EUR">EUR</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="checkbox-container">
+                    <label class="checkbox-div">
+                        <input type="checkbox" id="checkbox-title" checked>
+                        Kërko nga titulli
+                    </label>
+                    <label class="checkbox-div">
+                        <input type="checkbox" id="checkbox-desc" checked>
+                        Kërko nga përshkrimi
+                    </label>
+                    <label class="checkbox-div">
+                        <input type="checkbox" id="checkbox-podogovor">
+                        Fshih shpalljet sipas marrëveshjes
+                    </label>
+                    <label class="checkbox-div">
+                        <input type="checkbox" id="checkbox-price-1">
+                        Fshih shpalljet me çmim 1
+                    </label>
+                </div>
+            </div>
+
+            <h2>Огласи</h2>
+            
             <!-- Top Pagination -->
             <div class="pagination-container">
                 <div class="pagination">
-                    <button class="page-btn prev-page">Para</button>
+                    <button class="page-btn prev-page">Prev</button>
                     <span class="page-number">Page 1</span>
-                    <button class="page-btn next-page">Tjetër</button>
+                    <button class="page-btn next-page">Next</button>
                 </div>
             </div>
         </div>
@@ -108,13 +110,13 @@
         <!-- Bottom Pagination -->
         <div class="pagination-container">
             <div class="pagination">
-                <button class="page-btn prev-page">Para</button>
+                <button class="page-btn prev-page">Prev</button>
                 <span class="page-number">Page 1</span>
-                <button class="page-btn next-page">Tjetër</button>
+                <button class="page-btn next-page">Next</button>
             </div>
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/index.js') }}"></script>
     
 {% endblock content %}
