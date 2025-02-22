@@ -72,12 +72,29 @@
                         <input type="number" id="min-price" placeholder="мин."> -
                         <input type="number" id="max-price" placeholder="макс.">
 
-                        <label for="currency-select">Currency:</label>
-                        <select id="currency-select">
-                            <option value="MKD">MKD</option>
-                            <option value="EUR">EUR</option>
-                        </select>
+                        <div class="currency-toggle-container">
+                            <span class="currency-label">Валута:</span>
+                            <button class="currency-toggle-btn" aria-label="Toggle currency">
+                                <span class="currency-text">MKD</span>
+                                <i class="fa-solid fa-repeat"></i>
+                            </button>
+                        </div>
                     </div>
+                </div>
+                <div class="location-container dropdown">
+                    <button class="dropdown-location-btn" aria-label="Location filter">
+                        <i class="fa-solid fa-location-dot"></i> Град
+                    </button>
+                    <ul class="dropdown-location-menu">
+                        <li>
+                            <button class="location-btn" data-location="">Сите градови</button>
+                        </li>
+                        {% for loc in locations %}
+                            <li>
+                                <button class="location-btn" data-location="{{ loc }}">{{ loc }}</button>
+                            </li>
+                        {% endfor %}
+                    </ul>
                 </div>
                 <div class="checkbox-container">
                     <label class="checkbox-div">
@@ -96,7 +113,7 @@
                         <input type="checkbox" id="checkbox-price-1">
                         Отстрани огласи со цена 1
                     </label>
-                </div>
+                </div>                            
             </div>
 
             <h2>Огласи</h2>

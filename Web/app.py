@@ -22,6 +22,7 @@ class Ad(db.Model):
     phone = db.Column(db.String(100), nullable=True)
     date = db.Column(db.Date, default=date.today)
     price = db.Column(db.Float, nullable=True)
+    location = db.Column(db.String(100), nullable=True)
     currency = db.Column(db.String(10), nullable=True)
     store = db.Column(db.String(100), nullable=True)
 
@@ -31,6 +32,7 @@ class Ad(db.Model):
         self.link = url
         self.image_url = image_url
         self.category = category
+        self.location = location
         self.phone = phone
         self.date = date
         self.price = price
@@ -46,6 +48,7 @@ class Ad(db.Model):
             'adcategory': self.category, # Need for filter by category check in prod
             'adimage': self.image_url, # Need for AD images
             'adphone': str(self.phone) if self.phone is not None else "N/A",
+            'adlocation': self.location,
             'addate': self.date.strftime("%d.%m.%Y") if self.date else "N/A",
             'addesc': self.description,
             'adstore': self.store
@@ -68,8 +71,11 @@ def index_lang(lang, page_number=1):
     ads_pagination = Ad.query.paginate(page=page_number, per_page=per_page, error_out=False)
     ads = ads_pagination.items
 
+    # For locations
+    locations = [loc[0] for loc in db.session.query(Ad.location).distinct() if loc[0]]
+
     # Render the template with ads and pagination data
-    return render_template(f'{lang}/index.html', ads=ads, current_page=page_number, pagination=ads_pagination)
+    return render_template(f'{lang}/index.html', ads=ads,locations=locations, current_page=page_number, pagination=ads_pagination)
 
 @app.route('/set_language/<lang>/')
 def set_language(lang):

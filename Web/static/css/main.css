@@ -388,12 +388,52 @@ h2 {
 .price-selector-input input {
     width: 45%;
     padding: 5px;
-    border: 1px solid #ccc;
+    border: 2px solid #333a3f;
     border-radius: 5px;
 }
 
-.price-selector-input input {
-    border: 2px solid #333a3f;
+.currency-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.currency-label {
+    font-size: 14px;
+    color: #666;
+}
+
+.currency-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.currency-toggle-btn:hover {
+    background-color: #f5f5f5;
+}
+
+.currency-toggle-btn .currency-text {
+    font-weight: 500;
+    min-width: 35px;
+}
+
+.currency-toggle-btn i {
+    font-size: 12px;
+    color: #666;
+}
+
+/* Animation for the icon when clicking */
+.currency-toggle-btn:active i {
+    transform: rotate(180deg);
+    transition: transform 0.2s;
 }
 
 .checkbox-container {
@@ -426,6 +466,82 @@ h2 {
     background-color: #102b37;
 }
 
+/* Location Dropdown Styles */
+.location-container {
+    padding-top: 10px;
+    justify-items: center;
+}
+
+.dropdown-location-btn {
+    padding: 10px 15px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.dropdown-location-btn:hover {
+    background-color: #f5f5f5;
+}
+
+.dropdown-location-menu {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    min-width: 200px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.dropdown-location-menu.show {
+    display: block;
+}
+
+.dropdown-location-menu li {
+    list-style: none;
+}
+
+.location-btn {
+    width: 100%;
+    padding: 10px 15px;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.location-btn:hover {
+    background-color: #f5f5f5;
+}
+
+/* Scrollbar styling for the dropdown */
+.dropdown-location-menu::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dropdown-location-menu::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.dropdown-location-menu::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.dropdown-location-menu::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
 
 /* Ads Styling */
 #ads-container {

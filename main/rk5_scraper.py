@@ -17,8 +17,8 @@ import time
 #CONFIG
 
 DB_CONFIG = {
-    "user": "boro",
-    "password": "boro1234",
+    "user": "milos55",
+    "password": "smil55",
     "database": "reklami",
     "host": "localhost",
     "port": 5432,

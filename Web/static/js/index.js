@@ -12,6 +12,7 @@ class AdsManager {
         this.filteredAds = [];
         this.matchMethod = "every";
         this.searchTerms = [];
+        this.currentCurrency = "MKD";
         
         // Initialize components
         this.elements = new ElementsManager();
@@ -41,6 +42,7 @@ class AdsManager {
         this.uiManager.setupSearchListeners();
         this.uiManager.setupCheckboxListeners();
         this.uiManager.setupSearchTypeListeners();
+        this.uiManager.setupLocationDropdown();
         this.paginationManager.setupPaginationListeners();
         
         // Handle browser back/forward navigation
@@ -53,21 +55,31 @@ class AdsManager {
     }
 
     precomputePrices(targetCurrency) {
-        // Only recompute if the currency has changed
-        if (targetCurrency === this.currentCurrency) return;
-
+        // Always recompute prices on initial load
+        if (targetCurrency === this.currentCurrency && this.initialLoadComplete) return;
+    
         this.currentCurrency = targetCurrency; // Update the current currency
-
+        this.initialLoadComplete = true; // Mark initial load as complete
+    
         this.allAds.forEach(ad => {
+            // Ensure convertedPrices exists
+            ad.convertedPrices = ad.convertedPrices || {};
+    
             // Convert the ad price to the target currency and store it
-            ad.convertedPrices = ad.convertedPrices || {}; // Initialize if not exists
             ad.convertedPrices[targetCurrency] = this.filterManager.convertPrice(
                 ad.adprice,
                 ad.adcurrency,
                 targetCurrency
             );
+    
+            // Debugging: Log the conversion
+            console.log(`Converted price for ad ${ad.adtitle}:`, {
+                originalPrice: ad.adprice,
+                originalCurrency: ad.adcurrency,
+                targetCurrency: targetCurrency,
+                convertedPrice: ad.convertedPrices[targetCurrency]
+            });
         });
-
     }
 
     async fetchAllAds() {
@@ -81,26 +93,29 @@ class AdsManager {
                     body: JSON.stringify({ category: null })
                 });
                 this.allAds = await response.json();
-
+    
                 this.allAds = this.allAds.map(ad => {
                     if (typeof ad.adprice !== 'number' || !ad.adcurrency) {
                         console.error("Invalid ad:", ad);
                         return null;
                     }
-                    return { ...ad, convertedPrices: {} };
+                    // Initialize convertedPrices if it doesn't exist
+                    ad.convertedPrices = ad.convertedPrices || {};
+                    return ad;
                 }).filter(ad => ad !== null);
-
+    
                 // Store ads in memory
                 window.adsCache = this.allAds;
             }
-
-            this.precomputePrices("MKD");
+    
+            // Precompute prices for the default currency
+            this.precomputePrices(this.currentCurrency);
             this.handleSearch();
         } catch (error) {
             console.error('Error fetching ads:', error);
             this.elements.adsGrid.innerHTML = '<p>Error loading ads. Please try again later.</p>';
         }
-    }   
+    }
     
     handleSearch() {
         this.uiManager.showSearchLoading();
@@ -160,7 +175,7 @@ class ElementsManager {
         this.priceSelector = {
             minPrice: document.getElementById('min-price'),
             maxPrice: document.getElementById('max-price'),
-            currencySelect: document.getElementById('currency-select'),
+            currencyToggle: document.querySelector('.currency-toggle-btn'),
         };
         this.filterSidebarBtn = document.getElementById('filter-sidebar-btn');
         this.filterSidebar = document.getElementById('filter-sidebar');
@@ -242,12 +257,14 @@ class FilterManager {
         this.adsManager = adsManager;
         this.elements = adsManager.elements;
         this.searchManager = adsManager.searchManager;
+        this.selectedLocation = null;
     }
     
     getFilteredAds(allAds, searchTerms) {
         let filtered = this.applyBaseFilters(allAds);
         filtered = this.applySearchTerms(filtered, searchTerms);
         filtered = this.applyPriceFilters(filtered);
+        filtered = this.applyLocationFilter(filtered);
         return this.sortAds(filtered);
     }
     
@@ -282,47 +299,65 @@ class FilterManager {
     }
     
     applyPriceFilters(ads) {
-        let filtered = [...ads];
-    
-        if (this.elements.checkboxes.price1.checked) {
-            filtered = filtered.filter(ad => normalizeCurrency(ad.adprice) !== 1);
-        }
-    
-        // Get min and max price values
-        const minPriceInput = this.elements.priceSelector.minPrice.value;
-        const minPrice = minPriceInput ? parseFloat(minPriceInput) : 1;
-        const maxPrice = parseFloat(this.elements.priceSelector.maxPrice.value) || Infinity;
-        const selectedCurrency = normalizeCurrency(this.elements.priceSelector.currencySelect.value);
-    
-        // Validate minPrice and maxPrice
-        if (isNaN(minPrice)) {
-            console.log("Invalid minPrice:", minPrice);
-            return filtered;
-        }
-        if (isNaN(maxPrice)) {
-            return filtered;
-        }
-    
-        // Filter ads
-        filtered = filtered.filter(ad => {
-            const convertedPrice = ad.convertedPrices[selectedCurrency];
-    
-            // **If min price is 1, include "По Договор" ads**
-            if (minPrice === 1 && normalizeCurrency(ad.adcurrency) === "NEGOTIABLE") {
-                return true;
-            }
-    
-            // **If min price is set by the user, exclude "По Договор" ads**
-            if (minPrice > 1 && normalizeCurrency(ad.adcurrency) === "NEGOTIABLE") {
-                return false;
-            }
-    
-            return convertedPrice >= minPrice && convertedPrice <= maxPrice;
-        });
-    
+    let filtered = [...ads];
+
+    if (this.elements.checkboxes.price1.checked) {
+        filtered = filtered.filter(ad => normalizeCurrency(ad.adprice) !== 1);
+    }
+
+    // Get min and max price values
+    const minPriceInput = this.elements.priceSelector.minPrice.value;
+    const maxPriceInput = this.elements.priceSelector.maxPrice.value;
+    const minPrice = minPriceInput ? parseFloat(minPriceInput) : 1;
+    const maxPrice = maxPriceInput ? parseFloat(maxPriceInput) : Infinity;
+
+    // Get current currency from UiManager
+    const selectedCurrency = this.adsManager.uiManager.currentCurrency;
+
+    // Validate prices
+    if (isNaN(minPrice) || isNaN(maxPrice)) {
+        console.warn("Invalid price input:", { minPrice, maxPrice });
         return filtered;
     }
-    
+
+    // Filter ads
+    return filtered.filter(ad => {
+        // Handle "По Договор" case
+        if (normalizeCurrency(ad.adcurrency) === "NEGOTIABLE") {
+            return minPrice === 1; // Only include negotiable prices if min price is 1
+        }
+
+        // Get the converted price for the current currency
+        const convertedPrice = ad.convertedPrices?.[selectedCurrency];
+
+        if (convertedPrice === undefined) {
+            console.warn(`Missing converted price for ad:`, ad);
+            return false; // Skip the ad if no converted price is available
+        }
+
+        // Now you can safely check if the price falls within the selected range
+        return convertedPrice >= minPrice && convertedPrice <= maxPrice;
+    });
+    }
+
+    updatePricePlaceholders(currency) {
+        try {
+            const { minPrice, maxPrice } = this.elements.priceSelector;
+            
+            if (!minPrice || !maxPrice) {
+                throw new Error('Price input elements not found');
+            }
+
+            const placeholders = currency === 'MKD' 
+                ? { min: '1000', max: '500000' }
+                : { min: '15', max: '8000' };
+
+            minPrice.placeholder = placeholders.min;
+            maxPrice.placeholder = placeholders.max;
+        } catch (error) {
+            console.error('Error updating price placeholders:', error);
+        }
+    }
 
     convertPrice(price, fromCurrency, toCurrency) {
         const CURRENCY_RATES = {
@@ -357,6 +392,13 @@ class FilterManager {
         } else {
             return priceInMKD; // Return in MKD
         }
+    }
+
+    applyLocationFilter(ads) {
+        if (!this.selectedLocation || this.selectedLocation === "") {
+            return ads;
+        }
+        return ads.filter(ad => ad.adlocation === this.selectedLocation);
     }
     
     sortAds(ads) {
@@ -465,6 +507,8 @@ class UiManager {
     constructor(elements, adsManager) {
         this.elements = elements;
         this.adsManager = adsManager;
+        this.currentCurrency = "MKD";
+        this.initializeCurrency();
     }
     
     setupDropdownListeners() {
@@ -514,33 +558,123 @@ class UiManager {
         });
     }
 
+    initializeCurrency() {
+        // Set the initial currency in the UI
+        const currencyToggleBtn = this.elements.priceSelector.currencyToggle;
+        if (currencyToggleBtn) {
+            const currencyText = currencyToggleBtn.querySelector('.currency-text');
+            if (currencyText) {
+                currencyText.textContent = this.currentCurrency;
+            }
+        }
+    }
+
     setupPriceRangeListeners() {
-        const minPriceInput = this.elements.priceSelector.minPrice;
-        const maxPriceInput = this.elements.priceSelector.maxPrice;
-        const currencySelect = this.elements.priceSelector.currencySelect;
+        const { minPrice: minPriceInput, maxPrice: maxPriceInput, currencyToggle: currencyToggleBtn } = this.elements.priceSelector;
 
-        if (minPriceInput && maxPriceInput && currencySelect) {
-            // Debounce function to limit how often the filter is triggered
-            const debounce = (func, delay) => {
-                let timer;
-                return function (...args) {
-                    clearTimeout(timer);
-                    timer = setTimeout(() => func.apply(this, args), delay);
-                };
+        if (!minPriceInput || !maxPriceInput || !currencyToggleBtn) {
+            console.warn('Price range elements not found:', { minPriceInput, maxPriceInput, currencyToggleBtn });
+            return;
+        }
+
+        // Debounce function for price changes
+        const debounce = (func, delay) => {
+            let timer;
+            return function (...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => func.apply(this, args), delay);
             };
+        };
 
-            const handlePriceChange = debounce(() => {
-                this.adsManager.handleSearch();
-            }, 300); // Adjust the delay as needed
+        const handlePriceChange = debounce(() => {
+            this.adsManager.handleSearch();
+        }, 300);
 
-            minPriceInput.addEventListener('input', handlePriceChange);
-            maxPriceInput.addEventListener('input', handlePriceChange);
+        // Remove any existing listeners
+        const newMinInput = minPriceInput.cloneNode(true);
+        const newMaxInput = maxPriceInput.cloneNode(true);
+        minPriceInput.parentNode.replaceChild(newMinInput, minPriceInput);
+        maxPriceInput.parentNode.replaceChild(newMaxInput, maxPriceInput);
 
-            // Precompute prices when currency changes
-            currencySelect.addEventListener('change', () => {
-                const selectedCurrency = normalizeCurrency(currencySelect.value);
-                this.adsManager.precomputePrices(selectedCurrency);
-                this.adsManager.handleSearch();
+        // Add new listeners
+        newMinInput.addEventListener('input', handlePriceChange);
+        newMaxInput.addEventListener('input', handlePriceChange);
+
+        // Update references
+        this.elements.priceSelector.minPrice = newMinInput;
+        this.elements.priceSelector.maxPrice = newMaxInput;
+
+        // Currency toggle handler
+        currencyToggleBtn.addEventListener('click', () => {
+            // Toggle between currencies
+            this.currentCurrency = this.currentCurrency === 'MKD' ? 'EUR' : 'MKD';
+            
+            // Update button text
+            const currencyText = currencyToggleBtn.querySelector('.currency-text');
+            if (currencyText) {
+                currencyText.textContent = this.currentCurrency;
+            }
+            
+            // Animate icon
+            const icon = currencyToggleBtn.querySelector('i');
+            if (icon) {
+                icon.style.transform = 'rotate(180deg)';
+                setTimeout(() => {
+                    icon.style.transform = 'rotate(0deg)';
+                }, 200);
+            }
+            
+            // Update prices and refresh results
+            this.adsManager.precomputePrices(this.currentCurrency);
+            this.adsManager.handleSearch();
+            
+            // Update placeholders
+            this.adsManager.filterManager.updatePricePlaceholders(this.currentCurrency);
+        });
+    }
+    
+    setupLocationDropdown() {
+        const locationBtn = document.querySelector('.dropdown-location-btn');
+        const locationMenu = document.querySelector('.dropdown-location-menu');
+        const locationBtns = document.querySelectorAll('.location-btn');
+        
+        if (locationBtn && locationMenu) {
+            // Toggle dropdown on button click
+            locationBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                locationMenu.classList.toggle('show');
+                
+                // Close other dropdowns
+                const otherDropdowns = document.querySelectorAll('.dropdown-cat-menu, .dropdown-date-menu');
+                otherDropdowns.forEach(dropdown => {
+                    dropdown.style.display = 'none';
+                });
+            });
+            
+            // Handle location selection
+            locationBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const selectedLocation = e.target.dataset.location;
+                    const buttonText = selectedLocation || 'Сите градови';
+                    
+                    // Update button text
+                    locationBtn.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${buttonText}`;
+                    
+                    // Update filter and refresh results
+                    this.adsManager.filterManager.selectedLocation = selectedLocation;
+                    this.adsManager.currentPage = 1;
+                    this.adsManager.handleSearch();
+                    
+                    // Close dropdown
+                    locationMenu.classList.remove('show');
+                });
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!locationMenu.contains(e.target) && !locationBtn.contains(e.target)) {
+                    locationMenu.classList.remove('show');
+                }
             });
         }
     }
@@ -620,7 +754,7 @@ class UiManager {
                                 </span>
                             </div>
                         </div>
-                        <div class="ad-email">Град: ${ad.location}</div>
+                        <div class="ad-email">Град: ${ad.adlocation}</div>
                         <div class="ad-phone">Тел: ${this.formatPhone(ad.adphone)}</div>
                     </div>
                     <div class="ad-description">
