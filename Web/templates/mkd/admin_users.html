@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Управување со корисници</h2>
+            <p class="text-muted">Администрирање на корисничките профили</p>
+        </div>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="row">
+        <div class="col">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Корисничко име</th>
+                                    <th>E-mail</th>
+                                    <th>Регистриран</th>
+                                    <th>Последна најава</th>
+                                    <th>Јазик</th>
+                                    <th>Статус</th>
+                                    <th>Акции</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ user.id }}</td>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.registered_on.strftime('%d.%m.%Y') }}</td>
+                                    <td>
+                                        {% if user.last_login %}
+                                            {{ user.last_login.strftime('%d.%m.%Y %H:%M') }}
+                                        {% else %}
+                                            Нема најава
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.language == 'mkd' %}
+                                            Македонски
+                                        {% elif user.language == 'en' %}
+                                            English
+                                        {% elif user.language == 'al' %}
+                                            Shqip
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if user.is_active else 'danger' }}">
+                                            {{ 'Активен' if user.is_active else 'Неактивен' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if user.id != current_user.id %}
+                                        <form method="POST" action="{{ url_for('toggle_user_status', user_id=user.id) }}" class="d-inline">
+                                            {% if user.is_active %}
+                                                <button type="submit" class="btn btn-sm btn-danger">Деактивирај</button>
+                                            {% else %}
+                                                <button type="submit" class="btn btn-sm btn-success">Активирај</button>
+                                            {% endif %}
+                                        </form>
+                                        {% else %}
+                                            <span class="text-muted">Моментален корисник</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html land="{{ lang }}">
+<html lang="mkd">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -26,6 +26,35 @@
                 <li><a href="{{ url_for('index_lang', lang='mkd')}}"><i class="fa-solid fa-house"></i> Дома</li></a>
                 <li><a href="{{ url_for('about', lang='mkd')}}"><i class="fa-solid fa-circle-info"></i> Инфо</li></a>
                 <li><a href="{{ url_for('contact', lang='mkd')}}"><i class="fa-solid fa-address-book"></i> Контакт</li></a>
+
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <div class="dropdown-wrapper">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button">
+                                    <i class="fas fa-user"></i> {{ current_user.username }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" id="userDropdown-menu" aria-labelledby="userDropdown">
+                                    <li><a class="dropdown-item" href="{{ url_for('profile') }}">Мој профил</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('logout') }}">Одјави се</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">
+                                <i class="fas fa-sign-in-alt"></i> Најава
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register') }}">
+                                <i class="fas fa-user-plus"></i> Регистрација
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+
                 <ul class="lang-menu">
                     <li>
                         <a href="{{ url_for('index_lang', lang='en') }}" class="lang-btn">
@@ -52,6 +81,35 @@
                 <a href="{{ url_for('index_lang', lang='mkd')}}"><li><i class="fa-solid fa-house"></i> Дома</li></a>
                 <a href="{{ url_for('about', lang='mkd')}}"><li><i class="fa-solid fa-circle-info"></i> Инфо</li></a>
                 <a href="{{ url_for('contact', lang='mkd')}}"><li><i class="fa-solid fa-address-book"></i> Контакт</li></a>
+
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <div class="dropdown-wrapper">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button">
+                                    <i class="fas fa-user"></i> {{ current_user.username }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li><a class="dropdown-item" href="{{ url_for('profile') }}">Мој профил</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('logout') }}">Одјави се</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">
+                                <i class="fas fa-sign-in-alt"></i> Најава
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register') }}">
+                                <i class="fas fa-user-plus"></i> Регистрација
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+
                 <ul class="lang-menu">
                     <a href="{{ url_for('index_lang', lang='en') }}" class="lang-btn">
                         <li>

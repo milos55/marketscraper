@@ -26,6 +26,35 @@
                 <li><a href="{{ url_for('index_lang', lang='al')}}"><i class="fa-solid fa-house"></i> Shtëpi</li></a>
                 <li><a href="{{ url_for('about', lang='al')}}"><i class="fa-solid fa-circle-info"></i> Informacion</li></a>
                 <li><a href="{{ url_for('contact', lang='al')}}"><i class="fa-solid fa-address-book"></i> Kontakt</li></a>
+
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <div class="dropdown-wrapper">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button">
+                                    <i class="fas fa-user"></i> {{ current_user.username }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" id="userDropdown-menu" aria-labelledby="userDropdown">
+                                    <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profili im</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('logout') }}">Çregjistroj</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">
+                                <i class="fas fa-sign-in-alt"></i> Hyr
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register') }}">
+                                <i class="fas fa-user-plus"></i> Regjistrohu
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+
                 <ul class="lang-menu">
                     <li>
                         <a href="{{ url_for('index_lang', lang='en') }}" class="lang-btn">
@@ -52,6 +81,35 @@
                 <a href="{{ url_for('index_lang', lang='al')}}"><li><i class="fa-solid fa-house"></i> Shtëpi</li></a>
                 <a href="{{ url_for('about', lang='al')}}"><li><i class="fa-solid fa-circle-info"></i> Informacion</li></a>
                 <a href="{{ url_for('contact', lang='al')}}"><li><i class="fa-solid fa-address-book"></i> Kontakt</li></a>
+
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <div class="dropdown-wrapper">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button">
+                                    <i class="fas fa-user"></i> {{ current_user.username }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" id="userDropdown-menu" aria-labelledby="userDropdown">
+                                    <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profili im</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('logout') }}">Çregjistroj</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">
+                                <i class="fas fa-sign-in-alt"></i> Hyr
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register') }}">
+                                <i class="fas fa-user-plus"></i> Regjistrohu
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+
                 <ul class="lang-menu">
                     <a href="{{ url_for('index_lang', lang='en') }}" class="lang-btn">
                         <li>
