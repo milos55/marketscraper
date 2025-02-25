@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 
 {% block title %}Register{% endblock %}
+{% block head %} <!--Add to all !!!-->
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/user.css') }}">
+{% block head %}
+
 
 {% block content %}
 <div class="container py-5">
