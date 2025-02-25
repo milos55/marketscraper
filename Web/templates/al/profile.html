@@ -1,52 +1,89 @@
 {% extends "base_al.html" %}
 
-{% block title %}Register{% endblock %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+{% endblock %}
+
+{% block title %}My Profile{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Регистрација</h4>
-                </div>
-                <div class="card-body">
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            {% endfor %}
+<div class="container">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Мој Профил</h4>
+        </div>
+        <div class="card-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <div class="row">
+                <div class="col">
+                    <h5>Информации за профилот</h5>
+                    <p><strong>Корисничко име:</strong> {{ current_user.username }}</p>
+                    <p><strong>E-mail:</strong> {{ current_user.email }}</p>
+                    <p><strong>Членство од:</strong> {{ current_user.registered_on.strftime('%d.%m.%Y') }}</p>
+                    <p><strong>Последна најава:</strong> 
+                        {% if current_user.last_login %}
+                            {{ current_user.last_login.strftime('%d.%m.%Y %H:%M') }}
+                        {% else %}
+                            N/A
                         {% endif %}
-                    {% endwith %}
-                    
-                    <form method="POST" action="{{ url_for('register') }}">
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Корисничко име</label>
-                            <input type="text" class="form-control" id="username" name="username" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">E-mail</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Лозинка</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="confirm_password" class="form-label">Потврди лозинка</label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Регистрирај се</button>
-                    </form>
+                    </p>
                 </div>
-                <div class="card-footer text-center">
-                    <p class="mb-0">Веќе имате профил? <a href="{{ url_for('login') }}">Најавете се</a></p>
+                <div class="col">
+                    <h5>Префериран јазик</h5>
+                    <p>
+                        {% if current_user.language == 'mkd' %}
+                            Македонски
+                        {% elif current_user.language == 'en' %}
+                            English
+                        {% elif current_user.language == 'al' %}
+                            Shqip
+                        {% endif %}
+                    </p>
                 </div>
             </div>
+            
+            <h5 class="mt-3">Промени податоци за профилот</h5>
+            <form method="POST" action="{{ url_for('update_profile') }}">
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email" value="{{ current_user.email }}" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="language">Префериран јазик</label>
+                    <select id="language" name="language" class="form-control">
+                        <option value="mkd" {% if current_user.language == 'mkd' %}selected{% endif %}>Македонски</option>
+                        <option value="en" {% if current_user.language == 'en' %}selected{% endif %}>English</option>
+                        <option value="al" {% if current_user.language == 'al' %}selected{% endif %}>Shqip</option>
+                    </select>
+                </div>
+                
+                <h5 class="mt-3">Промени лозинка</h5>
+                <div class="form-group">
+                    <label for="current_password">Моментална лозинка</label>
+                    <input type="password" id="current_password" name="current_password" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="new_password">Нова лозинка</label>
+                    <input type="password" id="new_password" name="new_password" class="form-control">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Зачувај промени</button>
+            </form>
         </div>
     </div>
 </div>
 {% endblock %}
+

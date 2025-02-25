@@ -104,7 +104,7 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     
-    lang = request.cookies.get('lang', 'mkd')
+    lang = request.cookies.get('lang', 'en')
     
     if request.method == 'POST':
         username = request.form.get('username')
@@ -146,7 +146,7 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     
-    lang = request.cookies.get('lang', 'mkd')
+    lang = request.cookies.get('lang', 'en')
     
     if request.method == 'POST':
         username = request.form.get('username')
@@ -182,14 +182,14 @@ def logout():
 @app.route('/profile')
 @login_required
 def profile():
-    lang = request.cookies.get('lang', 'mkd')
+    lang = request.cookies.get('lang', 'en')
     return render_template(f'{lang}/profile.html')
 
 # Update user profile
 @app.route('/profile/update', methods=['POST'])
 @login_required
 def update_profile():
-    lang = request.cookies.get('lang', 'mkd')
+    lang = request.cookies.get('lang', 'en')
     
     if request.method == 'POST':
         email = request.form.get('email')
@@ -271,14 +271,14 @@ with app.app_context():
 
 @app.route('/')
 def index():
-    lang = request.cookies.get('lang', 'mkd')
+    lang = request.cookies.get('lang', 'en')
     return redirect(url_for('index_lang', lang=lang))
 
 @app.route('/<lang>/')
 @app.route('/<lang>/page/<int:page_number>')
 def index_lang(lang, page_number=1):
     if lang not in ['mkd', 'al', 'en']:
-        lang = 'mkd'  # Fallback to Macedonian if the language is invalid
+        lang = 'en'  # Fallback to Macedonian if the language is invalid
 
     # Fetch ads for the specified page
     per_page = 48  # Number of ads per page
@@ -294,7 +294,7 @@ def index_lang(lang, page_number=1):
 @app.route('/set_language/<lang>/')
 def set_language(lang):
     if lang not in ['mkd', 'en', 'al']:
-        lang = 'mkd'
+        lang = 'en'
 
     response = redirect(url_for('index_lang', lang=lang))
     response.set_cookie('lang', lang, max_age=60*60*24*30) # Store language in a cookie for 30 days
@@ -332,7 +332,7 @@ def fetch_ads():
 @app.route('/<lang>/about')
 def about(lang):
     if lang not in ['mkd', 'en', 'al']:
-        lang = 'mkd'
+        lang = 'en'
 
     return render_template(f'{lang}/about.html')
 
@@ -340,7 +340,7 @@ def about(lang):
 @app.route('/<lang>/contact')
 def contact(lang):
     if lang not in ['mkd', 'en', 'al']:
-        lang = 'mkd'
+        lang = 'en'
 
     return render_template(f'{lang}/contact.html')
 
