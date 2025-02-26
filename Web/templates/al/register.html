@@ -4,12 +4,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
 {% endblock %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Regjistrohu{% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="card-body"
-            <h4>Регистрација</h4>
+    <div class="card-body">
+            <h4>Regjistrohu</h4>
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
@@ -17,10 +17,10 @@
                     {% endfor %}
                 {% endif %}
             {% endwith %}
-            <form method="POST" action="{{ url_for('register') }}">
+            <form method="POST" action="{{ url_for('register', lang=request.cookies.get('lang', 'en')) }}">
                 <ol class="card-body-items">
                     <li>
-                    <label for="username">Корисничко име:</label>
+                    <label for="username">Emri i përdoruesit:</label>
                     <input type="text" id="username" name="username" required><br>
                     </li>
                     <li>
@@ -28,17 +28,18 @@
                     <input type="email" id="email" name="email" required><br>
                     </li>
                     <li>
-                    <label for="password">Лозинка:</label>
+                    <label for="password">Fjalëkalimi:</label>
                     <input type="password" id="password" name="password" required><br>
                     </li>
                     <li>
-                    <label for="confirm_password">Потврди лозинка:</label>
+                    <label for="confirm_password">Përfitoj fjalëkalimin:</label>
                     <input type="password" id="confirm_password" name="confirm_password" required><br>
                     </li>
-                    <input type="submit" value="Регистрирај се">
+                    <input type="submit" value="Regjistrohu">
                 </ol>
             </form>
-            <p>Веќе имате профил? <a href="{{ url_for('login') }}">Најавете се</a></p>
+            <p>Keni një llogari? <a href="{{ url_for('login', lang=request.cookies.get('lang', 'en')) }}">Hyr</a></p>
     </div>
 </div>
 {% endblock %}
+

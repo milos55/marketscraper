@@ -70,12 +70,20 @@
                                     </td>
                                     <td>
                                         {% if user.id != current_user.id %}
+                                        <!-- Toggle Status Form -->
                                         <form method="POST" action="{{ url_for('toggle_user_status', user_id=user.id) }}" class="d-inline">
                                             {% if user.is_active %}
                                                 <button type="submit" class="btn btn-sm btn-danger">Деактивирај</button>
                                             {% else %}
                                                 <button type="submit" class="btn btn-sm btn-success">Активирај</button>
                                             {% endif %}
+                                        </form>
+                                    
+                                        <!-- Delete User Form -->
+                                        <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Дали сте сигурни дека сакате да го избришете овој корисник?');">
+                                                Избриши
+                                            </button>
                                         </form>
                                         {% else %}
                                             <span class="text-muted">Моментален корисник</span>

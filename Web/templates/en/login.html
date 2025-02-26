@@ -20,7 +20,7 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        <form method="POST" action="{{ url_for('login') }}">
+        <form method="POST" action="{{ url_for('login', lang=request.cookies.get('lang', 'en')) }}">
             <ol class="card-body-items">
             <li>
                 <label for="username" class="form-label">Username</label>
@@ -37,7 +37,7 @@
             <button type="submit" class="btn">Login</button>
             </ol>
         </form>
-        <p class="mb-0">Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
+        <p class="mb-0">Don't have an account? <a href="{{ url_for('register', lang=request.cookies.get('lang', 'en')) }}">Sign up</a></p>
     </div>
         
 </div>

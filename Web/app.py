@@ -74,12 +74,14 @@ class User(db.Model, UserMixin):
     last_login = db.Column(db.DateTime, nullable=True)
     language = db.Column(db.String(3), default='mkd')
     is_active = db.Column(db.Boolean, default=True)
+    role = db.Column(db.String(20), default='user')
     
-    def __init__(self, username, email, password, language='mkd'):
+    def __init__(self, username, email, password, language='mkd', role='user'):
         self.username = username
         self.email = email
         self.password_hash = generate_password_hash(password)
         self.language = language
+        self.role = role
     
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
@@ -99,12 +101,15 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # Routes
-@app.route('/register', methods=['GET', 'POST'])
-def register():
+@app.route('/<lang>/register', methods=['GET', 'POST'])
+def register(lang):
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        lang = request.cookies.get('lang', 'en')
+        return redirect(url_for('index_lang', lang=lang))
     
-    lang = request.cookies.get('lang', 'en')
+    # Validate language
+    if lang not in ['mkd', 'en', 'al']:
+        lang = 'en'  # Fallback to English if the language is invalid
     
     if request.method == 'POST':
         username = request.form.get('username')
@@ -134,19 +139,24 @@ def register():
             db.session.commit()
             
             flash('Registration successful! Please log in.', 'success')
-            return redirect(url_for('login'))
+            return redirect(url_for('login', lang=lang))
         
         flash(error, 'danger')
     
     return render_template(f'{lang}/register.html')
 
 # User login route
-@app.route('/login', methods=['GET', 'POST'])
-def login():
+@app.route('/<lang>/login', methods=['GET', 'POST'])
+def login(lang):
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        lang = request.cookies.get('lang', 'en')
+        return redirect(url_for('index_lang', lang=lang))
     
     lang = request.cookies.get('lang', 'en')
+    
+    # Validate language
+    if lang not in ['mkd', 'en', 'al']:
+        lang = 'en'  # Fallback to English if the language is invalid
     
     if request.method == 'POST':
         username = request.form.get('username')
@@ -160,7 +170,7 @@ def login():
             user.update_last_login()
             
             # Set user's preferred language
-            response = redirect(request.args.get('next') or url_for('index'))
+            response = redirect(request.args.get('next') or url_for('index_lang', lang=user.language or 'en'))
             response.set_cookie('lang', user.language, max_age=60*60*24*30)
             
             flash('Login successful!', 'success')
@@ -176,20 +186,26 @@ def login():
 def logout():
     logout_user()
     flash('You have been logged out.', 'info')
-    return redirect(url_for('index'))
+    lang = request.cookies.get('lang', 'en')
+    return redirect(url_for('index_lang', lang=lang))
 
 # User profile route
-@app.route('/profile')
+@app.route('/<lang>/profile')
 @login_required
-def profile():
-    lang = request.cookies.get('lang', 'en')
+def profile(lang):
+    # Validate language
+    if lang not in ['mkd', 'en', 'al']:
+        lang = 'en'  # Fallback to English if the language is invalid
+
     return render_template(f'{lang}/profile.html')
 
 # Update user profile
-@app.route('/profile/update', methods=['POST'])
+@app.route('/<lang>/profile/update', methods=['POST'])
 @login_required
-def update_profile():
-    lang = request.cookies.get('lang', 'en')
+def update_profile(lang):
+    # Validate language
+    if lang not in ['mkd', 'en', 'al']:
+        lang = 'en'  # Fallback to English if the language is invalid
     
     if request.method == 'POST':
         email = request.form.get('email')
@@ -201,7 +217,7 @@ def update_profile():
         if current_password:
             if not current_user.check_password(current_password):
                 flash('Current password is incorrect.', 'danger')
-                return redirect(url_for('profile'))
+                return redirect(url_for('profile', lang=lang))
             
             if new_password:
                 current_user.password_hash = generate_password_hash(new_password)
@@ -210,14 +226,14 @@ def update_profile():
         if email and email != current_user.email:
             if User.query.filter_by(email=email).first():
                 flash('Email already in use.', 'danger')
-                return redirect(url_for('profile'))
+                return redirect(url_for('profile', lang=lang))
             current_user.email = email
         
         # Update language preference
         if language and language in ['mkd', 'en', 'al']:
             current_user.language = language
             # Update cookie as well
-            response = redirect(url_for('profile'))
+            response = redirect(url_for('profile', lang=language))
             response.set_cookie('lang', language, max_age=60*60*24*30)
         
         db.session.commit()
@@ -227,14 +243,14 @@ def update_profile():
         if language and language in ['mkd', 'en', 'al']:
             return response
     
-    return redirect(url_for('profile'))
+    return redirect(url_for('profile', lang=current_user.language or 'en'))
 
 @app.route('/admin/users')
 @login_required
 def admin_users():
     # Simple check to see if user has admin rights
     # In a real application, you would use a role-based system
-    if current_user.username != 'admin':
+    if current_user.role != 'admin':
         flash('You do not have permission to access this page.', 'danger')
         return redirect(url_for('index'))
     
@@ -246,7 +262,7 @@ def admin_users():
 @login_required
 def toggle_user_status(user_id):
     # Simple admin check
-    if current_user.username != 'admin':
+    if current_user.role != 'admin':
         flash('You do not have permission to perform this action.', 'danger')
         return redirect(url_for('index'))
     
@@ -263,6 +279,25 @@ def toggle_user_status(user_id):
     
     status = 'activated' if user.is_active else 'deactivated'
     flash(f'User {user.username} has been {status}.', 'success')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/users/delete/<int:user_id>', methods=['POST'])
+@login_required
+def delete_user(user_id):
+    if current_user.role != 'admin':
+        flash('You do not have permission to perform this action.', 'danger')
+        return redirect(url_for('index'))
+
+    user = User.query.get_or_404(user_id)
+
+    if user.id == current_user.id:
+        flash('You cannot delete your own account.', 'danger')
+        return redirect(url_for('admin_users'))
+    
+    db.session.delete(user)
+    db.session.commit()
+
+    flash(f'User {user.username} has been deleted.', 'success')
     return redirect(url_for('admin_users'))
 
 # Initialize DB
@@ -295,9 +330,38 @@ def index_lang(lang, page_number=1):
 def set_language(lang):
     if lang not in ['mkd', 'en', 'al']:
         lang = 'en'
-
-    response = redirect(url_for('index_lang', lang=lang))
-    response.set_cookie('lang', lang, max_age=60*60*24*30) # Store language in a cookie for 30 days
+    
+    # Get the referrer (current page)
+    referrer = request.referrer
+    
+    # Default to index if no referrer
+    if not referrer:
+        response = redirect(url_for('index_lang', lang=lang))
+    else:
+        # Parse the URL
+        from urllib.parse import urlparse
+        parsed_url = urlparse(referrer)
+        path_parts = parsed_url.path.strip('/').split('/')
+        
+        # Check if the path starts with a language code
+        if path_parts and path_parts[0] in ['mkd', 'en', 'al']:
+            # Replace the language code
+            path_parts[0] = lang
+            
+            # Reconstruct the URL
+            new_path = '/' + '/'.join(path_parts)
+            
+            # If there was a query string, preserve it
+            if parsed_url.query:
+                new_path += '?' + parsed_url.query
+                
+            response = redirect(new_path)
+        else:
+            # No language in URL path, redirect to index
+            response = redirect(url_for('index_lang', lang=lang))
+    
+    # Set language cookie
+    response.set_cookie('lang', lang, max_age=60*60*24*30)
     return response
 
 @app.route('/fetch_ads', methods=['POST'])
@@ -343,14 +407,6 @@ def contact(lang):
         lang = 'en'
 
     return render_template(f'{lang}/contact.html')
-
-@app.route('/clear_cookies')
-def clear_cookies():
-    plain = "milos55"
-    hashed = generate_password_hash(plain)
-    response = make_response(hashed)
-    return response
-
 
 if __name__ == '__main__':
     app.debug = True

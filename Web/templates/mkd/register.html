@@ -17,7 +17,7 @@
                     {% endfor %}
                 {% endif %}
             {% endwith %}
-            <form method="POST" action="{{ url_for('register') }}">
+            <form method="POST" action="{{ url_for('register', lang=request.cookies.get('lang', 'en')) }}">
                 <ol class="card-body-items">
                     <li>
                     <label for="username">Корисничко име:</label>
@@ -38,7 +38,7 @@
                     <input type="submit" value="Регистрирај се">
                 </ol>
             </form>
-            <p>Веќе имате профил? <a href="{{ url_for('login') }}">Најавете се</a></p>
+            <p>Веќе имате профил? <a href="{{ url_for('login', lang=request.cookies.get('lang', 'en')) }}">Најавете се</a></p>
     </div>
 </div>
 {% endblock %}

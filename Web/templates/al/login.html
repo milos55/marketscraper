@@ -4,12 +4,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
 {% endblock %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Hyrje{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="card-body">
-            <h4>Најава</h4>
+            <h4>Hyrje</h4>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -20,24 +20,24 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        <form method="POST" action="{{ url_for('login') }}">
+        <form method="POST" action="{{ url_for('login', lang=request.cookies.get('lang', 'en')) }}">
             <ol class="card-body-items">
             <li>
-                <label for="username" class="form-label">Корисничко име</label>
+                <label for="username" class="form-label">Emri i përdoruesit</label>
                 <input type="text" class="form-control" id="username" name="username" required>
             </li>
             <li>
-                <label for="password" class="form-label">Лозинка</label>
+                <label for="password" class="form-label">Fjalëkalimi</label>
                 <input type="password" class="form-control" id="password" name="password" required>
             </li>
             <li>
                 <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
-                <label class="form-check-label" for="remember_me">Запомни ме</label>
+                <label class="form-check-label" for="remember_me">Më kujto</label>
             </li>
-            <button type="submit" class="btn">Најави се</button>
+            <button type="submit" class="btn">Hyr</button>
             </ol>
         </form>
-        <p class="mb-0">Немате профил? <a href="{{ url_for('register') }}">Регистрирајте се</a></p>
+        <p class="mb-0">Nuk keni një llogari? <a href="{{ url_for('register', lang=request.cookies.get('lang', 'en')) }}">Regjistrohu</a></p>
     </div>
         
 </div>

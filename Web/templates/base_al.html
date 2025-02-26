@@ -35,20 +35,19 @@
                                     <i class="fas fa-user"></i> {{ current_user.username }}
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" id="userDropdown-menu" aria-labelledby="userDropdown">
-                                    <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profili im</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{{ url_for('logout') }}">Çregjistroj</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('profile', lang=request.cookies.get('lang', 'en')) }}">Profili im</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('logout', lang=request.cookies.get('lang', 'en')) }}">Çregjistroj</a></li>
                                 </ul>
                             </div>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('login') }}">
+                            <a class="nav-link" href="{{ url_for('login', lang=request.cookies.get('lang', 'en')) }}">
                                 <i class="fas fa-sign-in-alt"></i> Hyr
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('register') }}">
+                            <a class="nav-link" href="{{ url_for('register', lang=request.cookies.get('lang', 'en')) }}">
                                 <i class="fas fa-user-plus"></i> Regjistrohu
                             </a>
                         </li>
@@ -57,17 +56,17 @@
 
                 <ul class="lang-menu">
                     <li>
-                        <a href="{{ url_for('index_lang', lang='en') }}" class="lang-btn">
+                        <a href="{{ url_for('set_language', lang='en', next=request.path) }}" class="lang-btn">
                             <img src="https://flagcdn.com/w40/gb.png" alt="English" width="20"> EN
                         </a>
                     </li>
                     <li>
-                        <a href="{{ url_for('index_lang', lang='mkd') }}" class="lang-btn">
+                        <a href="{{ url_for('set_language', lang='mkd', next=request.path) }}" class="lang-btn">
                             <img src="https://flagcdn.com/w40/mk.png" alt="Macedonian" width="20"> MKD
                         </a>
                     </li>
                     <li>
-                        <a href="{{ url_for('index_lang', lang='al') }}" class="lang-btn">
+                        <a href="{{ url_for('set_language', lang='al', next=request.path) }}" class="lang-btn">
                             <img src="https://flagcdn.com/w40/al.png" alt="Albanian" width="20"> AL
                         </a>
                     </li>
@@ -90,20 +89,20 @@
                                     <i class="fas fa-user"></i> {{ current_user.username }}
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" id="userDropdown-menu" aria-labelledby="userDropdown">
-                                    <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profili im</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{{ url_for('logout') }}">Çregjistroj</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('profile', lang=request.cookies.get('lang', 'en')) }}">Profili im</a></li>
+                                    <!-- NO ADMIN CONTROL -->
+                                    <li><a class="dropdown-item" href="{{ url_for('logout', lang=request.cookies.get('lang', 'en')) }}">Çregjistroj</a></li>
                                 </ul>
                             </div>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('login') }}">
+                            <a class="nav-link" href="{{ url_for('login', lang=request.cookies.get('lang', 'en')) }}">
                                 <i class="fas fa-sign-in-alt"></i> Hyr
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('register') }}">
+                            <a class="nav-link" href="{{ url_for('register', lang=request.cookies.get('lang', 'en')) }}">
                                 <i class="fas fa-user-plus"></i> Regjistrohu
                             </a>
                         </li>
@@ -111,17 +110,17 @@
                 </ul>
 
                 <ul class="lang-menu">
-                    <a href="{{ url_for('index_lang', lang='en') }}" class="lang-btn">
+                    <a href="{{ url_for('set_language', lang='en', next=request.path) }}" class="lang-btn">
                         <li>
                             <img src="https://flagcdn.com/w40/gb.png" alt="English" width="20"> EN
                         </li>
                     </a>
-                    <a href="{{ url_for('index_lang', lang='mkd') }}" class="lang-btn">
+                    <a href="{{ url_for('set_language', lang='mkd', next=request.path) }}" class="lang-btn">
                         <li>
                             <img src="https://flagcdn.com/w40/mk.png" alt="Macedonian" width="20"> MKD
                         </li>
                     </a>
-                    <a href="{{ url_for('index_lang', lang='al') }}" class="lang-btn">
+                    <a href="{{ url_for('set_language', lang='al', next=request.path) }}" class="lang-btn">
                         <li>
                             <img src="https://flagcdn.com/w40/al.png" alt="Albanian" width="20"> AL
                         </li>
