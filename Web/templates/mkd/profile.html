@@ -71,16 +71,23 @@
                 </div>
                 
                 <h5 class="mt-3">Промени лозинка</h5>
-                <div class="form-group">
-                    <label for="current_password">Моментална лозинка</label>
-                    <input type="password" id="current_password" name="current_password" class="form-control">
+                <div class="card-body-items">
+                    <div class="form-group">
+                        <label for="current_password">Моментална лозинка</label>
+                        <input type="password" id="current_password" name="current_password" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="new_password">Нова лозинка</label>
+                        <input type="password" id="new_password" name="new_password" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="new_password">Потврди нова лозинка</label>
+                        <input type="password" id="new_password_confirm" name="new_password_confirm" class="form-control">
+                    </div>
+                    <p id="error-message" style="color: red; display: none;">Лозинките не се совпаѓаат!</p>
+                    
+                    <button type="submit" class="btn btn-primary">Зачувај промени</button>
                 </div>
-                <div class="form-group">
-                    <label for="new_password">Нова лозинка</label>
-                    <input type="password" id="new_password" name="new_password" class="form-control">
-                </div>
-                
-                <button type="submit" class="btn btn-primary">Зачувај промени</button>
             </form>
         </div>
     </div>

@@ -37,6 +37,7 @@
             <button type="submit" class="btn">Login</button>
             </ol>
         </form>
+        <p><a href="{{ url_for('reset_password_request', lang = request.cookies.get('lang', 'en')) }}">Forgot your password?</a></p>
         <p class="mb-0">Don't have an account? <a href="{{ url_for('register', lang=request.cookies.get('lang', 'en')) }}">Sign up</a></p>
     </div>
         

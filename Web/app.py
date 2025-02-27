@@ -1,21 +1,18 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, make_response
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_mail import Mail
+from itsdangerous import URLSafeTimedSerializer
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
+from email_utils import send_verification_email, send_reset_email, verify_token # for email verification and reset password
 import os
+from config import Config
 
 app = Flask(__name__, static_folder='static')
+app.config.from_object(Config) 
 
-# Secret key for session management and CSRF protection
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'mytestingsecretkey123')
-
-# Database configuration (same as in main.py)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://milos55:smil55@localhost/reklami'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SESSION_COOKIE_NAME'] = 'smilko'
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SECURE'] = False  # Set to True for HTTPS # smeni u prod
+mail = Mail(app)
 
 db = SQLAlchemy(app)
 
@@ -90,6 +87,12 @@ class User(db.Model, UserMixin):
         self.last_login = datetime.utcnow()
         db.session.commit()
 
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
 # Initialize LoginManager
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -138,7 +141,14 @@ def register(lang):
             db.session.add(new_user)
             db.session.commit()
             
-            flash('Registration successful! Please log in.', 'success')
+            if lang == 'mkd':
+                flash('Успешна регистрација! Ве молиме најавете се.', 'success')
+            elif lang == 'en':
+                flash('Registration successful! Please log in.', 'success')
+            elif lang == 'al':
+                flash('Regjistrimi u krye me sukses! Ju lutemi kyçuni.', 'success')
+            else:
+                flash('Registration successful! Please log in.', 'success')
             return redirect(url_for('login', lang=lang))
         
         flash(error, 'danger')
@@ -173,10 +183,24 @@ def login(lang):
             response = redirect(request.args.get('next') or url_for('index_lang', lang=user.language or 'en'))
             response.set_cookie('lang', user.language, max_age=60*60*24*30)
             
-            flash('Login successful!', 'success')
+            if lang == 'mkd':
+                flash('Успешно најавување!', 'success')
+            elif lang == 'en':
+                flash('Login successful!', 'success')
+            elif lang == 'al':
+                flash('Kyçja u krye me sukses!', 'success')
+            else:
+                flash('Login successful!', 'success')
             return response
         
-        flash('Invalid username or password', 'danger')
+        if lang == 'mkd':
+            flash('Невалиден корисничко име или лозинка', 'danger')
+        elif lang == 'en':
+            flash('Invalid username or password', 'danger')
+        elif lang == 'al':
+            flash('Kyçja u krye me sukses!', 'danger')
+        else:
+            flash('Invalid username or password', 'danger')
     
     return render_template(f'{lang}/login.html')
 
@@ -185,7 +209,15 @@ def login(lang):
 @login_required
 def logout():
     logout_user()
-    flash('You have been logged out.', 'info')
+    lang = request.cookies.get('lang', 'en')
+    if lang == 'mkd':
+        flash('Успешно сте одјавени', 'info') # USE messages insted of if else in next version
+    elif lang == 'en':
+        flash('You have been logged out.', 'info')
+    elif lang == 'al':
+        flash('Ju jeni çkyçur', 'info')
+    else:
+        flash('You have been logged out.', 'info')
     lang = request.cookies.get('lang', 'en')
     return redirect(url_for('index_lang', lang=lang))
 
@@ -212,20 +244,46 @@ def update_profile(lang):
         language = request.form.get('language')
         current_password = request.form.get('current_password')
         new_password = request.form.get('new_password')
+        new_password_confirm = request.form.get('new_password_confirm')
         
         # Validate current password if provided
         if current_password:
             if not current_user.check_password(current_password):
-                flash('Current password is incorrect.', 'danger')
+                if lang == 'mkd':
+                    flash('Погрешна моментална лозинка.', 'danger')
+                elif lang == 'en':
+                    flash('Invalid current password.', 'danger')
+                elif lang == 'al':
+                    flash('Fjalëkalimi aktual është i pavlefshëm.', 'danger')
+                else:
+                    flash('Current password is incorrect.', 'danger')
                 return redirect(url_for('profile', lang=lang))
             
             if new_password:
+                if new_password != new_password_confirm:
+                    if lang == 'mkd':
+                        flash('Новиот пасворд и потврдата не се исти.', 'danger')
+                    elif lang == 'en':
+                        flash('New password and confirmation do not match.', 'danger')
+                    elif lang == 'al':
+                        flash('Fjalëkalimi i ri dhe konfirmimi nuk përputhen.', 'danger')
+                    else:
+                        flash('New password and confirmation do not match.', 'danger')
+                    return redirect(url_for('profile', lang=lang))
+                
                 current_user.password_hash = generate_password_hash(new_password)
         
         # Update email if changed
         if email and email != current_user.email:
             if User.query.filter_by(email=email).first():
-                flash('Email already in use.', 'danger')
+                if lang == 'mkd':
+                    flash('Емаилот веќе е во употреба.', 'danger')
+                elif lang == 'en':
+                    flash('Email already in use.', 'danger')
+                elif lang == 'al':
+                    flash('Email-i është tashmë në përdorim.', 'danger')
+                else:
+                    flash('Email already in use.', 'danger')
                 return redirect(url_for('profile', lang=lang))
             current_user.email = email
         
@@ -237,7 +295,14 @@ def update_profile(lang):
             response.set_cookie('lang', language, max_age=60*60*24*30)
         
         db.session.commit()
-        flash('Profile updated successfully!', 'success')
+        if lang == 'mkd':
+            flash('Профилот е успешно ажуриран!', 'success')
+        elif lang == 'en':
+            flash('Profile updated successfully!', 'success')
+        elif lang == 'al':
+            flash('Profili i ri u shtua me sukses!', 'success')
+        else:
+            flash('Profile updated successfully!', 'success')
         
         # If language was changed, redirect with new cookie
         if language and language in ['mkd', 'en', 'al']:
@@ -303,6 +368,94 @@ def delete_user(user_id):
 # Initialize DB
 with app.app_context():
     db.create_all()
+
+# PASSWORD MANAGEMENT
+@app.route('/<lang>/send_verification/<email>')
+def send_verification(lang, email):
+    user = User.query.filter_by(email=email).first()
+    
+    if not user:
+        return 'User not found', 404
+
+    send_verification_email(email, lang)  # Pass lang to send localized emails
+    return 'A verification email has been sent!'
+
+# Confirm Email
+@app.route('/<lang>/confirm_email/<token>')
+def confirm_email(lang, token):
+    email = verify_token(token)
+    if not email:
+        return 'Invalid or expired token', 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return 'User not found', 404
+
+    user.is_verified = True
+    db.session.commit()
+    
+    flash('Email verified successfully! You can now log in.', 'success')
+    return redirect(url_for('login', lang=lang))  # Redirect to localized login page
+
+# Request Password Reset
+@app.route('/<lang>/reset_password_request', methods=['GET'])
+def reset_password_request(lang):
+    # Validate language
+    if lang not in ['mkd', 'en', 'al']:
+        lang = 'en'
+    return render_template(f'{lang}/reset_password_request.html')
+
+@app.route('/<lang>/reset_password_request', methods=['POST'])
+def reset_password_request_post(lang):
+    email = request.form.get('email')
+    user = User.query.filter_by(email=email).first()
+
+    if user:
+        send_reset_email(email, lang)
+    
+    if lang == 'mkd':
+        flash('Доколку постои профил со овој емаил, пратен ви е линк за ресетирање!', 'info')
+    elif lang == 'en':
+        flash('If a account with the email exists, a reset link has been sent!', 'info')
+    elif lang == 'al':
+        flash('Nëse email-i juaj ekziston, një lidhje për rivendosje është dërguar!', 'info')
+    else:
+        flash('If your email exists, a reset link has been sent!', 'info')
+
+    return redirect(url_for('login', lang=lang))  # Redirect to localized login page
+
+
+# Reset Password
+@app.route('/<lang>/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(lang, token):
+    email = verify_token(token)
+    if not email:
+        return 'Invalid or expired token', 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return 'User not found', 404
+
+    if request.method == 'POST':
+        new_password = request.form['password']
+        confirm_password = request.form['confirm_password']
+        
+        # Ensure password meets security standards
+        if len(new_password) < 6:
+            flash('Password must be at least 6 characters long!', 'danger')
+            return render_template(f'{lang}/reset_password.html', lang=lang, token=token)
+
+        if new_password != confirm_password:
+            flash('Passwords do not match!', 'danger')
+            return render_template(f'{lang}/reset_password.html', lang=lang, token=token)
+
+        user.set_password(new_password)  # Hash password before saving
+        db.session.commit()
+
+        flash('Password reset successfully! You can now log in.', 'success')
+        return redirect(url_for('login', lang=lang))  # Redirect to localized login
+
+    return render_template(f'{lang}/reset_password.html', lang=lang, token=token)
 
 @app.route('/')
 def index():

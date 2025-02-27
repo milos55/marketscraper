@@ -2,3 +2,8 @@ main/helper.ipynb
 Web/__pycache__/app.cpython-313.pyc
 Web/__pycache__/app.cpython-313.pyc
 .gitignore
+Web/__pycache__/email_utils.cpython-313.pyc
+Web/__pycache__/config.cpython-313.pyc
+Web/__pycache__/app.cpython-313.pyc
+Web/.env
+Web/__pycache__/app.cpython-313.pyc

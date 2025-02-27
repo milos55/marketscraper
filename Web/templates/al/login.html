@@ -37,6 +37,7 @@
             <button type="submit" class="btn">Hyr</button>
             </ol>
         </form>
+        <p><a href="{{ url_for('reset_password_request', lang = request.cookies.get('lang', 'en')) }}">Keni harruar fjalëkalimin?</a></p>
         <p class="mb-0">Nuk keni një llogari? <a href="{{ url_for('register', lang=request.cookies.get('lang', 'en')) }}">Regjistrohu</a></p>
     </div>
         
