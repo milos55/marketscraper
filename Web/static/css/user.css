@@ -76,3 +76,10 @@ input{
 #email{
     width: 300px;
 }
+
+.error-message{
+    color: red;
+    font-size: 14px;
+    font-weight: bold;
+    visibility: hidden;
+}

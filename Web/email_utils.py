@@ -20,8 +20,20 @@ def send_verification_email(email, lang):
     from app import mail
     token = generate_token(email)
     confirm_url = url_for('confirm_email', lang=lang, token=token, _external=True)
-    msg = Message('Confirm Your Email', recipients=[email])
-    msg.body = f'Click the link to verify your email: {confirm_url}'
+    
+    # Create language-specific subject and body
+    if lang == 'mkd':
+        subject = 'Потврдете ја вашата е-пошта'
+        body = f'Кликнете на следниот линк за да ја потврдите вашата е-пошта: {confirm_url}'
+    elif lang == 'al':
+        subject = 'Konfirmoni emailin tuaj'
+        body = f'Klikoni në lidhjen e mëposhtme për të konfirmuar emailin tuaj: {confirm_url}'
+    else:  # Default to English
+        subject = 'Confirm Your Email'
+        body = f'Click the following link to confirm your email: {confirm_url}'
+    
+    msg = Message(subject, recipients=[email])
+    msg.body = body
 
     try:
         mail.send(msg)

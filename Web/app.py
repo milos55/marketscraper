@@ -1,9 +1,22 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, make_response
+# For flask site
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, make_response, g
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_mail import Mail
+# For security implementaton
+from flask_wtf.csrf import CSRFProtect, CSRFError, validate_csrf
+from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField
+from wtforms.validators import DataRequired, Email, EqualTo, Length
+import secrets
+# For password hashing
 from itsdangerous import URLSafeTimedSerializer
 from werkzeug.security import generate_password_hash, check_password_hash
+# for DB
 from flask_sqlalchemy import SQLAlchemy
+# Random utils for site
 from datetime import datetime, date, timedelta
 from email_utils import send_verification_email, send_reset_email, verify_token # for email verification and reset password
 import os
@@ -12,86 +25,28 @@ from config import Config
 app = Flask(__name__, static_folder='static')
 app.config.from_object(Config) 
 
+# Security managment
+csrf = CSRFProtect(app)
+CORS(app, resources={r"/fetch_ads": {"origins": "*"}})  # Allow image loading from any origin
+
+limiter = Limiter(
+    key_func=get_remote_address  # Automatically gets the client's IP
+)
+limiter.init_app(app)  # Attach it to the app separately
+
+# Exempt CSRF for image loading
+@csrf.exempt
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory(app.static_folder, filename)
+
 mail = Mail(app)
 
 db = SQLAlchemy(app)
 
-# Define the Ad class here directly, as per your request
-class Ad(db.Model):
-    __tablename__ = "reklami" #test 1
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.Text, nullable=True)
-    link = db.Column(db.String(255), nullable=False)
-    image_url = db.Column(db.String(255), nullable=True)
-    category = db.Column(db.String(100), nullable=False)
-    phone = db.Column(db.String(100), nullable=True)
-    date = db.Column(db.Date, default=date.today)
-    price = db.Column(db.Float, nullable=True)
-    location = db.Column(db.String(100), nullable=True)
-    currency = db.Column(db.String(10), nullable=True)
-    store = db.Column(db.String(100), nullable=True)
+# Model imports ( Ads, Users)
 
-    def __init__(self, title, description, link, image_url, category, phone, date, price, currency, store):
-        self.title = title
-        self.description = description
-        self.link = url
-        self.image_url = image_url
-        self.category = category
-        self.location = location
-        self.phone = phone
-        self.date = date
-        self.price = price
-        self.currency = currency
-        self.store = store
-
-    def to_dict(self):
-        return {
-            'adlink': self.link,
-            'adtitle': self.title,
-            'adprice': self.price,
-            'adcurrency': self.currency,
-            'adcategory': self.category, # Need for filter by category check in prod
-            'adimage': self.image_url, # Need for AD images
-            'adphone': str(self.phone) if self.phone is not None else "N/A",
-            'adlocation': self.location,
-            'addate': self.date.strftime("%d.%m.%Y") if self.date else "N/A",
-            'addesc': self.description,
-            'adstore': self.store
-        }
-
-# User Model
-class User(db.Model, UserMixin):
-    __tablename__ = "users"
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, nullable=False, index=True)
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    password_hash = db.Column(db.String(256), nullable=False)
-    registered_on = db.Column(db.DateTime, default=datetime.utcnow)
-    last_login = db.Column(db.DateTime, nullable=True)
-    language = db.Column(db.String(3), default='mkd')
-    is_active = db.Column(db.Boolean, default=True)
-    role = db.Column(db.String(20), default='user')
-    
-    def __init__(self, username, email, password, language='mkd', role='user'):
-        self.username = username
-        self.email = email
-        self.password_hash = generate_password_hash(password)
-        self.language = language
-        self.role = role
-    
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-    
-    def update_last_login(self):
-        self.last_login = datetime.utcnow()
-        db.session.commit()
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+from models import User, Ad
 
 # Initialize LoginManager
 login_manager = LoginManager()
@@ -103,8 +58,41 @@ login_manager.login_message = 'Please log in to access this page.'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+@app.before_request
+def generate_nonce():
+    # Generate a nonce
+    g.nonce = secrets.token_hex(16)
+
+
+
+# Security headers
+@app.after_request
+def add_security_headers(response):
+    # Add the Content Security Policy header
+    response.headers["Content-Security-Policy"] = (
+        f"default-src 'self'; "
+        f"script-src 'self' 'nonce-{g.nonce}' https://cdnjs.cloudflare.com; "
+        f"style-src 'self' 'nonce-{g.nonce}' https://cdnjs.cloudflare.com ; "
+        f"font-src 'self' https://cdnjs.cloudflare.com; "
+        f"img-src 'self' data: https://flagcdn.com https://*.com https://reklama5.mk; "  # More specific than wildcard
+    )
+    
+    # Other security headers
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    
+    return response
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    flash('The form security token has expired. Please try again.', 'danger')
+    lang = request.cookies.get('lang', 'en')
+    return redirect(url_for('index_lang', lang=lang))
+
 # Routes
 @app.route('/<lang>/register', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def register(lang):
     if current_user.is_authenticated:
         lang = request.cookies.get('lang', 'en')
@@ -140,23 +128,66 @@ def register(lang):
             new_user = User(username=username, email=email, password=password, language=lang)
             db.session.add(new_user)
             db.session.commit()
+
+            send_verification_email(email, lang)  # Send verification email
             
             if lang == 'mkd':
-                flash('Успешна регистрација! Ве молиме најавете се.', 'success')
+                flash('Ве молиме подвредте го вашиот е-маил.', 'success')
             elif lang == 'en':
-                flash('Registration successful! Please log in.', 'success')
+                flash('Please confirm your email.', 'success')
             elif lang == 'al':
-                flash('Regjistrimi u krye me sukses! Ju lutemi kyçuni.', 'success')
+                flash('Ju lutemi konfirmoni emailin tuaj.', 'success')
             else:
-                flash('Registration successful! Please log in.', 'success')
+                flash('Please confirm your email.', 'success')
             return redirect(url_for('login', lang=lang))
         
         flash(error, 'danger')
     
     return render_template(f'{lang}/register.html')
 
+@app.route('/<lang>/confirm/<token>')
+def confirm_email(lang, token):
+    try:
+        email = verify_token(token)
+    except:
+        if lang == 'mkd':
+            flash('Линкот за потврда е невалиден или е истечен.', 'danger')
+        elif lang == 'en':
+            flash('The confirmation link is invalid or has expired.', 'danger')
+        elif lang == 'al':
+            flash('Lidhja e konfirmimit është e pavlefshme ose ka skaduar.', 'danger')
+        else:
+            flash('The confirmation link is invalid or has expired.', 'danger')
+        return redirect(url_for('login', lang=lang))
+    
+    user = User.query.filter_by(email=email).first_or_404()
+    if user.email_confirmed:
+        if lang == 'mkd':
+            flash('Профилот е веќе потврден. Ве молиме најавете се.', 'info')
+        elif lang == 'en':
+            flash('Account already confirmed. Please login.', 'info')
+        elif lang == 'al':
+            flash('Llogaria është konfirmuar tashmë. Ju lutemi identifikohuni.', 'info')
+        else:
+            flash('Account already confirmed. Please login.', 'info')
+    else:
+        user.email_confirmed = True
+        db.session.add(user)
+        db.session.commit()
+        if lang == 'mkd':
+            flash('Успешно ја потврдивте вашата сметка. Ви благодариме!', 'success')
+        elif lang == 'en':
+            flash('You have confirmed your account. Thanks!', 'success')
+        elif lang == 'al':
+            flash('Ju keni konfirmuar llogarinë tuaj. Faleminderit!', 'success')
+        else:
+            flash('You have confirmed your account. Thanks!', 'success')
+    
+    return redirect(url_for('login', lang=lang))
+
 # User login route
 @app.route('/<lang>/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def login(lang):
     if current_user.is_authenticated:
         lang = request.cookies.get('lang', 'en')
@@ -176,6 +207,18 @@ def login(lang):
         user = User.query.filter_by(username=username).first()
         
         if user and user.check_password(password):
+            # Check if email is confirmed
+            if not user.email_confirmed:
+                if lang == 'mkd':
+                    flash('Ве молиме потврдете ја вашата е-пошта пред да се најавите.', 'warning')
+                elif lang == 'en':
+                    flash('Please confirm your email before logging in.', 'warning')
+                elif lang == 'al':
+                    flash('Ju lutemi konfirmoni emailin tuaj përpara se të identifikoheni.', 'warning')
+                else:
+                    flash('Please confirm your email before logging in.', 'warning')
+                return redirect(url_for('login', lang=lang))
+            
             login_user(user, remember=remember_me)
             user.update_last_login()
             
@@ -233,6 +276,7 @@ def profile(lang):
 
 # Update user profile
 @app.route('/<lang>/profile/update', methods=['POST'])
+@limiter.limit("5 per minute")
 @login_required
 def update_profile(lang):
     # Validate language
@@ -370,7 +414,7 @@ with app.app_context():
     db.create_all()
 
 # PASSWORD MANAGEMENT
-@app.route('/<lang>/send_verification/<email>')
+""" @app.route('/<lang>/send_verification/<email>')
 def send_verification(lang, email):
     user = User.query.filter_by(email=email).first()
     
@@ -395,7 +439,7 @@ def confirm_email(lang, token):
     db.session.commit()
     
     flash('Email verified successfully! You can now log in.', 'success')
-    return redirect(url_for('login', lang=lang))  # Redirect to localized login page
+    return redirect(url_for('login', lang=lang))  # Redirect to localized login page """
 
 # Request Password Reset
 @app.route('/<lang>/reset_password_request', methods=['GET'])
@@ -427,6 +471,7 @@ def reset_password_request_post(lang):
 
 # Reset Password
 @app.route('/<lang>/reset_password/<token>', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def reset_password(lang, token):
     email = verify_token(token)
     if not email:
@@ -460,11 +505,12 @@ def reset_password(lang, token):
 @app.route('/')
 def index():
     lang = request.cookies.get('lang', 'en')
-    return redirect(url_for('index_lang', lang=lang))
+    return redirect(url_for('index_lang', lang=lang, nonce=g.nonce))
 
 @app.route('/<lang>/')
 @app.route('/<lang>/page/<int:page_number>')
 def index_lang(lang, page_number=1):
+       
     if lang not in ['mkd', 'al', 'en']:
         lang = 'en'  # Fallback to Macedonian if the language is invalid
 
@@ -519,6 +565,11 @@ def set_language(lang):
 
 @app.route('/fetch_ads', methods=['POST'])
 def fetch_ads():
+    try:
+        validate_csrf(request.headers.get('X-CSRFToken'))
+    except:
+        abort(400, description="CSRF token is missing or invalid")
+
     data = request.json
     category = data.get('category')
     sort_type = data.get('sort')
@@ -560,6 +611,10 @@ def contact(lang):
         lang = 'en'
 
     return render_template(f'{lang}/contact.html')
+
+@app.route('/test_csrf', methods=['POST'])
+def test_csrf():
+    return jsonify({"message": "CSRF token is valid"})
 
 if __name__ == '__main__':
     app.debug = True

@@ -21,6 +21,7 @@
             {% endif %}
         {% endwith %}
         <form method="POST" action="{{ url_for('login', lang=request.cookies.get('lang', 'en')) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <ol class="card-body-items">
             <li>
                 <label for="username" class="form-label">Корисничко име</label>

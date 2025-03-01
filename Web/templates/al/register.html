@@ -13,11 +13,12 @@
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
-                        <p style="color: red;">{{ message }}</p>
+                        <p class="error-message">{{ message }}</p>
                     {% endfor %}
                 {% endif %}
             {% endwith %}
             <form method="POST" action="{{ url_for('register', lang=request.cookies.get('lang', 'en')) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <ol class="card-body-items">
                     <li>
                     <label for="username">Emri i përdoruesit:</label>

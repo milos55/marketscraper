@@ -14,6 +14,13 @@ class AdsManager {
         this.searchTerms = [];
         this.currentCurrency = "MKD";
         
+        // CSRF token for POST requests
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        this.csrfToken = csrfToken;
+
+        // CSP nonce
+        this.nonce = document.querySelector('meta[name="csp-nonce"]')?.content || '';
+        
         // Initialize components
         this.elements = new ElementsManager();
         this.urlManager = new UrlManager();
@@ -71,14 +78,6 @@ class AdsManager {
                 ad.adcurrency,
                 targetCurrency
             );
-    
-            // Debugging: Log the conversion
-            console.log(`Converted price for ad ${ad.adtitle}:`, {
-                originalPrice: ad.adprice,
-                originalCurrency: ad.adcurrency,
-                targetCurrency: targetCurrency,
-                convertedPrice: ad.convertedPrices[targetCurrency]
-            });
         });
     }
 
@@ -89,9 +88,21 @@ class AdsManager {
             } else {
                 const response = await fetch('/fetch_ads', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ category: null })
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': this.csrfToken,
+                        'X-CSP-Nonce': this.nonce
+                    },
+                    body: JSON.stringify({ 
+                        category: null,
+                        nonce: this.nonce
+                    })
                 });
+    
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+    
                 this.allAds = await response.json();
     
                 this.allAds = this.allAds.map(ad => {
@@ -785,19 +796,25 @@ class UiManager {
     }
     
     getImageHTML(imageUrl) {
-        const noImageUrl = window.location.origin + "/static/images/No-image.png";
-        
-        // If the image is missing or an API response error is detected
-        if (!imageUrl || imageUrl.includes("No HTTP resource was found") || imageUrl.includes("No type was found")) {
-            return `<img src="${noImageUrl}" alt="No Image" height="100px" width="100px">`;
+    const noImageUrl = window.location.origin + "/static/images/No-image.png";
+    
+    // Create a unique ID for this image
+    const imgId = 'img_' + Math.random().toString(36).substring(2, 15);
+    
+    // Setup error handler with JavaScript instead of inline
+    setTimeout(() => {
+        const img = document.getElementById(imgId);
+        if (img) {
+            img.addEventListener('error', function() {
+                this.src = noImageUrl;
+            });
         }
-        
-        // Return the image with onerror fallback
-        return `<div class="ad-image">
-            <img class="ad-img" src="${imageUrl}" loading="lazy" alt="" 
-                 onerror="this.onerror=null; this.src='${noImageUrl}'">
-        </div>`;
-    }
+    }, 0);
+    
+    return `<div class="ad-image">
+        <img id="${imgId}" class="ad-img" src="${imageUrl}" loading="lazy" alt="">
+    </div>`;
+}
 }
 
 // Initialize when DOM is ready

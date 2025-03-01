@@ -138,6 +138,7 @@
         </div>
     </div>
 
-    <script type="module" src="{{ url_for('static', filename='js/index.js') }}"></script>
+    <!-- Main script -->
+    <script type="module" src="{{ url_for('static', filename='js/index.js') }}" nonce="{{ g.nonce }}"></script>
     
 {% endblock content %}
