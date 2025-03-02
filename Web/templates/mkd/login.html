@@ -40,7 +40,6 @@
         </form>
         <p><a href="{{ url_for('reset_password_request', lang = request.cookies.get('lang', 'en')) }}">Ја заборавивте лозинката?</a></p>
         <p class="mb-0">Немате профил? <a href="{{ url_for('register', lang=request.cookies.get('lang', 'en')) }}">Регистрирајте се</a></p>
-    </div>
-        
+    </div>  
 </div>
 {% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base_en.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+{% endblock %}
+
+{% block title %}Deactivated Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card-body">
+        <h1>Your profile has been deactivated</h1>
+        <p>Your profile has been deactivated. If you want to reactivate it, contact the administrator.</p>      
+    </div>
+</div>
+{% endblock %}
+

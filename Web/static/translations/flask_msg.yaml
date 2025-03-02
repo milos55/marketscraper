@@ -1,0 +1,75 @@
+# flask_msg.yaml
+en:
+  messages:
+    register_success: "Please confirm your email."
+    link_invalid: "The confirmation link is invalid or has expired."
+    account_confirmed: "Account already confirmed. Please login."
+    account_confirmation_success: "You have confirmed your account. Thanks!"
+    email_confirmation_needed: "Please confirm your email before logging in."
+    login_success: "Login successful!"
+    login_failed: "Invalid username or password"
+    logout_success: "You have been logged out."
+    current_password_wrong: "Invalid current password."
+    passwords_not_match: "New password and confirmation do not match."
+    email_in_use: "Email already in use."
+    profile_updated: "Profile updated successfully!"
+    password_reset_sent: "If a account with the email exists, a reset link has been sent!"
+    password_reset_success: "Password reset successfully! You can now log in."
+    password_length: "Password must be at least 6 characters long!"
+    passwords_not_match: "Passwords do not match!"
+
+mkd:
+  messages:
+    register_success: "Ве молиме подвредте го вашиот е-маил."
+    link_invalid: "Линкот за потврда е невалиден или е истечен."
+    account_confirmed: "Профилот е веќе потврден. Ве молиме најавете се."
+    account_confirmation_success: "Успешно ја потврдивте вашата сметка. Ви благодариме!"
+    email_confirmation_needed: "Ве молиме потврдете ја вашата е-пошта пред да се најавите."
+    login_success: "Успешно најавување!"
+    login_failed: "Невалидно корисничко име или лозинка"
+    logout_success: "Успешно сте одјавени"
+    current_password_wrong: "Погрешна моментална лозинка."
+    passwords_not_match: "Новиот пасворд и потврдата не се исти."
+    email_in_use: "Емаилот веќе е во употреба."
+    profile_updated: "Профилот е успешно ажуриран!"
+    password_reset_sent: "Доколку постои профил со овој емаил, пратен ви е линк за ресетирање!"
+    password_reset_success: "Лозинката е успешно променета! Сега можете да се најавите."
+    password_length: "Лозинката мора да има најмалку 6 карактери!"
+    passwords_not_match: "Лозинките не се совпаѓаат!"
+
+al:
+  messages:
+    register_success: "Ju lutemi konfirmoni emailin tuaj."
+    link_invalid: "Lidhja e konfirmimit është e pavlefshme ose ka skaduar."
+    account_confirmed: "Llogaria është konfirmuar tashmë. Ju lutemi identifikohuni."
+    account_confirmation_success: "Ju keni konfirmuar llogarinë tuaj. Faleminderit!"
+    email_confirmation_needed: "Ju lutemi konfirmoni emailin tuaj përpara se të identifikoheni."
+    login_success: "Kyçja u krye me sukses!"
+    login_failed: "Kyçja u krye me sukses!"  # Note: This appears to be a translation error in the original code
+    logout_success: "Ju jeni çkyçur"
+    current_password_wrong: "Fjalëkalimi aktual është i pavlefshëm."
+    passwords_not_match: "Fjalëkalimi i ri dhe konfirmimi nuk përputhen."
+    email_in_use: "Email-i është tashmë në përdorim."
+    profile_updated: "Profili i ri u shtua me sukses!"
+    password_reset_sent: "Nëse email-i juaj ekziston, një lidhje për rivendosje është dërguar!"
+    password_reset_success: "Fjalëkalimi u rivendos me sukses! Tani mund të identifikoheni."
+    password_length: "Fjalëkalimi duhet të jetë të paktën 6 karaktere i gjatë!"
+    passwords_not_match: "Fjalëkalimet nuk përputhen!"
+
+# Add templates and other UI elements translations as needed
+templates:
+  en:
+    login_title: "Login"
+    register_title: "Register"
+    profile_title: "My Profile"
+    reset_password_title: "Reset Password"
+  mkd:
+    login_title: "Најава"
+    register_title: "Регистрација"
+    profile_title: "Мој Профил"
+    reset_password_title: "Ресетирај Лозинка"
+  al:
+    login_title: "Identifikohu"
+    register_title: "Regjistrohu"
+    profile_title: "Profili im"
+    reset_password_title: "Rivendos fjalëkalimin"

@@ -1,0 +1,16 @@
+{% extends "base_mkd.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+{% endblock %}
+
+{% block title %}Деактивиран профил{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card-body">
+        <h1>Вашиот профил е деактивиран</h1>
+        <p>Вашиот профил е деактивиран. Ако сакате да го активирате повторно, контактирајте го администраторот.</p>      
+    </div>
+</div>
+{% endblock %}

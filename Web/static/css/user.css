@@ -77,9 +77,26 @@ input{
     width: 300px;
 }
 
-.error-message{
+.error-message {
     color: red;
     font-size: 14px;
     font-weight: bold;
-    visibility: hidden;
+    display: block; /* Ensures visibility */
+    margin-top: 10px;
+}
+
+.success {
+    color: green;
+}
+
+.danger {
+    color: red;
+}
+
+.form-text {
+    color: red;
+    font-size: 14px;
+    font-weight: bold;
+    display: block; /* Ensures visibility */
+    margin-top: 10px;
 }
