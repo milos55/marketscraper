@@ -30,4 +30,4 @@ class Config:
     REMEMBER_COOKIE_DURATION = timedelta(minutes=int(os.getenv('REMEMBER_COOKIE_DURATION', 30)))
 
     # Translation
-    TRANSLATIONS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'translations', 'flask_msg.yaml')
+    TRANSLATIONS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'translations', 'flask_msg.yaml')
