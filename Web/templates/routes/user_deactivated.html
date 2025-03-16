@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+{% endblock %}
+
+{% block title %}{{ translate('title', 'user_deactivated', lang) }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card-body">
+        <h1>{{ translate('title', 'user_deactivated', lang) }}</h1>
+        <p>{{ translate('message', 'user_deactivated', lang) }}</p>      
+    </div>
+</div>
+{% endblock %}

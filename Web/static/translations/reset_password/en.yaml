@@ -1,0 +1,5 @@
+language: "en"
+title: "Reset your password"
+new_password: "New password"
+confirm_password: "Confirm password"
+reset_password: "Reset password"

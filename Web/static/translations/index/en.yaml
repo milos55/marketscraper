@@ -1,0 +1,37 @@
+language: "en"
+category : "Categories"
+search_type: "Search type"
+
+search_select:
+  search_type_every: "Ads which contain all words"
+  search_type_some: "Ads which contain at least one of the words"
+
+sort: "Sort"
+sort_select:
+  sort_newest: "Newest"
+  sort_oldest: "Oldest"
+  sort_cheapest: "Cheapest"
+  sort_expensive: "Most expensive"
+
+filters: "Filters"
+price_title: "Price"
+min: "From"
+max: "To"
+
+currency: "Currency"
+
+city: "City"
+city_select:
+  city_all: "All cities"
+
+checkbox_title: "Search by title"
+checkbox_desc: "Search by description"
+checkbox_podogovor: "Exclude ads By Agreement"
+checkbox_price_1: "Exclude ads with price 1"
+
+ads_title: "Ads"
+
+pagination:
+  prev: "Previous"
+  page: "Page 1"
+  next: "Next"

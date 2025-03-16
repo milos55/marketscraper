@@ -1,0 +1,13 @@
+language: "al"
+title: "Informacione për projektin"
+title_text: "Si funksionon"
+steps:
+  step1: "1. Zgjidhni kategorin: Klikoni ne kategorine e perkateshme.."
+  step2: "2. Zgjidhni n kategori"
+  step3: "3. Vendosni fjale per te cilat kerkoni nga te ndare me presje: Kerkon automatikisht ne Shqip dhe Latin."
+  step4_1: "4.1.  Zgjidhni metoden e kerkimit ne baredheni"
+  step4_2: "4.2.  Zgjidhni metoden e renditjes (opcional)"
+why_title: "Pse ky sajte ekziston"
+why_text: "Kjo faqe ekziston sepse une kam qene i irituar qe te gjitha faqet e shqiptare per reklam b kerkonin vetem ne titull dhe nuk kane logjike te mire per kerkim, 
+           prandaj kjo faqe e zgjidh kete probleme duke ofruar mundesine te kerkohet ne titull dhe permbajtje dhe te ket mundesine te zgjidhet metoda e kerkimit, 
+           shpresoj qe ky sajte te jet i dobishem per dikend"

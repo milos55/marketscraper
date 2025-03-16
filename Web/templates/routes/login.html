@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+{% endblock %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card-body">
+            <h4>{{ translate('title', 'login', lang) }}</h4>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form method="POST" action="{{ url_for('login', lang=request.cookies.get('lang', 'en')) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <ol class="card-body-items">
+            <li>
+                <label for="username" class="form-label">{{ translate('username', 'login', lang) }}</label>
+                <input type="text" class="form-control" id="username" name="username" required>
+            </li>
+            <li>
+                <label for="password" class="form-label">{{ translate('password', 'login', lang) }}</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </li>
+            <li>
+                <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
+                <label class="form-check-label" for="remember_me">{{ translate('remember', 'login', lang) }}</label>
+            </li>
+            <button type="submit" class="btn">{{ translate('login', 'login', lang) }}</button>
+            </ol>
+        </form>
+        <p><a href="{{ url_for('reset_password_request', lang = request.cookies.get('lang', 'en')) }}">{{ translate('forgot', 'login', lang) }}</a></p>
+        <p class="mb-0">{{ translate('noAccount', 'login', lang) }} <a href="{{ url_for('register', lang=request.cookies.get('lang', 'en')) }}">{{ translate('register', 'login', lang) }}</a></p>
+    </div>  
+</div>
+{% endblock %}

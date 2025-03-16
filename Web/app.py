@@ -19,12 +19,16 @@ from flask_sqlalchemy import SQLAlchemy
 # Random utils for site
 from datetime import datetime, date, timedelta
 from email_utils import send_verification_email, send_reset_email, verify_token # for email verification and reset password
+from translation_utils import TranslationManager, init_translation_system, translation_manager, translate
 import os
 import yaml
 from config import Config
 
-app = Flask(__name__, static_folder='static')
-app.config.from_object(Config) 
+app = Flask(__name__, static_folder='static', template_folder='templates')
+app.config.from_object(Config)
+
+
+init_translation_system(app)
 
 # Security managment
 csrf = CSRFProtect(app)
@@ -65,7 +69,6 @@ def generate_nonce():
     g.nonce = secrets.token_hex(16)
 
 
-
 # Security headers
 @app.after_request
 def add_security_headers(response):
@@ -90,40 +93,6 @@ def handle_csrf_error(e):
     flash('The form security token has expired. Please try again.', 'danger')
     lang = request.cookies.get('lang', 'en')
     return redirect(url_for('index_lang', lang=lang))
-
-# Translation messages
-translations = None
-
-def load_translations():
-    translations_path = app.config['TRANSLATIONS_PATH']
-    
-    with open(translations_path, 'r', encoding='utf-8') as file:
-        return yaml.safe_load(file)
-
-def get_message(key, lang='en'):
-    global translations
-    # Load translations on first use if not loaded yet
-    if translations is None:
-        translations = load_translations()
-        
-    try:
-        return translations[lang]['messages'][key]
-    except (KeyError, TypeError):
-        # Fallback to English if translation not found
-        try:
-            return translations['en']['messages'][key]
-        except (KeyError, TypeError):
-            # Return the key itself if no translation is found
-            return key
-
-@app.context_processor
-def inject_translations():
-    def translate(key, lang=None):
-        if lang is None:
-            lang = request.cookies.get('lang', 'en')
-        return get_message(key, lang)
-    
-    return dict(translate=translate)
 
 # Password validation
 def validate_password(password, username=None):
@@ -198,29 +167,29 @@ def register(lang):
 
             send_verification_email(email, lang)  # Send verification email
             
-            flash(get_message('email_confirmation_needed', lang), 'success')
+            flash(translate('email_confirmation_needed', module='messages', lang=lang), 'success')
             return redirect(url_for('login', lang=lang))
         
         flash(error, 'danger')
     
-    return render_template(f'{lang}/register.html')
+    return render_template('/routes/register.html')
 
 @app.route('/<lang>/confirm/<token>')
 def confirm_email(lang, token):
     try:
         email = verify_token(token)
     except:
-        flash(get_message('invalid_token', lang), 'danger')
+        flash(translate('link_invalid', module='messages', lang=lang), 'danger')
         return redirect(url_for('login', lang=lang))
     
     user = User.query.filter_by(email=email).first_or_404()
     if user.email_confirmed:
-        flash(get_message('email_already_confirmed', lang), 'info')
+        flash(translate('account_confirmed', module='messages', lang=lang), 'info')
     else:
         user.email_confirmed = True
         db.session.add(user)
         db.session.commit()
-        flash(get_message('email_confirmed', lang), 'success')
+        flash(translate('account_confirmation_success', module='messages', lang=lang), 'success')
     
     return redirect(url_for('login', lang=lang))
 
@@ -248,27 +217,31 @@ def login(lang):
         if user:
             # Check if the account is deactivated
             if not user.is_active:
-                return render_template(f'{lang}/user_deactivated.html')
+                return render_template('/routes/user_deactivated.html')
 
             if user.check_password(password):
                 # Check if email is confirmed
                 if not user.email_confirmed:
-                    flash(get_message('email_confirmation_needed', lang), 'warning')
+                    flash(translate('email_confirmation_needed', module='messages', lang=lang), 'warning')
                     return redirect(url_for('login', lang=lang))
                 
                 login_user(user, remember=remember_me)
                 user.update_last_login()
-            
-            # Set user's preferred language
-            response = redirect(request.args.get('next') or url_for('index_lang', lang=user.language or 'en'))
-            response.set_cookie('lang', user.language, max_age=60*60*24*30)
-            
-            flash(get_message('login_success', lang), 'success')
-            return response
-        
-        flash(get_message('login_failed', lang), 'danger')
+                
+                # Set user's preferred language
+                response = redirect(request.args.get('next') or url_for('index_lang', lang=user.language or 'en'))
+                response.set_cookie('lang', user.language, max_age=60*60*24*30)
+                
+                flash(translate('login_success', module='messages', lang=lang), 'success')
+                return response
+            else:
+                # Password is incorrect
+                flash(translate('login_failed', module='messages', lang=lang), 'danger')
+        else:
+            # User doesn't exist
+            flash(translate('login_failed', module='messages', lang=lang), 'danger')
     
-    return render_template(f'{lang}/login.html')
+    return render_template('/routes/login.html', lang=lang)
 
 # User logout route
 @app.route('/logout')
@@ -276,7 +249,7 @@ def login(lang):
 def logout():
     logout_user()
     lang = request.cookies.get('lang', 'en')
-    flash(get_message('logout_success', lang), 'info')
+    flash(translate('logout_success', module='messages', lang=lang), 'info')
     lang = request.cookies.get('lang', 'en')
     return redirect(url_for('index_lang', lang=lang))
 
@@ -288,7 +261,7 @@ def profile(lang):
     if lang not in ['mkd', 'en', 'al']:
         lang = 'en'  # Fallback to English if the language is invalid
 
-    return render_template(f'{lang}/profile.html')
+    return render_template('/routes/profile.html')
 
 # Update user profile
 @app.route('/<lang>/profile/update', methods=['POST'])
@@ -309,12 +282,12 @@ def update_profile(lang):
         # Validate current password if provided
         if current_password:
             if not current_user.check_password(current_password):
-                flash(get_message('current_password_incorrect', lang), 'danger')
+                flash(translate('current_password_wrong', module='messages', lang=lang), 'danger')
                 return redirect(url_for('profile', lang=lang))
             
             if new_password:
                 if new_password != new_password_confirm:
-                    flash(get_message('passwords_no_match', lang), 'danger')
+                    flash(translate('passwords_not_match', module='messages', lang=lang), 'danger')
                     return redirect(url_for('profile', lang=lang))
                 
                 is_valid, password_error = validate_password(new_password, current_user.username)
@@ -327,7 +300,7 @@ def update_profile(lang):
         # Update email if changed
         if email and email != current_user.email:
             if User.query.filter_by(email=email).first():
-                flash(get_message('email_exists', lang), 'danger')
+                flash(translate('email_in_use', module='messages', lang=lang), 'danger')
                 return redirect(url_for('profile', lang=lang))
             current_user.email = email
         
@@ -339,7 +312,7 @@ def update_profile(lang):
             response.set_cookie('lang', language, max_age=60*60*24*30)
         
         db.session.commit()
-        flash(get_message('profile_updated', lang), 'success')
+        flash(translate('profile_updated', module='messages', lang=lang), 'success')
         
         # If language was changed, redirect with new cookie
         if language and language in ['mkd', 'en', 'al']:
@@ -358,7 +331,7 @@ def admin_users():
     
     users = User.query.all()
     lang = request.cookies.get('lang', 'mkd')
-    return render_template(f'{lang}/admin_users.html', users=users)
+    return render_template('/routes/admin_users.html', users=users)
 
 @app.route('/admin/users/toggle/<int:user_id>', methods=['POST'])
 @login_required
@@ -412,7 +385,7 @@ def reset_password_request(lang):
     # Validate language
     if lang not in ['mkd', 'en', 'al']:
         lang = 'en'
-    return render_template(f'{lang}/reset_password_request.html')
+    return render_template('/routes/reset_password_request.html')
 
 @app.route('/<lang>/reset_password_request', methods=['POST'])
 def reset_password_request_post(lang):
@@ -422,7 +395,7 @@ def reset_password_request_post(lang):
     if user:
         send_reset_email(email, lang)
     
-    flash(get_message('reset_email_sent', lang), 'info')
+    flash(translate('password_reset_sent', module='messages', lang=lang), 'info')
 
     return redirect(url_for('login', lang=lang))  # Redirect to localized login page
 
@@ -445,26 +418,26 @@ def reset_password(lang, token):
         
         # Ensure password meets security standards
         if len(new_password) < 6:
-            flash(get_message('password_length', lang), 'danger')
-            return render_template(f'{lang}/reset_password.html', lang=lang, token=token)
+            flash(translate('password_length', module='messages', lang=lang), 'danger')
+            return render_template('/routes/reset_password.html', lang=lang, token=token)
 
         if new_password != confirm_password:
-            flash(get_message('passwords_not_match', lang), 'danger')
-            return render_template(f'{lang}/reset_password.html', lang=lang, token=token)
+            flash(translate('passwords_not_match', module='messages', lang=lang), 'danger')
+            return render_template('/routes/reset_password.html', lang=lang, token=token)
 
         # Ensure password meets security standards
         is_valid, password_error = validate_password(new_password, user.username)
         if not is_valid:
             flash(password_error, 'danger')
-            return render_template(f'{lang}/reset_password.html', lang=lang, token=token)
+            return render_template('/routes/reset_password.html', lang=lang, token=token)
 
         user.set_password(new_password)  # Hash password before saving
         db.session.commit()
 
-        flash(get_message('password_reset_success', lang), 'success')
+        flash(translate('password_reset_success', module='messages', lang=lang), 'success')
         return redirect(url_for('login', lang=lang))  # Redirect to localized login
 
-    return render_template(f'{lang}/reset_password.html', lang=lang, token=token)
+    return render_template('/routes/reset_password.html', lang=lang, token=token)
 
 @app.route('/')
 def index():
@@ -474,9 +447,18 @@ def index():
 @app.route('/<lang>/')
 @app.route('/<lang>/page/<int:page_number>')
 def index_lang(lang, page_number=1):
-       
+    # Validate language
     if lang not in ['mkd', 'al', 'en']:
-        lang = 'en'  # Fallback to Macedonian if the language is invalid
+        app.logger.warning(f"Invalid language code: {lang}. Defaulting to English.")
+        lang = 'en'
+
+    # Load translations for the index module
+    try:
+        translations = translation_manager.load_translations('index', lang)
+        app.logger.info(f"Loaded {len(translations)} translation keys for {lang}")
+    except Exception as e:
+        app.logger.error(f"Translation loading error: {e}")
+        translations = {}
 
     # Fetch ads for the specified page
     per_page = 48  # Number of ads per page
@@ -486,46 +468,73 @@ def index_lang(lang, page_number=1):
     # For locations
     locations = [loc[0] for loc in db.session.query(Ad.location).distinct() if loc[0]]
 
-    # Render the template with ads and pagination data
-    return render_template(f'{lang}/index.html', ads=ads,locations=locations, current_page=page_number, pagination=ads_pagination)
+    # Render the template with ads, pagination, and translations
+    return render_template('/routes/index.html', 
+                           ads=ads,
+                           locations=locations, 
+                           current_page=page_number, 
+                           pagination=ads_pagination,
+                           translations=translations,
+                           current_lang=lang)
 
 @app.route('/set_language/<lang>/')
 def set_language(lang):
+    # Add detailed logging
+    app.logger.info(f"Language switch attempt: {lang}")
+    app.logger.info(f"Referrer: {request.referrer}")
+    
+    # Validate the language code
     if lang not in ['mkd', 'en', 'al']:
+        app.logger.warning(f"Invalid language code: {lang}. Defaulting to English.")
         lang = 'en'
     
-    # Get the referrer (current page)
-    referrer = request.referrer
+    # Check if the next parameter exists
+    next_page = request.args.get('next', None)
     
-    # Default to index if no referrer
-    if not referrer:
-        response = redirect(url_for('index_lang', lang=lang))
-    else:
-        # Parse the URL
-        from urllib.parse import urlparse
-        parsed_url = urlparse(referrer)
-        path_parts = parsed_url.path.strip('/').split('/')
+    if not next_page:
+        # Get the referrer (current page) if no next param
+        referrer = request.referrer
         
-        # Check if the path starts with a language code
-        if path_parts and path_parts[0] in ['mkd', 'en', 'al']:
-            # Replace the language code
-            path_parts[0] = lang
-            
-            # Reconstruct the URL
-            new_path = '/' + '/'.join(path_parts)
-            
-            # If there was a query string, preserve it
-            if parsed_url.query:
-                new_path += '?' + parsed_url.query
-                
-            response = redirect(new_path)
-        else:
-            # No language in URL path, redirect to index
+        if not referrer:
+            app.logger.info(f"No referrer, redirecting to index with language: {lang}")
             response = redirect(url_for('index_lang', lang=lang))
+        else:
+            # Parse the URL
+            from urllib.parse import urlparse
+            parsed_url = urlparse(referrer)
+            path_parts = parsed_url.path.strip('/').split('/')
+            
+            app.logger.info(f"Path parts: {path_parts}")
+            
+            # Check if the path starts with a language code
+            if path_parts and path_parts[0] in ['mkd', 'en', 'al']:
+                # Replace the language code
+                path_parts[0] = lang
+                
+                # Reconstruct the URL
+                new_path = '/' + '/'.join(path_parts)
+                
+                # If there was a query string, preserve it
+                if parsed_url.query:
+                    new_path += '?' + parsed_url.query
+                
+                app.logger.info(f"Redirecting to: {new_path}")
+                response = redirect(new_path)
+            else:
+                # No language in URL path, redirect to index
+                app.logger.info(f"No language in path, redirecting to index with language: {lang}")
+                response = redirect(url_for('index_lang', lang=lang))
+    else:
+        # If 'next' exists, just redirect to the next page with the language
+        app.logger.info(f"Redirecting to next page: {next_page}")
+        response = redirect(next_page)
     
     # Set language cookie
-    response.set_cookie('lang', lang, max_age=60*60*24*30)
+    response.set_cookie('lang', lang, max_age=60*60*24*30, path='/')
+    app.logger.info(f"Language cookie set to: {lang}")
+    
     return response
+
 
 @app.route('/fetch_ads', methods=['POST'])
 def fetch_ads():
@@ -566,7 +575,7 @@ def about(lang):
     if lang not in ['mkd', 'en', 'al']:
         lang = 'en'
 
-    return render_template(f'{lang}/about.html')
+    return render_template('/routes/about.html')
 
 
 @app.route('/<lang>/contact')
@@ -574,11 +583,7 @@ def contact(lang):
     if lang not in ['mkd', 'en', 'al']:
         lang = 'en'
 
-    return render_template(f'{lang}/contact.html')
-
-@app.route('/test_csrf', methods=['POST'])
-def test_csrf():
-    return jsonify({"message": "CSRF token is valid"})
+    return render_template('/routes/contact.html')
 
 if __name__ == '__main__':
     app.debug = True
