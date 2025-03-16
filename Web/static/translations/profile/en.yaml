@@ -1,0 +1,18 @@
+language: "en"
+title: "My Profile"
+info: "Information about your profile"
+username: "Username"
+email: "Email"
+user_from: "User from"
+last_login: "Last login"
+preferred_language: "Preferred language"
+
+change_title: "Change your information"
+change_controls:
+  email: "Email"
+  preferred_language: "Preferred language"
+  password_title: "Change your password"
+  current_password: "Current password"
+  new_password: "New password"
+  confirm_password: "Confirm new password"
+  save_changes: "Save changes"

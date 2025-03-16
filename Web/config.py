@@ -23,11 +23,8 @@ class Config:
     # Session configurations
     SESSION_COOKIE_NAME = os.getenv('SESSION_COOKIE_NAME', 'smilko')
     SESSION_COOKIE_HTTPONLY = os.getenv('SESSION_COOKIE_HTTPONLY', 'True') == 'True'
-    SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'False') == 'True'  # For production with HTTPS
+    SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'False') == 'False'  # For production with HTTPS
 
     # Duration settings
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.getenv('PERMANENT_SESSION_LIFETIME', 30)))
     REMEMBER_COOKIE_DURATION = timedelta(minutes=int(os.getenv('REMEMBER_COOKIE_DURATION', 30)))
-
-    # Translation
-    TRANSLATIONS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'translations', 'flask_msg.yaml')

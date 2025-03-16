@@ -1,0 +1,5 @@
+language: "al"
+title: "Rikthe fjalëkalimin tënd"
+new_password: "Fjalëkalim i ri"
+confirm_password: "Konfirmo fjalëkalimin"
+reset_password: "Rikthe fjalëkalimin"

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block body_class %}about{% endblock body_class %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">
+{% endblock head %}
+
+
+
+    {% block content %}
+        <div class="about-container">
+        <h1 class="title"><i class="fa-solid fa-circle-info"></i> {{ translate('title', 'about', lang) }} </h1>
+        <h2 class="text"><i class="fa-solid fa-gears"></i> {{ translate('title_text', 'about', lang) }} </h2>
+        <ol>
+            <li class="list-item">{{ translate('steps.step1', 'about', lang) }} </li>
+            <li class="list-item">{{ translate('steps.step2', 'about', lang) }} </li>
+            <li class="list-item">{{ translate('steps.step3', 'about', lang) }} </li>
+            <li class="list-item-indent">{{ translate('steps.step4_1', 'about', lang) }} </li>
+            <li class="list-item-indent">{{ translate('steps.step4_2', 'about', lang) }} </li>
+        </ol>
+        <h2 class="text"><i class="fa-solid fa-heart"></i> {{ translate('why_title', 'about', lang) }} </h2>
+        <p class="text"> {{ translate('why_text', 'about', lang) }} </p>
+        </div>   
+            
+    {% endblock content %}
+    
+
+    

@@ -1,0 +1,38 @@
+language: "al"
+category : "Kategori"
+search_type: "Kërko për..."
+
+search_select:
+  search_type_every: "Vetëm shpalljet që përmbajnë të gjithë fjalët"
+  search_type_some: "Shpalljet që përmbajnë të paktën një nga fjalët"
+
+sort: "Rendit"
+sort_select:
+  sort_newest: "Më të rinjtë"
+  sort_oldest: "Më të vjetrit"
+  sort_cheapest: "Më të lirë"
+  sort_expensive: "Më të shtrenjtë"
+
+filters: "Filtra"
+price_title: "Çmimi"
+min: "Nga"
+max: "Deri"
+
+currency: "Monedha"
+
+city: "Qytet"
+city_select:
+  city_all: "Të gjitha qytetet"
+
+checkbox_title: "Kërko sipas titullit"
+checkbox_desc: "Kërko nga përshkrimi"
+checkbox_podogovor: "Fshih shpalljet sipas marrëveshjes"
+checkbox_price_1: "Fshih shpalljet me çmim 1"
+
+ads_title: "Reklamë"
+
+pagination:
+  prev: "E mëparshme"
+  page: "Faqja 1"
+  next: "E ardhshme"
+
