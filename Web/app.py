@@ -1,5 +1,5 @@
 # For flask site
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, make_response, g
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, make_response, g, send_file, Response
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_mail import Mail
 # For security implementaton
@@ -20,6 +20,8 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date, timedelta
 from email_utils import send_verification_email, send_reset_email, verify_token # for email verification and reset password
 from translation_utils import TranslationManager, init_translation_system, translation_manager, translate
+import requests
+from io import BytesIO
 import os
 import yaml
 from config import Config
@@ -78,7 +80,7 @@ def add_security_headers(response):
         f"script-src 'self' 'nonce-{g.nonce}' https://cdnjs.cloudflare.com; "
         f"style-src 'self' 'nonce-{g.nonce}' https://cdnjs.cloudflare.com ; "
         f"font-src 'self' https://cdnjs.cloudflare.com; "
-        f"img-src 'self' data: https://flagcdn.com https://*.com https://reklama5.mk; "  # More specific than wildcard
+        f"img-src 'self' data: blob: https://flagcdn.com https://*.com https://reklama5.mk; "
     )
     
     # Other security headers
@@ -239,7 +241,7 @@ def login(lang):
                 flash(translate('login_failed', module='messages', lang=lang), 'danger')
         else:
             # User doesn't exist
-            flash(translate('login_failed', module='messages', lang=lang), 'danger')
+            flash(translate('login_failed', module='messages', lang=lang), 'danger') # Need to fix all flash messages not translated
     
     return render_template('/routes/login.html', lang=lang)
 
@@ -442,7 +444,7 @@ def reset_password(lang, token):
 @app.route('/')
 def index():
     lang = request.cookies.get('lang', 'en')
-    return redirect(url_for('index_lang', lang=lang, nonce=g.nonce))
+    return redirect(url_for('index_lang', lang=lang))
 
 @app.route('/<lang>/')
 @app.route('/<lang>/page/<int:page_number>')
@@ -569,6 +571,34 @@ def fetch_ads():
     ads_list = [ad.to_dict() for ad in ads]
 
     return jsonify(ads_list)
+
+@app.route('/fetch_categories', methods=['POST'])
+def fetch_categories():
+    # Get all unique categories from your database
+    categories = db.session.query(Ad.category).distinct().all()
+    # Convert from tuple format to list
+    category_list = [cat[0] for cat in categories if cat[0]]
+    return jsonify(category_list)
+
+""" @app.route('/proxy_image')
+def proxy_image():
+    image_url = request.args.get("url")
+    if not image_url:
+        return "No URL provided", 400
+
+    try:
+        headers = {"User-Agent": "Mozilla/5.0"}
+        image_response = requests.get(image_url, timeout=10, headers=headers, stream=True)
+        image_response.raise_for_status()
+
+        # Ensure CORS headers are included
+        response = Response(image_response.content, content_type=image_response.headers["Content-Type"])
+        response.headers['Access-Control-Allow-Origin'] = 'https://reklama5.mk'  # Allow all origins to access
+        return response
+    except requests.exceptions.RequestException as e:
+        print("Proxy Error:", e)
+        return "Error fetching image", 404 """
+    # For future use maybe no need now
 
 @app.route('/<lang>/about')
 def about(lang):

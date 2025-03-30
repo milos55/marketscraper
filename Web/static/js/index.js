@@ -31,6 +31,7 @@ class AdsManager {
         
         // Setup and initialize
         this.setupEventListeners();
+        this.fetchCategories();
         this.fetchAllAds();
     }
     
@@ -50,6 +51,7 @@ class AdsManager {
         this.uiManager.setupCheckboxListeners();
         this.uiManager.setupSearchTypeListeners();
         this.uiManager.setupLocationDropdown();
+        this.uiManager.setupViewToggleListeners();
         this.paginationManager.setupPaginationListeners();
         
         // Handle browser back/forward navigation
@@ -126,6 +128,56 @@ class AdsManager {
             console.error('Error fetching ads:', error);
             this.elements.adsGrid.innerHTML = '<p>Error loading ads. Please try again later.</p>';
         }
+    }
+
+    // Need to fetch categories from server-side
+    async fetchCategories() {
+        try {
+            const response = await fetch('/fetch_categories', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.csrfToken,
+                    'X-CSP-Nonce': this.nonce
+                },
+                body: JSON.stringify({ 
+                    nonce: this.nonce
+                })
+            });
+    
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+    
+            const categories = await response.json();
+            this.populateCategoryDropdown(categories);
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+        }
+    }
+    
+    populateCategoryDropdown(categories) {
+        const gridContainer = document.querySelector('.dropdown-cat-menu .grid-container');
+        
+        if (!gridContainer || !categories || categories.length === 0) {
+            console.error('No categories found or grid container not available');
+            return;
+        }
+        
+        gridContainer.innerHTML = '';  // Clear existing content
+        
+        categories.forEach(category => {
+            const li = document.createElement('li');
+            const button = document.createElement('button');
+            button.className = 'category-btn';
+            button.dataset.category = category;
+            button.textContent = category;
+            li.appendChild(button);
+            gridContainer.appendChild(li);
+        });
+        
+        // Re-attach event listeners
+        this.uiManager.setupCategoryListeners();
     }
     
     handleSearch() {
@@ -314,6 +366,10 @@ class FilterManager {
 
     if (this.elements.checkboxes.price1.checked) {
         filtered = filtered.filter(ad => normalizeCurrency(ad.adprice) !== 1);
+    }
+
+    if (this.elements.checkboxes.podogovor && this.elements.checkboxes.podogovor.checked) {
+        filtered = filtered.filter(ad => normalizeCurrency(ad.adcurrency) !== "NEGOTIABLE");
     }
 
     // Get min and max price values
@@ -520,6 +576,50 @@ class UiManager {
         this.adsManager = adsManager;
         this.currentCurrency = "MKD";
         this.initializeCurrency();
+    }
+
+    // Add this to your UiManager class
+setupViewToggleListeners() {
+    const gridButton = document.querySelector('.selector-img[src*="grid_1.png"]');
+    const slidesButton = document.querySelector('.selector-img[src*="slides_1.png"]');
+    
+    if (!gridButton || !slidesButton) {
+        console.warn('View toggle buttons not found');
+        return;
+    }
+    
+    // Set initial state - slides (list) view is default
+    this.currentView = 'slides';
+    this.elements.adsGrid.classList.add('slides-view');
+    slidesButton.classList.add('active-view');
+    
+    // Grid view button click handler
+    gridButton.addEventListener('click', () => {
+        this.currentView = 'grid';
+        this.elements.adsGrid.classList.remove('slides-view');
+        this.elements.adsGrid.classList.add('grid-view');
+        
+        // Update button states
+        gridButton.classList.add('active-view');
+        slidesButton.classList.remove('active-view');
+        
+        // Re-render ads in the current page with grid layout
+        this.adsManager.displayAds();
+    });
+    
+    // Slides (list) view button click handler
+    slidesButton.addEventListener('click', () => {
+        this.currentView = 'slides';
+        this.elements.adsGrid.classList.remove('grid-view');
+        this.elements.adsGrid.classList.add('slides-view');
+        
+        // Update button states
+        slidesButton.classList.add('active-view');
+        gridButton.classList.remove('active-view');
+        
+        // Re-render ads in the current page with list layout
+        this.adsManager.displayAds();
+    });
     }
     
     setupDropdownListeners() {
@@ -752,30 +852,55 @@ class UiManager {
     }
     
     createAdHTML(ad) {
-        return `
-            <a href="${ad.adlink}" target="_blank" class="ad-link">
-                <div class="ad-block">
-                    <div class="ad-header">
-                        <div class="ad-title-info">
-                            <div class="ad-title">${ad.adtitle}</div>
-                            <div class="ad-info">
-                                <time datetime="${ad.addate}">${ad.addate}</time>
-                                <span class="ad-price">
-                                    ${this.formatPrice(ad.adprice, ad.adcurrency)}
-                                </span>
+        // Check the current view mode
+        if (this.currentView === 'grid') {
+            return `
+                <a href="${ad.adlink}" target="_blank" class="ad-link">
+                    <div class="ad-block">
+                        <div class="ad-header">
+                            <div class="ad-title-info">
+                                <div class="ad-title">${ad.adtitle}</div>
+                                <div class="ad-info">
+                                    <time datetime="${ad.addate}">${ad.addate}</time>
+                                    <span class="ad-price">
+                                        ${this.formatPrice(ad.adprice, ad.adcurrency)}
+                                    </span>
+                                </div>
                             </div>
+                            <div class="ad-email">Град: ${ad.adlocation}</div>
                         </div>
-                        <div class="ad-email">Град: ${ad.adlocation}</div>
-                        <div class="ad-phone">Тел: ${this.formatPhone(ad.adphone)}</div>
+                        ${this.getImageHTML(ad.adimage)}
+                        <div class="ad-category">${ad.adcategory}</div>
                     </div>
-                    <div class="ad-description">
-                        <div class="ad-description-text">${ad.addesc}</div>
-                        ${this.getImageHTML(ad.adimage)} 
+                </a>
+            `;
+        } else {
+            // Original list view HTML
+            return `
+                <a href="${ad.adlink}" target="_blank" class="ad-link">
+                    <div class="ad-block">
+                        <div class="ad-header">
+                            <div class="ad-title-info">
+                                <div class="ad-title">${ad.adtitle}</div>
+                                <div class="ad-info">
+                                    <time datetime="${ad.addate}">${ad.addate}</time>
+                                    <span class="ad-price">
+                                        ${this.formatPrice(ad.adprice, ad.adcurrency)}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="ad-email">Град: ${ad.adlocation}</div>
+                            <div class="ad-phone">Тел: ${this.formatPhone(ad.adphone)}</div>
+                        </div>
+                        <div class="ad-description">
+                            <div class="ad-description-text">${ad.addesc}</div>
+                            ${this.getImageHTML(ad.adimage)} 
+                        </div>
+                        <div class="ad-category">${ad.adcategory}</div>
                     </div>
-                    <div class="ad-category">${ad.adcategory}</div>
-                </div>
-            </a>
-        `;
+                </a>
+            `;
+        }
     }
     
     formatPrice(price, currency) {
@@ -796,7 +921,7 @@ class UiManager {
     }
     
     getImageHTML(imageUrl) {
-    const noImageUrl = window.location.origin + "/static/images/No-image.png";
+    const noImageUrl = window.location.origin + "/static/images/icons/noimage/no_image_2x.png";
     
     // Create a unique ID for this image
     const imgId = 'img_' + Math.random().toString(36).substring(2, 15);
@@ -814,7 +939,30 @@ class UiManager {
     return `<div class="ad-image">
         <img id="${imgId}" class="ad-img" src="${imageUrl}" loading="lazy" alt="">
     </div>`;
-}
+    }
+
+    /* getImageHTML(imageUrl) {
+        const noImageUrl = window.location.origin + "/static/images/icons/noimage/no_image_2x.png";
+        const proxyUrl = window.location.origin + "/proxy_image?url=" + encodeURIComponent(imageUrl);
+    
+        // Create a unique ID for this image
+        const imgId = "img_" + Math.random().toString(36).substring(2, 15);
+    
+        // Setup error handler with JavaScript instead of inline `onerror`
+        setTimeout(() => {
+            const img = document.getElementById(imgId);
+            if (img) {
+                img.addEventListener("error", function () {
+                    console.warn("Image failed to load:", imageUrl);
+                    this.src = noImageUrl;
+                });
+            }
+        }, 0);
+    
+        return `<div class="ad-image">
+            <img id="${imgId}" class="ad-img" src="${proxyUrl}" loading="lazy" alt="">
+        </div>`;
+    } */ /* Maybe for future use but no use now */
 }
 
 // Initialize when DOM is ready

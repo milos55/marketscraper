@@ -63,6 +63,17 @@
     <div id="ads-container" class="block">
         <div class="ads-header">
             <button class="dropdown-filter-btn" id="filter-sidebar-btn" aria-label="Filter options"><i class="fa-solid fa-filter"></i> {{ translate('filters', 'index', lang) }}</button>
+            
+            <!-- Selection for view grid or slides--> <!-- TODO: implement this -->
+            <div class="view-selector">
+                <button id="grid-view-btn" class="view-btn active">
+                  <img class="selector-img" src="{{ url_for('static', filename='images/icons/index/grid_1.png') }}" alt="Grid View">
+                </button>
+                <button id="list-view-btn" class="view-btn">
+                  <img class="selector-img" src="{{ url_for('static', filename='images/icons/index/slides_1.png') }}" alt="List View">
+                </button>
+            </div>
+
             <div id="filter-sidebar" class="filter-sidebar">
                 <button class="close-filter-btn">&times;</button>
                 <h3>{{ translate('filters', 'index', lang) }}</h3>
@@ -116,7 +127,9 @@
                 </div>                            
             </div>
 
-            <h2>{{ translate('ads_title', 'index', lang) }}</h2>
+            <div>
+                <h2>{{ translate('ads_title', 'index', lang) }}</h2>
+            </div>
             
             <!-- Top Pagination -->
             <div class="pagination-container">
