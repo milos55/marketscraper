@@ -543,6 +543,78 @@ h2 {
     background: #555;
 }
 
+/* grid or slide selector image */
+.selector-img {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    margin: 0 5px;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+
+.selector-img:hover {
+    opacity: 0.8;
+}
+
+.selector-img.active-view {
+    opacity: 1;
+}
+
+.view-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.ads-grid.grid-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-auto-rows: 1fr;
+    gap: 15px;
+    align-items: stretch;
+}
+
+.ads-grid.grid-view .ad-block {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.ads-grid.grid-view .ad-image {
+    width: 100%;
+    margin: 0 auto 15px;
+    text-align: center;
+}
+
+.ads-grid.grid-view .ad-image img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border: 3px solid #333333;
+    border-radius: 20px;
+}
+
+.ads-grid.grid-view .ad-description {
+    display: none;
+}
+
+.ads-grid.grid-view .ad-category {
+    margin-top: auto;
+}
+
+.ads-grid.grid-view .ad-phone {
+    display: none;
+}
+
+.ads-grid.grid-view .ad-email {
+    font-size: 0.8em;
+}
+
+.ads-grid.slides-view {
+    display: block;
+}
+
 /* Ads Styling */
 #ads-container {
     display: block;
@@ -610,6 +682,7 @@ h2 {
 .ad-title {
     font-size: 18px;
     font-weight: bold;
+    text-align: left;
     margin-bottom: 5px;
     border-bottom: 2px solid #f4f3f2;
 }
@@ -774,4 +847,19 @@ input[type=number] {
         padding: 3px;
     }
 
+    .ads-grid.grid-view {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(1fr, 1fr));
+        grid-auto-rows: 1fr;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .ads-grid.grid-view .ad-image {
+        display: none;
+    }
+
+    .ads-grid.grid-view .ad-category {
+        display: block;
+    }
 }

@@ -3,7 +3,7 @@ function validatePassword(password, username = null, shouldCheckUsername = false
     if (password.length < 16) {
         return {
             isValid: false,
-            errorMessage: "Лозинката мора да има најмалку 16 карактери."
+            errorMessage: "Лозинката мора да има најмалку 16 карактери." /* FIX TRANSLATIONS ALL ERROR MESSAGES */
         };
     }
     
