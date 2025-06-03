@@ -17,8 +17,8 @@ import time
 #CONFIG
 
 DB_CONFIG = {
-    "user": "boro",
-    "password": "boro1234",
+    "user": "milos55",
+    "password": "smil55",
     "database": "reklami",
     "host": "localhost",
     "port": 5432,
@@ -26,8 +26,8 @@ DB_CONFIG = {
 #Made config parameters in seperate block for readability and scalability
 
 START_PAGE = 1
-END_PAGE = 3
-BATCH_SIZE = 3
+END_PAGE = 10
+BATCH_SIZE = 5 #dirty hack, to not create a secondary variable
 URL = "https://www.reklama5.mk/Search?city=&cat=0&q="
 ASYNC_TIMEOUT = 2
 

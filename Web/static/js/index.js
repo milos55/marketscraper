@@ -1,3 +1,6 @@
+// Store data in memory to avoid storage limits
+window.adsCache = [];
+
 // Main AdsManager class - orchestrates the other components
 class AdsManager {
     constructor() {
@@ -9,6 +12,7 @@ class AdsManager {
         this.filteredAds = [];
         this.matchMethod = "every";
         this.searchTerms = [];
+        this.currentCurrency = "MKD";
         
         // Initialize components
         this.elements = new ElementsManager();
@@ -16,7 +20,6 @@ class AdsManager {
         this.searchManager = new SearchManager(this);
         this.filterManager = new FilterManager(this);
         this.paginationManager = new PaginationManager(this);
-        this.priceSliderManager = new PriceSliderManager(this.elements.priceslider);
         this.uiManager = new UiManager(this.elements, this);
         
         // Setup and initialize
@@ -32,13 +35,15 @@ class AdsManager {
     
     setupEventListeners() {
         this.uiManager.setupDropdownListeners();
+        this.uiManager.setuFilterSidebarListeners();
+        this.uiManager.setupPriceRangeListeners();
         this.uiManager.setupCategoryListeners();
         this.uiManager.setupSortListeners();
         this.uiManager.setupSearchListeners();
         this.uiManager.setupCheckboxListeners();
         this.uiManager.setupSearchTypeListeners();
+        this.uiManager.setupLocationDropdown();
         this.paginationManager.setupPaginationListeners();
-        this.priceSliderManager.setupSliderListeners();
         
         // Handle browser back/forward navigation
         window.addEventListener('popstate', (event) => {
@@ -48,15 +53,63 @@ class AdsManager {
             }
         });
     }
+
+    precomputePrices(targetCurrency) {
+        // Always recompute prices on initial load
+        if (targetCurrency === this.currentCurrency && this.initialLoadComplete) return;
     
+        this.currentCurrency = targetCurrency; // Update the current currency
+        this.initialLoadComplete = true; // Mark initial load as complete
+    
+        this.allAds.forEach(ad => {
+            // Ensure convertedPrices exists
+            ad.convertedPrices = ad.convertedPrices || {};
+    
+            // Convert the ad price to the target currency and store it
+            ad.convertedPrices[targetCurrency] = this.filterManager.convertPrice(
+                ad.adprice,
+                ad.adcurrency,
+                targetCurrency
+            );
+    
+            // Debugging: Log the conversion
+            console.log(`Converted price for ad ${ad.adtitle}:`, {
+                originalPrice: ad.adprice,
+                originalCurrency: ad.adcurrency,
+                targetCurrency: targetCurrency,
+                convertedPrice: ad.convertedPrices[targetCurrency]
+            });
+        });
+    }
+
     async fetchAllAds() {
         try {
-            const response = await fetch('/fetch_ads', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ category: null })
-            });
-            this.allAds = await response.json();
+            if (window.adsCache.length > 0) {
+                this.allAds = window.adsCache;
+            } else {
+                const response = await fetch('/fetch_ads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category: null })
+                });
+                this.allAds = await response.json();
+    
+                this.allAds = this.allAds.map(ad => {
+                    if (typeof ad.adprice !== 'number' || !ad.adcurrency) {
+                        console.error("Invalid ad:", ad);
+                        return null;
+                    }
+                    // Initialize convertedPrices if it doesn't exist
+                    ad.convertedPrices = ad.convertedPrices || {};
+                    return ad;
+                }).filter(ad => ad !== null);
+    
+                // Store ads in memory
+                window.adsCache = this.allAds;
+            }
+    
+            // Precompute prices for the default currency
+            this.precomputePrices(this.currentCurrency);
             this.handleSearch();
         } catch (error) {
             console.error('Error fetching ads:', error);
@@ -78,9 +131,10 @@ class AdsManager {
     handlePageChange(newPage) {
         this.currentPage = newPage;
         this.urlManager.updateUrl(newPage);
-        this.displayAds();
+        this.displayAds(); // No need to fetch again
         this.uiManager.scrollToTop();
     }
+    
     
     displayAds() {
         const start = (this.currentPage - 1) * this.adsPerPage;
@@ -118,16 +172,14 @@ class ElementsManager {
             nextBtns: document.querySelectorAll('.next-page'),
             pageNumbers: document.querySelectorAll('.page-number'),
         };
-        this.priceslider = {
-            minSlider: document.getElementById('minSlider'),
-            maxSlider: document.getElementById('maxSlider'),
-            minBubble: document.getElementById('minBubble'),
-            maxBubble: document.getElementById('maxBubble'),
-            rangeTrack: document.querySelector('.range-track'),
-            minLine: document.getElementById('minLine'),
-            maxLine: document.getElementById('maxLine'),
-            plusCircle: document.getElementById('plus-circle'),
+        this.priceSelector = {
+            minPrice: document.getElementById('min-price'),
+            maxPrice: document.getElementById('max-price'),
+            currencyToggle: document.querySelector('.currency-toggle-btn'),
         };
+        this.filterSidebarBtn = document.getElementById('filter-sidebar-btn');
+        this.filterSidebar = document.getElementById('filter-sidebar');
+
     }
 }
 
@@ -199,17 +251,20 @@ class SearchManager {
 }
 
 // Manages filtering and sorting
+import { normalizeCurrency } from "./utils.js";
 class FilterManager {
     constructor(adsManager) {
         this.adsManager = adsManager;
         this.elements = adsManager.elements;
         this.searchManager = adsManager.searchManager;
+        this.selectedLocation = null;
     }
     
     getFilteredAds(allAds, searchTerms) {
         let filtered = this.applyBaseFilters(allAds);
         filtered = this.applySearchTerms(filtered, searchTerms);
         filtered = this.applyPriceFilters(filtered);
+        filtered = this.applyLocationFilter(filtered);
         return this.sortAds(filtered);
     }
     
@@ -244,17 +299,106 @@ class FilterManager {
     }
     
     applyPriceFilters(ads) {
-        let filtered = [...ads];
-        
-        if (this.elements.checkboxes.podogovor.checked) {
-            filtered = filtered.filter(ad => ad.adcurrency !== "ПоДоговор");
-        }
-        
-        if (this.elements.checkboxes.price1.checked) {
-            filtered = filtered.filter(ad => ad.adprice !== 1);
-        }
-        
+    let filtered = [...ads];
+
+    if (this.elements.checkboxes.price1.checked) {
+        filtered = filtered.filter(ad => normalizeCurrency(ad.adprice) !== 1);
+    }
+
+    // Get min and max price values
+    const minPriceInput = this.elements.priceSelector.minPrice.value;
+    const maxPriceInput = this.elements.priceSelector.maxPrice.value;
+    const minPrice = minPriceInput ? parseFloat(minPriceInput) : 1;
+    const maxPrice = maxPriceInput ? parseFloat(maxPriceInput) : Infinity;
+
+    // Get current currency from UiManager
+    const selectedCurrency = this.adsManager.uiManager.currentCurrency;
+
+    // Validate prices
+    if (isNaN(minPrice) || isNaN(maxPrice)) {
+        console.warn("Invalid price input:", { minPrice, maxPrice });
         return filtered;
+    }
+
+    // Filter ads
+    return filtered.filter(ad => {
+        // Handle "По Договор" case
+        if (normalizeCurrency(ad.adcurrency) === "NEGOTIABLE") {
+            return minPrice === 1; // Only include negotiable prices if min price is 1
+        }
+
+        // Get the converted price for the current currency
+        const convertedPrice = ad.convertedPrices?.[selectedCurrency];
+
+        if (convertedPrice === undefined) {
+            console.warn(`Missing converted price for ad:`, ad);
+            return false; // Skip the ad if no converted price is available
+        }
+
+        // Now you can safely check if the price falls within the selected range
+        return convertedPrice >= minPrice && convertedPrice <= maxPrice;
+    });
+    }
+
+    updatePricePlaceholders(currency) {
+        try {
+            const { minPrice, maxPrice } = this.elements.priceSelector;
+            
+            if (!minPrice || !maxPrice) {
+                throw new Error('Price input elements not found');
+            }
+
+            const placeholders = currency === 'MKD' 
+                ? { min: '1000', max: '500000' }
+                : { min: '15', max: '8000' };
+
+            minPrice.placeholder = placeholders.min;
+            maxPrice.placeholder = placeholders.max;
+        } catch (error) {
+            console.error('Error updating price placeholders:', error);
+        }
+    }
+
+    convertPrice(price, fromCurrency, toCurrency) {
+        const CURRENCY_RATES = {
+            MKD: 1, // Base currency
+            EUR: 61.5 // 1 EUR = 61.5 MKD (adjust this rate as needed)
+        };
+
+        // Normalize currencies using the utility function
+        fromCurrency = normalizeCurrency(fromCurrency); // Use the utility function
+        toCurrency = normalizeCurrency(toCurrency); // Use the utility function
+
+        // Ensure price is a number
+        if (typeof price !== 'number') {
+            price = parseFloat(price);
+            if (isNaN(price)) {
+                console.error("Invalid price:", price);
+                return 0; // Default to 0 if price is invalid
+            }
+        }
+
+        // Convert to MKD first
+        let priceInMKD;
+        if (fromCurrency === "EUR") {
+            priceInMKD = price * CURRENCY_RATES.EUR;
+        } else {
+            priceInMKD = price; // Assume price is already in MKD
+        }
+
+        // Convert to the target currency
+        if (toCurrency === "EUR") {
+            return priceInMKD / CURRENCY_RATES.EUR;
+        } else {
+            return priceInMKD; // Return in MKD
+        }
+    }
+
+    applyLocationFilter(ads) {
+        if (!this.selectedLocation || this.selectedLocation === "") {
+            return ads;
+        }
+        return ads.filter(ad => ad.adlocation === this.selectedLocation);
     }
     
     sortAds(ads) {
@@ -358,138 +502,13 @@ class PaginationManager {
     }
 }
 
-// Manages price slider
-class PriceSliderManager {
-    constructor(sliderElements) {
-        this.elements = sliderElements;
-        this.isLowMode = true; // start slider in 1 to 50000
-        
-        this.initializeBubbles();
-        this.staticLines();
-    }
-    
-    setupSliderListeners() {
-        this.elements.minSlider.addEventListener('input', () => this.updateSliders());
-        this.elements.maxSlider.addEventListener('input', () => this.updateSliders());
-        this.elements.minBubble.addEventListener('keydown', (e) => this.handleBubbleInput(e, 'min'));
-        this.elements.maxBubble.addEventListener('keydown', (e) => this.handleBubbleInput(e, 'max'));
-        
-        this.elements.plusCircle.addEventListener('click', () => {
-            this.isLowMode = !this.isLowMode;
-            console.log("Low Mode is now:", this.isLowMode ? "ON" : "OFF");
-            this.updateSliders();
-        });
-    }
-    
-    updateSliders() {
-        const { minSlider, maxSlider, minBubble, maxBubble, rangeTrack } = this.elements;
-        
-        // Check if we should switch modes
-        if (parseInt(maxSlider.value) > 50000 && this.isLowMode) {
-            this.isLowMode = false;
-            this.setSliderRange(50001, 50000000); // High mode range
-        } else if (parseInt(maxSlider.value) <= 50000 && !this.isLowMode) {
-            this.isLowMode = true;
-            this.setSliderRange(1, 50000); // Low mode range
-        }
-        
-        let minValue = parseInt(minSlider.value);
-        let maxValue = parseInt(maxSlider.value);
-        
-        // Prevent sliders from overlapping
-        if (minValue > maxValue - 1000) minSlider.value = maxValue - 1000;
-        if (maxValue < minValue + 1000) maxSlider.value = minValue + 1000;
-        
-        minValue = parseInt(minSlider.value);
-        maxValue = parseInt(maxSlider.value);
-        
-        const minPercent = (minValue / minSlider.max) * 100;
-        const maxPercent = (maxValue / maxSlider.max) * 100;
-        
-        // Update range track width
-        rangeTrack.style.left = minPercent + "%";
-        rangeTrack.style.width = (maxPercent - minPercent) + "%";
-        
-        // Update the bubble values
-        minBubble.value = minValue;
-        maxBubble.value = maxValue;
-        
-        // Position minBubble and maxBubble based on the slider values
-        minBubble.style.left = minPercent + "%";
-        maxBubble.style.left = maxPercent + "%";
-        
-        // Update the text content of the bubbles
-        minBubble.textContent = minValue;
-        maxBubble.textContent = maxValue;
-    }
-    
-    initializeBubbles() {
-        const { minSlider, maxSlider, minBubble, maxBubble } = this.elements;
-        
-        let minValue = parseInt(minSlider.value);
-        let maxValue = parseInt(maxSlider.value);
-        let sliderMax = parseInt(maxSlider.max);
-        
-        const minPercent = (minValue / sliderMax) * 100;
-        const maxPercent = (maxValue / sliderMax) * 100;
-        
-        minBubble.style.left = minPercent + "%";
-        maxBubble.style.left = maxPercent + "%";
-    }
-    
-    staticLines() {
-        const { minLine, maxLine } = this.elements;
-        minLine.style.left = '-0.8%';
-        maxLine.style.left = '100%';
-    }
-    
-    handleBubbleInput(e, type) {
-        if (e.key !== 'Enter') return;
-        
-        const { minSlider, maxSlider } = this.elements;
-        const value = parseInt(e.target.value);
-        
-        if (isNaN(value)) return;
-        
-        if (type === 'min') {
-            // Prevent the min value from being greater than max - 1000
-            if (value > maxSlider.value - 1000) {
-                minSlider.value = maxSlider.value - 1000;
-                e.target.value = minSlider.value;
-            } else {
-                minSlider.value = value;
-            }
-        } else if (type === 'max') {
-            // Prevent the max value from being less than min + 1000
-            if (value < minSlider.value + 1000) {
-                maxSlider.value = minSlider.value + 1000;
-                e.target.value = maxSlider.value;
-            } else {
-                maxSlider.value = value;
-            }
-        }
-        
-        this.updateSliders(); // Update the sliders and bubbles after input
-    }
-    
-    setSliderRange(min, max) {
-        const { minSlider, maxSlider } = this.elements;
-        minSlider.setAttribute('min', min);
-        minSlider.setAttribute('max', max);
-        maxSlider.setAttribute('min', min);
-        maxSlider.setAttribute('max', max);
-        
-        // Ensure values are within the new range
-        if (parseInt(minSlider.value) < min) minSlider.value = min;
-        if (parseInt(maxSlider.value) > max) maxSlider.value = max;
-    }
-}
-
 // Manages UI components and rendering
 class UiManager {
     constructor(elements, adsManager) {
         this.elements = elements;
         this.adsManager = adsManager;
+        this.currentCurrency = "MKD";
+        this.initializeCurrency();
     }
     
     setupDropdownListeners() {
@@ -513,7 +532,153 @@ class UiManager {
             }
         });
     }
+
+    setuFilterSidebarListeners() {
+        const openFilterBtn = this.elements.filterSidebarBtn;
+        const closeFilterBtn = document.querySelector('.close-filter-btn');
+        const filterSidebar = this.elements.filterSidebar;
+
+        if (openFilterBtn && filterSidebar) {
+            openFilterBtn.addEventListener('click', () => {
+                filterSidebar.classList.add('open');
+            });
+        }
+
+        if (closeFilterBtn && filterSidebar) {
+            closeFilterBtn.addEventListener('click', () => {
+                filterSidebar.classList.remove('open');
+            });
+        }
+
+        // Close sidebar when clicking outside of it
+        document.addEventListener('click', (event) => {
+            if (filterSidebar && !filterSidebar.contains(event.target) && !openFilterBtn.contains(event.target)) {
+                filterSidebar.classList.remove('open');
+            }
+        });
+    }
+
+    initializeCurrency() {
+        // Set the initial currency in the UI
+        const currencyToggleBtn = this.elements.priceSelector.currencyToggle;
+        if (currencyToggleBtn) {
+            const currencyText = currencyToggleBtn.querySelector('.currency-text');
+            if (currencyText) {
+                currencyText.textContent = this.currentCurrency;
+            }
+        }
+    }
+
+    setupPriceRangeListeners() {
+        const { minPrice: minPriceInput, maxPrice: maxPriceInput, currencyToggle: currencyToggleBtn } = this.elements.priceSelector;
+
+        if (!minPriceInput || !maxPriceInput || !currencyToggleBtn) {
+            console.warn('Price range elements not found:', { minPriceInput, maxPriceInput, currencyToggleBtn });
+            return;
+        }
+
+        // Debounce function for price changes
+        const debounce = (func, delay) => {
+            let timer;
+            return function (...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => func.apply(this, args), delay);
+            };
+        };
+
+        const handlePriceChange = debounce(() => {
+            this.adsManager.handleSearch();
+        }, 300);
+
+        // Remove any existing listeners
+        const newMinInput = minPriceInput.cloneNode(true);
+        const newMaxInput = maxPriceInput.cloneNode(true);
+        minPriceInput.parentNode.replaceChild(newMinInput, minPriceInput);
+        maxPriceInput.parentNode.replaceChild(newMaxInput, maxPriceInput);
+
+        // Add new listeners
+        newMinInput.addEventListener('input', handlePriceChange);
+        newMaxInput.addEventListener('input', handlePriceChange);
+
+        // Update references
+        this.elements.priceSelector.minPrice = newMinInput;
+        this.elements.priceSelector.maxPrice = newMaxInput;
+
+        // Currency toggle handler
+        currencyToggleBtn.addEventListener('click', () => {
+            // Toggle between currencies
+            this.currentCurrency = this.currentCurrency === 'MKD' ? 'EUR' : 'MKD';
+            
+            // Update button text
+            const currencyText = currencyToggleBtn.querySelector('.currency-text');
+            if (currencyText) {
+                currencyText.textContent = this.currentCurrency;
+            }
+            
+            // Animate icon
+            const icon = currencyToggleBtn.querySelector('i');
+            if (icon) {
+                icon.style.transform = 'rotate(180deg)';
+                setTimeout(() => {
+                    icon.style.transform = 'rotate(0deg)';
+                }, 200);
+            }
+            
+            // Update prices and refresh results
+            this.adsManager.precomputePrices(this.currentCurrency);
+            this.adsManager.handleSearch();
+            
+            // Update placeholders
+            this.adsManager.filterManager.updatePricePlaceholders(this.currentCurrency);
+        });
+    }
     
+    setupLocationDropdown() {
+        const locationBtn = document.querySelector('.dropdown-location-btn');
+        const locationMenu = document.querySelector('.dropdown-location-menu');
+        const locationBtns = document.querySelectorAll('.location-btn');
+        
+        if (locationBtn && locationMenu) {
+            // Toggle dropdown on button click
+            locationBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                locationMenu.classList.toggle('show');
+                
+                // Close other dropdowns
+                const otherDropdowns = document.querySelectorAll('.dropdown-cat-menu, .dropdown-date-menu');
+                otherDropdowns.forEach(dropdown => {
+                    dropdown.style.display = 'none';
+                });
+            });
+            
+            // Handle location selection
+            locationBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const selectedLocation = e.target.dataset.location;
+                    const buttonText = selectedLocation || 'Сите градови';
+                    
+                    // Update button text
+                    locationBtn.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${buttonText}`;
+                    
+                    // Update filter and refresh results
+                    this.adsManager.filterManager.selectedLocation = selectedLocation;
+                    this.adsManager.currentPage = 1;
+                    this.adsManager.handleSearch();
+                    
+                    // Close dropdown
+                    locationMenu.classList.remove('show');
+                });
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!locationMenu.contains(e.target) && !locationBtn.contains(e.target)) {
+                    locationMenu.classList.remove('show');
+                }
+            });
+        }
+    }
+
     setupCategoryListeners() {
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -589,12 +754,14 @@ class UiManager {
                                 </span>
                             </div>
                         </div>
-                        <div class="ad-phone">Phone: ${this.formatPhone(ad.adphone)}</div>
+                        <div class="ad-email">Град: ${ad.adlocation}</div>
+                        <div class="ad-phone">Тел: ${this.formatPhone(ad.adphone)}</div>
                     </div>
                     <div class="ad-description">
                         <div class="ad-description-text">${ad.addesc}</div>
-                        ${this.getImageHTML(ad.adimage)}
+                        ${this.getImageHTML(ad.adimage)} 
                     </div>
+                    <div class="ad-category">${ad.adcategory}</div>
                 </div>
             </a>
         `;
