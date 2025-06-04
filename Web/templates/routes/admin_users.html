@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_page.css') }}">
+{% endblock %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+<div class="container">
+            <h2>{{ translate('title', 'admin_users', lang) }}</h2>
+        </div>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+                <div class="card-body">
+                    <div class="table">
+                        <table class="table">
+                            <thead class="control-title">
+                                <tr>
+                                    <th>{{ translate('info.id', 'admin_users', lang) }}</th>
+                                    <th>{{ translate('info.name', 'admin_users', lang) }}</th>
+                                    <th>{{ translate('info.email', 'admin_users', lang) }}</th>
+                                    <th>{{ translate('info.registered', 'admin_users', lang) }}</th>
+                                    <th>{{ translate('info.last_login', 'admin_users', lang) }}</th>
+                                    <th>{{ translate('info.language', 'admin_users', lang) }}</th>
+                                    <th>{{ translate('info.status', 'admin_users', lang) }}</th>
+                                    <th>{{ translate('info.actions', 'admin_users', lang) }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="control-content">
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ user.id }}</td>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.registered_on.strftime('%d.%m.%Y') }}</td>
+                                    <td>
+                                        {% if user.last_login %}
+                                            {{ user.last_login.strftime('%d.%m.%Y %H:%M') }}
+                                        {% else %}
+                                            Нема најава
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.language == 'mkd' %}
+                                            Македонски
+                                        {% elif user.language == 'en' %}
+                                            English
+                                        {% elif user.language == 'al' %}
+                                            Shqip
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if user.is_active else 'danger' }}">
+                                            {{ 'Активен' if user.is_active else 'Неактивен' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if user.id != current_user.id %}
+                                        <!-- Toggle Status Form -->
+                                        <form method="POST" action="{{ url_for('toggle_user_status', user_id=user.id) }}" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            {% if user.is_active %}
+                                                <button type="submit" class="btn btn-sm btn-danger">{{ translate('actions.deactivate', 'admin_users', lang) }}</button>
+                                            {% else %}
+                                                <button type="submit" class="btn btn-sm btn-success">{{ translate('actions.activate', 'admin_users', lang) }}</button>
+                                            {% endif %}
+                                        </form>
+                                    
+                                        <!-- Delete User Form -->
+                                        <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Дали сте сигурни дека сакате да го избришете овој корисник?');">
+                                                {{ translate('actions.delete', 'admin_users', lang) }}
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                            <span class="text-muted">{{ translate('current_user', 'admin_users', lang) }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+</div>
+{% endblock %}

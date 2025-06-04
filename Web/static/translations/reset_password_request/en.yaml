@@ -1,0 +1,4 @@
+language: "en"
+title: "Reset your password"
+email: "Enter your email to reset your password"
+send_email: "Send email to reset password"

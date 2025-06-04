@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div id="main-container" class="container">
+        <div class="parent-container-search-bar">
+            <div class="search-bar">
+                <!-- Category Dropdown -->
+                <div class="dropdown">
+                    <button class="dropdown-cat-btn" aria-label="Categories">
+                        <i class="fa-solid fa-bars"></i> {{ translate('category', 'index', lang) }}
+                    </button>
+                    <ul class="dropdown-cat-menu">
+                        <div class="grid-container">
+                            {% for category in categories %}
+                                <li>
+                                    <button class="category-btn" 
+                                            data-category="{{ category }}">
+                                        {{ category }}
+                                    </button>
+                                </li>
+                            {% endfor %}
+                        </div>
+                    </ul>
+                </div>
+                <!-- Search Input -->
+                <input type="text" 
+                       class="search-input" 
+                       id="search-input" 
+                       placeholder="Monitor, tdi, tsi"
+                       aria-label="Search input">
+                <!-- Search Type Dropdown -->
+                <div class="dropdown">
+                    <button class="dropdown-search-btn" aria-label="Search type">{{ translate('search_type', 'index', lang) }}</button>
+                    <ul class="dropdown-search-type-menu">
+                        <li><button class="search-type-btn" id="search-every">{{ translate('search_select.search_type_every', 'index', lang) }}</button></li>
+                        <li><button class="search-type-btn" id="search-some">{{ translate('search_select.search_type_some', 'index', lang) }}</button></li>
+                    </ul>
+                </div>
+                <!-- Sort Dropdown -->
+                <div class="dropdown">
+                    <button class="dropdown-date-btn" aria-label="Sort options">{{ translate('sort', 'index', lang) }}</button>
+                    <ul class="dropdown-date-menu">
+                        <li><button class="sort-btn" data-sort="newest">{{ translate('sort_select.sort_newest', 'index', lang) }}</button></li>
+                        <li><button class="sort-btn" data-sort="oldest">{{ translate('sort_select.sort_oldest', 'index', lang) }}</button></li>
+                        <li><button class="sort-btn" data-sort="cheapest">{{ translate('sort_select.sort_cheapest', 'index', lang) }}</button></li>
+                        <li><button class="sort-btn" data-sort="expensive">{{ translate('sort_select.sort_expensive', 'index', lang) }}</button></li>
+                    </ul>
+                </div>
+                <!-- Search Button -->
+                <button class="search-btn" 
+                        id="search-btn" 
+                        aria-label="Search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </div>
+        </div>
+
+        
+         
+    </div>
+    
+    <!-- Ads Container -->
+    <div id="ads-container" class="block">
+        <div class="ads-header">
+            <button class="dropdown-filter-btn" id="filter-sidebar-btn" aria-label="Filter options"><i class="fa-solid fa-filter"></i> {{ translate('filters', 'index', lang) }}</button>
+            
+            <!-- Selection for view grid or slides--> <!-- TODO: implement this -->
+            <div class="view-selector">
+                <button id="grid-view-btn" class="view-btn active">
+                  <img class="selector-img" src="{{ url_for('static', filename='images/icons/index/grid_1.png') }}" alt="Grid View">
+                </button>
+                <button id="list-view-btn" class="view-btn">
+                  <img class="selector-img" src="{{ url_for('static', filename='images/icons/index/slides_1.png') }}" alt="List View">
+                </button>
+            </div>
+
+            <div id="filter-sidebar" class="filter-sidebar">
+                <button class="close-filter-btn">&times;</button>
+                <h3>{{ translate('filters', 'index', lang) }}</h3>
+                <div class="price-selector-container">
+                    <div class="price-selector-title"><h4>{{ translate('price_title', 'index', lang) }}</h4></div>
+                    <div class="price-selector-input">
+                        <input type="number" id="min-price" placeholder="{{ translate('min', 'index', lang) }}"> -
+                        <input type="number" id="max-price" placeholder="{{ translate('max', 'index', lang) }}">
+
+                        <div class="currency-toggle-container">
+                            <span class="currency-label">{{ translate('currency', 'index', lang) }}</span>
+                            <button class="currency-toggle-btn" aria-label="Toggle currency">
+                                <span class="currency-text">MKD</span>
+                                <i class="fa-solid fa-repeat"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="location-container dropdown">
+                    <button class="dropdown-location-btn" aria-label="Location filter">
+                        <i class="fa-solid fa-location-dot"></i> {{ translate('city', 'index', lang) }}
+                    </button>
+                    <ul class="dropdown-location-menu">
+                        <li>
+                            <button class="location-btn" data-location="">{{ translate('city_select.city_all', 'index', lang) }}</button>
+                        </li>
+                        {% for loc in locations %}
+                            <li>
+                                <button class="location-btn" data-location="{{ loc }}">{{ loc }}</button>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="checkbox-container">
+                    <label class="checkbox-div">
+                        <input type="checkbox" id="checkbox-title" checked>
+                        {{ translate('checkbox_title', 'index', lang) }}
+                    </label>
+                    <label class="checkbox-div">
+                        <input type="checkbox" id="checkbox-desc" checked>
+                        {{ translate('checkbox_desc', 'index', lang) }}
+                    </label>
+                    <label class="checkbox-div">
+                        <input type="checkbox" id="checkbox-podogovor">
+                        {{ translate('checkbox_podogovor', 'index', lang) }}
+                    </label>
+                    <label class="checkbox-div">
+                        <input type="checkbox" id="checkbox-price-1">
+                        {{ translate('checkbox_price_1', 'index', lang) }}
+                    </label>
+                </div>                            
+            </div>
+
+            <div>
+                <h2>{{ translate('ads_title', 'index', lang) }}</h2>
+            </div>
+            
+            <!-- Top Pagination -->
+            <div class="pagination-container">
+                <div class="pagination">
+                    <button class="page-btn prev-page">{{ translate('pagination.prev', 'index', lang) }}</button>
+                    <span class="page-number">{{ translate('pagination.page', 'index', lang) }}</span>
+                    <button class="page-btn next-page">{{ translate('pagination.next', 'index', lang) }}</button>
+                </div>
+            </div>
+        </div>
+        <div class="ads-grid"></div>
+        <!-- Bottom Pagination -->
+        <div class="pagination-container">
+            <div class="pagination">
+                <button class="page-btn prev-page">{{ translate('pagination.prev', 'index', lang) }}</button>
+                <span class="page-number">{{ translate('pagination.page', 'index', lang) }}</span>
+                <button class="page-btn next-page">{{ translate('pagination.next', 'index', lang) }}</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main script -->
+    <script type="module" src="{{ url_for('static', filename='js/index.js') }}" nonce="{{ g.nonce }}"></script>
+    
+{% endblock content %}

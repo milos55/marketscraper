@@ -1,0 +1,19 @@
+language: "al"
+title: "Profili im"
+info: "Informacione per profilin tuaj"
+username: "Emri i p rdit"
+email: "E-mail"
+user_from: "P rdorues nga"
+last_login: "Hyrja e fundit"
+preferred_language: "Gjuha e preferuar"
+
+change_title: "Ndrysho informacionin tuaj"
+change_controls:
+  email: "E-mail"
+  preferred_language: "Gjuha e preferuar"
+  password_title: "Ndrysho fjal shkronj n tuaj"
+  current_password: "Fjal shkronja aktuale"
+  new_password: "Fjal shkronja e re"
+  confirm_password: "Konfirmo fjal shkronj n e re"
+  save_changes: "Ruaj ndryshimet"
+

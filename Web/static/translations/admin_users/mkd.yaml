@@ -1,0 +1,19 @@
+language: "mkd"
+title: "Управување со корисници"
+info:
+  id: "ID"
+  name: "Корисничко Име"
+  email: "Е-маил"
+  registered: "Регистриран"
+  last_login: "Последно најавување"
+  language: "Јазик"
+  status: "Статус"
+  actions: "Акции"
+
+actions:
+  deactivate: "Деактивирај"
+  activate: "Активирај"
+  delete: "Избриши"
+
+current_user: "Моментален корисник"
+  

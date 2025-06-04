@@ -1,0 +1,5 @@
+language: "mkd"
+title: "Ресетирајте ја вашата лозинка"
+new_password: "Нова лозинка"
+confirm_password: "Потврдете ја лозинката"
+reset_password: "Ресетирај лозинка"
