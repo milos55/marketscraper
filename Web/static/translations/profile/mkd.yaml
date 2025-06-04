@@ -1,0 +1,18 @@
+language: "mkd"
+title: "Мој Профил"
+info: "Информации за вашиот профил"
+username: "Корисничко име"
+email: "Е-пошта"
+user_from: "Корисник од"
+last_login: "Последно најавување"
+preferred_language: "Префериран јазик"
+
+change_title: "Промени ги вашите информации"
+change_controls:
+  email: "E-пошта"
+  preferred_language: "Префериран јазик"
+  password_title: "Промени ја вашата лозинка"
+  current_password: "Тековна лозинка"
+  new_password: "Нова лозинка"
+  confirm_password: "Потврди ја новата лозинка"
+  save_changes: "Зачувај ги промените"

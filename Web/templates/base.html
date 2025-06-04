@@ -1,44 +1,89 @@
 <!DOCTYPE html>
-<html land="{{ lang }}">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- External CSS files -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo/favicon.png') }}">
-    <link rel="icon" type="image/x-con" href="{{ url_for('static', filename='images/logo/favicon.ico') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/logo/favicon.ico') }}">
+
     {% block head %}{% endblock head %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" crossorigin="anonymous"></script>
-    <title>{% block title %}Market Watcher{% endblock %}</title>
+
+    <!-- External script (Font Awesome) with nonce -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" 
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <title>{% block title %}Market Track{% endblock %}</title>
 </head>
 
-<script src="{{ url_for('static', filename='js/base.js') }}"></script>
+<!-- External JS file with nonce -->
+<script nonce="{{ g.nonce }}" src="{{ url_for('static', filename='js/base.js') }}"></script>
 
 <body class="{% block body_class %}flex-layout{% endblock %}">
     <header>
         <div class="navbar">
             <div class="logo">
-                <img src="{{ url_for('static', filename='images/logo/favicon.ico') }}" alt="logo">
-                <h1 class="site-name">Market Watcher</h1>
+                <a href="{{ url_for('index_lang', lang='mkd') }}"><img src="{{ url_for('static', filename='images/logo/banner_1.png') }}" alt="logo"></a>
+                <!--<h1 class="site-name">Market Track</h1>-->
             </div>
             <ul class="links">
-                <li><a href="{{ url_for('index_lang', lang='mkd')}}"><i class="fa-solid fa-house"></i> Дома</li></a>
-                <li><a href="{{ url_for('about', lang='mkd')}}"><i class="fa-solid fa-circle-info"></i> Инфо</li></a>
-                <li><a href="{{ url_for('contact', lang='mkd')}}"><i class="fa-solid fa-address-book"></i> Контакт</li></a>
+                <li><a href="{{ url_for('index_lang', lang='mkd')}}"><i class="fa-solid fa-house"></i> {{ translate('home', 'base', lang) }} </li></a>
+                <li><a href="{{ url_for('about', lang='mkd')}}"><i class="fa-solid fa-circle-info"></i> {{ translate('info', 'base', lang) }} </li></a>
+                <li><a href="{{ url_for('contact', lang='mkd')}}"><i class="fa-solid fa-address-book"></i> {{ translate('contact', 'base', lang) }} </li></a>
+
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <div class="dropdown-wrapper">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button">
+                                    <i class="fas fa-user"></i> {{ current_user.username }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li><a class="dropdown-item" href="{{ url_for('profile', lang=request.cookies.get('lang', 'en')) }}"> {{ translate('my_account', 'base', lang) }} </a></li>
+                                
+                                    {% if current_user.role == 'admin' %}
+                                        <li><a class="dropdown-item" href="{{ url_for('admin_users') }}"> {{ translate('user_management', 'base', lang) }} </a></li>
+                                    {% endif %}
+                                    
+                                    <li><a class="dropdown-item" href="{{ url_for('logout', lang=request.cookies.get('lang', 'en')) }}"> {{ translate('logout', 'base', lang) }} </a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login', lang=request.cookies.get('lang', 'en')) }}">
+                                <i class="fas fa-sign-in-alt"></i> {{ translate('login', 'base', lang) }}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register', lang=request.cookies.get('lang', 'en')) }}">
+                                <i class="fas fa-user-plus"></i> {{ translate('register', 'base', lang) }}
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+
                 <ul class="lang-menu">
                     <li>
-                        <a href="{{ url_for('index_lang', lang='en') }}" class="lang-btn">
+                        <a href="{{ url_for('set_language', lang='en') }}" class="lang-btn">
                             <img src="https://flagcdn.com/w40/gb.png" alt="English" width="20"> EN
                         </a>
                     </li>
                     <li>
-                        <a href="{{ url_for('index_lang', lang='mkd') }}" class="lang-btn">
+                        <a href="{{ url_for('set_language', lang='mkd') }}" class="lang-btn">
                             <img src="https://flagcdn.com/w40/mk.png" alt="Macedonian" width="20"> MKD
                         </a>
                     </li>
                     <li>
-                        <a href="{{ url_for('index_lang', lang='al') }}" class="lang-btn">
+                        <a href="{{ url_for('set_language', lang='al') }}" class="lang-btn">
                             <img src="https://flagcdn.com/w40/al.png" alt="Albanian" width="20"> AL
                         </a>
                     </li>
@@ -49,21 +94,54 @@
             </div>
             
             <div class="dropdown_menu">
-                <a href="{{ url_for('index_lang', lang='mkd')}}"><li><i class="fa-solid fa-house"></i> Дома</li></a>
-                <a href="{{ url_for('about', lang='mkd')}}"><li><i class="fa-solid fa-circle-info"></i> Инфо</li></a>
-                <a href="{{ url_for('contact', lang='mkd')}}"><li><i class="fa-solid fa-address-book"></i> Контакт</li></a>
+                <a href="{{ url_for('index_lang', lang='mkd')}}"><li><i class="fa-solid fa-house"></i> {{ translate('home', 'base', lang) }}</li></a>
+                <a href="{{ url_for('about', lang='mkd')}}"><li><i class="fa-solid fa-circle-info"></i> {{ translate('info', 'base', lang) }}</li></a>
+                <a href="{{ url_for('contact', lang='mkd')}}"><li><i class="fa-solid fa-address-book"></i> {{ translate('contact', 'base', lang) }}</li></a>
+
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <div class="dropdown-wrapper">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button">
+                                    <i class="fas fa-user"></i> {{ current_user.username }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li><a class="dropdown-item" href="{{ url_for('profile', lang=request.cookies.get('lang', 'en')) }}">{{ translate('my_account', 'base', lang) }}</a></li>
+                                
+                                    {% if current_user.role == 'admin' %}
+                                        <li><a class="dropdown-item" href="{{ url_for('admin_users') }}">{{ translate('user_management', 'base', lang) }}</a></li>
+                                    {% endif %}
+                                    
+                                    <li><a class="dropdown-item" href="{{ url_for('logout', lang=request.cookies.get('lang', 'en')) }}">{{ translate('logout', 'base', lang) }}</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login', lang=request.cookies.get('lang', 'en')) }}">
+                                <i class="fas fa-sign-in-alt"></i> {{ translate('login', 'base', lang) }}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register', lang=request.cookies.get('lang', 'en')) }}">
+                                <i class="fas fa-user-plus"></i> {{ translate('register', 'base', lang) }}
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+
                 <ul class="lang-menu">
-                    <a href="{{ url_for('index_lang', lang='en') }}" class="lang-btn">
+                    <a href="{{ url_for('set_language', lang='en') }}" class="lang-btn">
                         <li>
                             <img src="https://flagcdn.com/w40/gb.png" alt="English" width="20"> EN
                         </li>
                     </a>
-                    <a href="{{ url_for('index_lang', lang='mkd') }}" class="lang-btn">
+                    <a href="{{ url_for('set_language', lang='mkd') }}" class="lang-btn">
                         <li>
                             <img src="https://flagcdn.com/w40/mk.png" alt="Macedonian" width="20"> MKD
                         </li>
                     </a>
-                    <a href="{{ url_for('index_lang', lang='al') }}" class="lang-btn">
+                    <a href="{{ url_for('set_language', lang='al') }}" class="lang-btn">
                         <li>
                             <img src="https://flagcdn.com/w40/al.png" alt="Albanian" width="20"> AL
                         </li>
@@ -73,12 +151,16 @@
         </div>   
     </header>
 
-    <main style="flex: 1">
+    <style nonce="{{ g.nonce }}">
+        main { flex: 1;}
+    </style>
+
+    <main>
         {% block content %}{% endblock %}
     </main>
 
     <footer>
-        <p>&copy; 2025 Милош Смиљковиќ</p>
+        <p>&copy; {{ translate('copyright', 'base', lang) }}</p>
     </footer>
 
 </body>

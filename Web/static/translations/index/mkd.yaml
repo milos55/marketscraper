@@ -1,0 +1,37 @@
+language: "mkd"
+category : "Категории"
+search_type: "Тип на пребарување"
+
+search_select:
+  search_type_every: "Само огласи кои ги содржат сите зборови"
+  search_type_some: "Огласи што содржат барем еден од зборовите"
+
+sort: "Сортирај"
+sort_select:
+  sort_newest: "Најнови"
+  sort_oldest: "Најстари"
+  sort_cheapest: "Најефтини"
+  sort_expensive: "Најскапи"
+
+filters: "Филтри"
+price_title: "Цена"
+min: "Од"
+max: "До"
+
+currency: "Валута"
+
+city: "Град"
+city_select:
+  city_all: "Сите градови"
+
+checkbox_title: "Барај по наслов"
+checkbox_desc: "Барај по опис"
+checkbox_podogovor: "Отстрани огласи По Договор"
+checkbox_price_1: "Отстрани огласи со цена 1"
+
+ads_title: "Огласи"
+
+pagination:
+  prev: "Претходно"
+  page: "Страна 1"
+  next: "Следно"

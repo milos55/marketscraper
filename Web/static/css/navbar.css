@@ -2,7 +2,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
+    font-family: Verdana, Tahoma, sans-serif;
 }
 
 body {
@@ -54,7 +54,8 @@ header{
 }
 
 .logo img{
-    width: 45px;
+    width: 200px;
+    height: 60px;
 }
 
 .navbar .links{
@@ -142,6 +143,45 @@ header{
     color: #333a3f;
 }
 
+/* User Account CSS */
+.dropdown-menu {
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    position: absolute;
+    background-color: #153448;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.dropdown-wrapper:hover .dropdown-menu, .dropdown-wrapper:focus-within .dropdown-menu {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Style for the dropdown items */
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    color: #333;
+    text-decoration: none;
+    display: block;
+    border-radius: 5px;
+}
+
+.dropdown-menu .dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Ensure the dropdown toggle link doesn't look like a link */
+.nav-link.dropdown-toggle {
+    cursor: pointer;
+}
+
 /* Ensure menu replaces hidden navbar on mobile */
 @media (max-width: 992px) {
     .navbar .links,
@@ -165,6 +205,15 @@ header{
         display: block;
         justify-content: center;
     }
+
+    .dropdown-wrapper:hover .dropdown-menu, .dropdown-wrapper:focus-within .dropdown-menu {
+        display: flex;
+        flex-direction: column;
+        opacity: 1;
+        visibility: visible;
+        height: fit-content;
+        width: 100%;
+    }
 }
 
 
@@ -178,6 +227,17 @@ header{
         width: 100%;
         display: block;
         justify-content: center;
+    }
+
+    .dropdown-wrapper:hover .dropdown-menu, .dropdown-wrapper:focus-within .dropdown-menu {
+        display: flex;
+        flex-direction: column;
+        opacity: 1;
+        visibility: visible;
+        height: fit-content;
+        width: 100%;
+        align-items: center;
+        bottom: 165px;
     }
 }
 

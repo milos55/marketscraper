@@ -1,0 +1,26 @@
+language: "en"
+register_success: "Please confirm your email."
+
+link_invalid: "The confirmation link is invalid or has expired."
+
+account_confirmed: "Account already confirmed. Please login."
+account_confirmation_success: "You have confirmed your account. Thanks!"
+
+email_confirmation_needed: "Please confirm your email before logging in."
+
+login_success: "Login successful!"
+login_failed: "Invalid username or password"
+logout_success: "You have been logged out."
+
+current_password_wrong: "Invalid current password."
+passwords_not_match: "New password and confirmation do not match."
+
+email_in_use: "Email already in use."
+
+profile_updated: "Profile updated successfully!"
+
+password_reset_sent: "If a account with the email exists, a reset link has been sent!"
+password_reset_success: "Password reset successfully! You can now log in."
+
+password_length: "Password must be at least 6 characters long!"
+passwords_not_match: "Passwords do not match!"

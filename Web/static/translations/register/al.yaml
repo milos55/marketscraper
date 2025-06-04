@@ -1,0 +1,10 @@
+language: "al"
+title: "Regjistrimi"
+username: "Emri i përdoruesit"
+email: "Email"
+password: "Fjalëkalimi"
+password_confirm: "Konfirmo fjalëkalimin"
+register: "Regjistrohu"
+profile_exist: "A keni tashmë një profil?"
+login: "Hyni"
+

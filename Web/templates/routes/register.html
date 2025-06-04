@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+{% endblock %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card-body">
+            <h4>{{ translate('title', 'register', lang) }}</h4>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <p class="error-message {{ category }}">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <form method="POST" action="{{ url_for('register', lang=request.cookies.get('lang', 'en')) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <ol class="card-body-items">
+                    <li>
+                        <label for="username">{{ translate('username', 'register', lang) }}</label>
+                        <input type="text" id="username" name="username" required><br>
+                    </li>
+                    <li>
+                        <label for="email">{{ translate('email', 'register', lang) }}</label>
+                        <input type="email" id="email" name="email" required><br>
+                    </li>
+                    <li>
+                        <label for="password">{{ translate('password', 'register', lang) }}</label>
+                        <input type="password" id="password" name="password" required><br>
+                        <small id="password-feedback" class="form-text"></small>
+                    </li>
+                    
+                    <li>
+                        <label for="confirm_password">{{ translate('password_confirm', 'register', lang) }}</label>
+                        <input type="password" id="confirm_password" name="confirm_password" required><br>
+                    </li>
+                    <input type="submit" value="{{ translate('register', 'register', lang) }}">
+                </ol>
+            </form>
+            <p>{{ translate('profile_exist', 'register', lang) }}<a href="{{ url_for('login', lang=request.cookies.get('lang', 'en')) }}">{{ translate('login', 'register', lang) }}</a></p>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/user_auth.js') }}" nonce="{{ g.nonce }}"></script>
+{% endblock %}

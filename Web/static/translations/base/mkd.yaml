@@ -1,0 +1,12 @@
+language: "mkd"
+title: "Market Watcher"
+home: "Дома"
+info: "Инфо"
+contact: "Контакт"
+my_account: "Мој профил"
+user_management: "Управување на корисници"
+logout: "Одјави се"
+register: "Регистрирај се"
+login: "Логирај се"
+copyright: "2025 Милош Смиљковиќ"
+  

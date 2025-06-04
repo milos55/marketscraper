@@ -1,0 +1,13 @@
+language: "en"
+title: "Information about the project"
+title_text: "How it works"
+steps:
+  step1: "1. Choose category: Click on the appropriate category."
+  step2: "2. Choose subcategory"
+  step3: "3. Enter words to search for, separated by commas: Automatically searches in both Macedonian and Latin."
+  step4_1: "4.1.  Choose search method from the dropdown"
+  step4_2: "4.2.  Choose sorting method (optional)"
+why_title: "Why does this project exist"
+why_text: "This site exists because I was annoyed that all Macedonian websites for ads search only by title and don't have good search logic, 
+           so this site solves that by allowing search by title and description and having more options for search methods, 
+           I hope this site will be useful to someone"
