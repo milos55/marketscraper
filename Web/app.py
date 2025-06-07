@@ -8,21 +8,17 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Email, EqualTo, Length
 import secrets
 # For password hashing
 from itsdangerous import URLSafeTimedSerializer
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash
 # for DB
 from flask_sqlalchemy import SQLAlchemy
 # Random utils for site
-from datetime import datetime, date, timedelta
 from email_utils import send_verification_email, send_reset_email, verify_token # for email verification and reset password
 from translation_utils import init_translation_system, translate  # Import translation utilities
 import requests
 from io import BytesIO
-import os
 import yaml
 from config import Config
 
