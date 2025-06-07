@@ -9,18 +9,24 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from ad import Ad
 import time
-
+from config import Config
 
 
 
 
 #CONFIG
 
+DB_HOST = Config.DB_HOST
+DB_USER = Config.DB_USER
+DB_PASSWORD = Config.DB_PASSWORD
+DB_NAME = Config.DB_NAME
+
+
 DB_CONFIG = {
-    "user": "milos55",
-    "password": "smil55",
-    "database": "reklami",
-    "host": "localhost",
+    "user": Config.DB_USER,
+    "password": Config.DB_PASSWORD,
+    "database": Config.DB_NAME,
+    "host": Config.DB_HOST,
     "port": 5432,
 }
 #Made config parameters in seperate block for readability and scalability
@@ -156,6 +162,18 @@ async def save_to_db(ads):
                 ad.date = datetime.strptime(ad.date, "%d.%m.%Y %H:%M")
             elif ad.date == "N/A":
                 ad.date = None
+            # If phone is supposed to be an array:
+            if isinstance(ad.phone, str):
+                ad.phone = [ad.phone]
+
+            # If phone can be None:
+            if ad.phone is None:
+                ad.phone = ["NONE FOUND"]
+
+            if ad.price == 0:
+                ad.price = "По Договор"
+            else:
+                ad.price = str(ad.price)
 
             required_fields = [ad.title, ad.description, ad.link, ad.image_url, ad.category, ad.phone, ad.date, ad.price, ad.currency, ad.store]
             if any(field is None for field in required_fields): # Protection agaiisnt null values so it doesn't break code, most liklley a deleted ad so not important
@@ -164,7 +182,7 @@ async def save_to_db(ads):
 
             await conn.execute(
                 """
-                INSERT INTO reklami (title, description, link, image_url, category, phone, date, price, currency,location ,store)
+                INSERT INTO ads.ads (title, description, link, image_url, category, phone, date, price, currency,location ,store)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                 ON CONFLICT (link) DO NOTHING;
                 """,

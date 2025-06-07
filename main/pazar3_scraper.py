@@ -6,6 +6,7 @@ import re
 import time
 import psycopg2
 from ad import Ad
+from config import Config
 
 # === COLOR CONSTANTS FOR ERROR PRINTS ===
 RED = '\033[31m'
@@ -20,10 +21,10 @@ BATCH_SIZE = 3
 URL = "https://www.pazar3.mk/oglasi/"
 ASYNC_TIMEOUT = 2
 
-DB_HOST = "localhost"
-DB_USER = "postgres"
-DB_PASSWORD = "1234"
-DB_NAME = "ad_db"
+DB_HOST = Config.DB_HOST
+DB_USER = Config.DB_USER
+DB_PASSWORD = Config.DB_PASSWORD
+DB_NAME = Config.DB_NAME
 
 ADMIN_NUMBERS = {"078 377 677", "047 551 166"}
 BASE_URL = "https://www.pazar3.mk"
@@ -287,23 +288,24 @@ async def fetch_ads(url, start_page, end_page, batch_size):
                             print(f"{RED}Skipping ad (missing location): {link}{RESET}")  # Location error
                             continue
                         if not formatted_numbers:
-                            print(f"{RED}Skipping ad (missing phone numbers): {link}{RESET}")  # Phone error
-                            continue
+                            print(f"{YELLOW}Missing phone number: {link}{RESET}")  # Phone error
+                            formatted_numbers = {"NONE FOUND"}
+
                         if not description:
                             print(f"{RED}Skipping ad (missing description): {link}{RESET}")  # Description error
                             continue
 
                         ad_instance = Ad(
-                            title=title,
-                            description=description,
-                            link=link,
-                            image_url=image_url,
+                            title=sanitize_unicode(title),
+                            description=sanitize_unicode(description),
+                            link=link,  # URL is already safe
+                            image_url=image_url,  # URL is already safe
                             category=None,
-                            phone=list(formatted_numbers),
+                            phone=[sanitize_unicode(num) for num in formatted_numbers],
                             date=formatted_date,
-                            price=price,
-                            currency=currency,
-                            location=location,
+                            price=str(price) if price else None,
+                            currency=sanitize_unicode(currency),
+                            location=sanitize_unicode(location),
                             store="pazar3"
                         )
 
@@ -319,6 +321,10 @@ async def fetch_ads(url, start_page, end_page, batch_size):
             print(f"Finished scraping pages {batch_start} to {batch_end}")
             await asyncio.sleep(ASYNC_TIMEOUT)
 
+def sanitize_unicode(text):
+    if text is None:
+        return None
+    return text.encode('utf-8', errors='replace').decode('utf-8')
 
 async def main():
     start_time = time.time()
