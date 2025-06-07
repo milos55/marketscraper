@@ -1,6 +1,6 @@
 import os
 import yaml
-from flask import Flask, request
+from flask import Flask, request, has_request_context
 
 class TranslationManager:
     def __init__(self, base_path):
@@ -30,7 +30,10 @@ class TranslationManager:
         except (IOError, yaml.YAMLError):
             return {}
 
+translation_manager = None #Global
+
 def init_translation_system(app):
+    global translation_manager
     base_path = os.path.abspath(os.path.join(app.root_path, 'static', 'translations'))
     translation_manager = TranslationManager(base_path)
 
@@ -54,14 +57,18 @@ def init_translation_system(app):
             return current if current != key else key
 
         return dict(translate=translate)
-
+    
     return translation_manager
 
-# Global translation function for non-Jinja2 contexts
-translation_manager = TranslationManager('static/translations')
 
 def translate(key, module='common', lang='en'):
+    if translation_manager is None:
+        raise RuntimeError("Translation manager has not been initialized.")
+
+    print(f"Debug: Translating key '{key}' for module '{module}' in language '{lang}'")
+
     translations = translation_manager.load_translations(module, lang)
+    print(f"[DEBUG] Loaded keys for {module}/{lang}: {list(translations.keys())}")
     keys = key.split('.')
     current = translations
     for k in keys:

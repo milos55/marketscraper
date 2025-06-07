@@ -13,7 +13,7 @@ login_failed: "Invalid username or password"
 logout_success: "You have been logged out."
 
 current_password_wrong: "Invalid current password."
-passwords_not_match: "New password and confirmation do not match."
+passwords_new_not_match: "New password and confirmation do not match."
 
 email_in_use: "Email already in use."
 
@@ -22,5 +22,11 @@ profile_updated: "Profile updated successfully!"
 password_reset_sent: "If a account with the email exists, a reset link has been sent!"
 password_reset_success: "Password reset successfully! You can now log in."
 
-password_length: "Password must be at least 6 characters long!"
+password_length: "Password must be at least 15 characters long!"
 passwords_not_match: "Passwords do not match!"
+
+username_required: "Username is required."
+email_required: "Email is required."
+password_required: "Password is required."
+username_exists: "Username already exists."
+email_exists: "Email already registered."

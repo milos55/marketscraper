@@ -19,7 +19,7 @@ from flask_sqlalchemy import SQLAlchemy
 # Random utils for site
 from datetime import datetime, date, timedelta
 from email_utils import send_verification_email, send_reset_email, verify_token # for email verification and reset password
-from translation_utils import TranslationManager, init_translation_system, translation_manager, translate
+from translation_utils import init_translation_system, translate  # Import translation utilities
 import requests
 from io import BytesIO
 import os
@@ -30,7 +30,7 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 app.config.from_object(Config)
 
 
-init_translation_system(app)
+translation_manager = init_translation_system(app) # Initialize translation system
 
 # Security managment
 csrf = CSRFProtect(app)
@@ -70,6 +70,25 @@ def generate_nonce():
     # Generate a nonce
     g.nonce = secrets.token_hex(16)
 
+@app.before_request
+def skip_favicon():
+    # Skip favicon requests to avoid unnecessary processing
+    if request.path == '/favicon.ico':
+        return '', 204
+
+# Translations API
+@app.route('/api/translations/<module>')
+def api_translations(module):
+    # Try to get lang from query param ?lang=mkd or from cookies, else default to 'en'
+    lang = request.args.get('lang')
+    if not lang:
+        lang = request.cookies.get('lang')
+    if lang not in ['mkd', 'en', 'al']:
+        lang = 'en'
+
+    translations = translation_manager.load_translations(module, lang)
+    return jsonify(translations)
+
 
 # Security headers
 @app.after_request
@@ -99,8 +118,8 @@ def handle_csrf_error(e):
 # Password validation
 def validate_password(password, username=None):
     # Check password length
-    if len(password) < 16:
-        return False, "Password must be at least 16 characters long."
+    if len(password) < 15:
+        return False, "Password must be at least 15 characters long."
     
     # Check if password contains both uppercase and lowercase letters
     if not (any(c.isupper() for c in password) and any(c.islower() for c in password)):
@@ -143,17 +162,17 @@ def register(lang):
         # Validation
         error = None
         if not username:
-            error = 'Username is required.'
+            error = translate('username_required', module='messages', lang=lang)
         elif not email:
-            error = 'Email is required.'
+            error = translate('email_required', module='messages', lang=lang)
         elif not password:
-            error = 'Password is required.'
+            error = translate('password_required', module='messages', lang=lang)
         elif password != confirm_password:
-            error = 'Passwords do not match.'
+            error = translate('passwords_not_match', module='messages', lang=lang)
         elif User.query.filter_by(username=username).first():
-            error = 'Username already exists.'
+            error = translate('username_exists', module='messages', lang=lang)
         elif User.query.filter_by(email=email).first():
-            error = 'Email already registered.'
+            error = translate('email_exists', module='messages', lang=lang)
         
         # Password validation
         if error is None:
@@ -289,7 +308,7 @@ def update_profile(lang):
             
             if new_password:
                 if new_password != new_password_confirm:
-                    flash(translate('passwords_not_match', module='messages', lang=lang), 'danger')
+                    flash(translate('passwords_new_not_match', module='messages', lang=lang), 'danger')
                     return redirect(url_for('profile', lang=lang))
                 
                 is_valid, password_error = validate_password(new_password, current_user.username)
@@ -614,6 +633,10 @@ def contact(lang):
         lang = 'en'
 
     return render_template('/routes/contact.html')
+
+@app.route('/background')
+def background():
+    return render_template('/routes/background.html')
 
 if __name__ == '__main__':
     app.debug = True

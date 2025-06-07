@@ -1,0 +1,308 @@
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(135deg, #153448 0%, #3C5B6F 25%, #948A77 75%, #DFD3C3 100%);
+            position: relative;
+        }
+
+        .lines-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: -1;
+        }
+
+        .line {
+            position: absolute;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: moveLines 15s linear infinite;
+        }
+
+        .line:nth-child(odd) {
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            animation-duration: 20s;
+        }
+
+        .line-1 {
+            width: 2px;
+            height: 100vh;
+            left: 10%;
+            animation-delay: 0s;
+            transform: rotate(15deg);
+        }
+
+        .line-2 {
+            width: 1px;
+            height: 100vh;
+            left: 25%;
+            animation-delay: -3s;
+            transform: rotate(-10deg);
+        }
+
+        .line-3 {
+            width: 3px;
+            height: 100vh;
+            left: 40%;
+            animation-delay: -6s;
+            transform: rotate(25deg);
+        }
+
+        .line-4 {
+            width: 1px;
+            height: 100vh;
+            left: 60%;
+            animation-delay: -9s;
+            transform: rotate(-20deg);
+        }
+
+        .line-5 {
+            width: 2px;
+            height: 100vh;
+            left: 75%;
+            animation-delay: -12s;
+            transform: rotate(12deg);
+        }
+
+        .line-6 {
+            width: 1px;
+            height: 100vh;
+            left: 90%;
+            animation-delay: -15s;
+            transform: rotate(-8deg);
+        }
+
+        /* Horizontal lines */
+        .h-line {
+            position: absolute;
+            background: linear-gradient(0deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+            animation: moveHorizontal 18s linear infinite;
+        }
+
+        .h-line-1 {
+            width: 100vw;
+            height: 2px;
+            top: 20%;
+            animation-delay: -2s;
+        }
+
+        .h-line-2 {
+            width: 100vw;
+            height: 1px;
+            top: 45%;
+            animation-delay: -8s;
+        }
+
+        .h-line-3 {
+            width: 100vw;
+            height: 3px;
+            top: 70%;
+            animation-delay: -14s;
+        }
+
+        /* Diagonal animated lines */
+        .diagonal-line {
+            position: absolute;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+            animation: moveDiagonal 25s linear infinite;
+        }
+
+        .diagonal-1 {
+            width: 150vw;
+            height: 1px;
+            top: 15%;
+            left: -25%;
+            transform: rotate(45deg);
+            animation-delay: -5s;
+        }
+
+        .diagonal-2 {
+            width: 150vw;
+            height: 2px;
+            top: 60%;
+            left: -25%;
+            transform: rotate(-45deg);
+            animation-delay: -10s;
+        }
+
+        /* Floating particles */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 12s ease-in-out infinite;
+        }
+
+        .particle:nth-child(2n) {
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.2);
+            animation-duration: 16s;
+        }
+
+        .particle-1 { top: 20%; left: 15%; animation-delay: 0s; }
+        .particle-2 { top: 40%; left: 80%; animation-delay: -3s; }
+        .particle-3 { top: 70%; left: 30%; animation-delay: -6s; }
+        .particle-4 { top: 85%; left: 70%; animation-delay: -9s; }
+        .particle-5 { top: 10%; left: 60%; animation-delay: -12s; }
+
+        @keyframes moveLines {
+            0% {
+                transform: translateY(-100vh) rotate(var(--rotation, 0deg));
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(var(--rotation, 0deg));
+                opacity: 0;
+            }
+        }
+
+        @keyframes moveHorizontal {
+            0% {
+                transform: translateX(-100vw);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100vw);
+                opacity: 0;
+            }
+        }
+
+        @keyframes moveDiagonal {
+            0% {
+                transform: translate(-50vw, -50vh) rotate(45deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(50vw, 50vh) rotate(45deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+                opacity: 0.3;
+            }
+            25% {
+                transform: translate(20px, -30px) scale(1.2);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translate(-15px, -60px) scale(0.8);
+                opacity: 0.4;
+            }
+            75% {
+                transform: translate(25px, -30px) scale(1.1);
+                opacity: 0.7;
+            }
+        }
+
+        /* Glowing orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 120px;
+            height: 120px;
+            top: 10%;
+            left: 20%;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 80px;
+            height: 80px;
+            top: 70%;
+            right: 15%;
+            animation-delay: -4s;
+        }
+
+        .orb-3 {
+            width: 100px;
+            height: 100px;
+            bottom: 20%;
+            left: 60%;
+            animation-delay: -2s;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.3;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.1;
+            }
+        }
+
+        /* Demo content */
+        .demo-content {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+        }
+
+        .demo-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+        }
+
+        .demo-card h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #fff, #ddd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .demo-card p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            line-height: 1.6;
+        }

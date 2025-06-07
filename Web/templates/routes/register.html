@@ -2,6 +2,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+    
 {% endblock %}
 
 {% block title %}Register{% endblock %}
@@ -19,27 +20,32 @@
             {% endwith %}
             <form method="POST" action="{{ url_for('register', lang=request.cookies.get('lang', 'en')) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <ol class="card-body-items">
-                    <li>
+                <div class="card-body-items">
+                    <div class="form-group">
                         <label for="username">{{ translate('username', 'register', lang) }}</label>
-                        <input type="text" id="username" name="username" required><br>
-                    </li>
-                    <li>
-                        <label for="email">{{ translate('email', 'register', lang) }}</label>
-                        <input type="email" id="email" name="email" required><br>
-                    </li>
-                    <li>
-                        <label for="password">{{ translate('password', 'register', lang) }}</label>
-                        <input type="password" id="password" name="password" required><br>
-                        <small id="password-feedback" class="form-text"></small>
-                    </li>
+                        <input type="text" id="username" name="username" required>
+                    </div>
                     
-                    <li>
+                    <div class="form-group">
+                        <label for="email">{{ translate('email', 'register', lang) }}</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">{{ translate('password', 'register', lang) }}</label>
+                        <input type="password" id="password" name="password" required>
+                        <div class="feedback-container">
+                            <small id="password-feedback" class="form-text"></small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
                         <label for="confirm_password">{{ translate('password_confirm', 'register', lang) }}</label>
-                        <input type="password" id="confirm_password" name="confirm_password" required><br>
-                    </li>
-                    <input type="submit" value="{{ translate('register', 'register', lang) }}">
-                </ol>
+                        <input type="password" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">{{ translate('register', 'register', lang) }}</button>
+                </div>
             </form>
             <p>{{ translate('profile_exist', 'register', lang) }}<a href="{{ url_for('login', lang=request.cookies.get('lang', 'en')) }}">{{ translate('login', 'register', lang) }}</a></p>
     </div>

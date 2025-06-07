@@ -1,26 +1,32 @@
 language: "al"
-register_success: "Please confirm your email."
+register_success: "Ju lutemi konfirmoni email-in tuaj."
 
-link_invalid: "The confirmation link is invalid or has expired."
+link_invalid: "Lidhja e konfirmimit është e pavlefshme ose ka skaduar."
 
-account_confirmed: "Account already confirmed. Please login."
-account_confirmation_success: "You have confirmed your account. Thanks!"
+account_confirmed: "Llogaria është tashmë e konfirmuar. Ju lutemi hyni."
+account_confirmation_success: "Ju keni konfirmuar llogarinë tuaj. Faleminderit!"
 
-email_confirmation_needed: "Please confirm your email before logging in."
+email_confirmation_needed: "Ju lutemi konfirmoni email-in tuaj përpara se të hyni."
 
-login_success: "Login successful!"
-login_failed: "Invalid username or password"
-logout_success: "You have been logged out."
+login_success: "Hyrja e suksesshme!"
+login_failed: "Emri i përdoruesit ose fjalëkalimi i pavlefshëm"
+logout_success: "Keni dalë nga llogaria."
 
-current_password_wrong: "Invalid current password."
-passwords_not_match: "New password and confirmation do not match."
+current_password_wrong: "Fjalëkalimi aktual i pavlefshëm."
+passwords_new_not_match: "Fjalëkalimi i ri dhe konfirmimi nuk përputhen."
 
-email_in_use: "Email already in use."
+email_in_use: "Email-i tashmë në përdorim."
 
-profile_updated: "Profile updated successfully!"
+profile_updated: "Profili u përditësua me sukses!"
 
-password_reset_sent: "If a account with the email exists, a reset link has been sent!"
-password_reset_success: "Password reset successfully! You can now log in."
+password_reset_sent: "Nëse ekziston një llogari me këtë email, një lidhje për rivendosje është dërguar!"
+password_reset_success: "Fjalëkalimi u rivendos me sukses! Tani mund të hyni."
 
-password_length: "Password must be at least 6 characters long!"
-passwords_not_match: "Passwords do not match!"
+password_length: "Fjalëkalimi duhet të jetë të paktën 15 karaktere i gjatë!"
+passwords_not_match: "Fjalëkalimet nuk përputhen!"
+
+username_required: "Emri i përdoruesit është i nevojshëm."
+email_required: "Email-i është i nevojshëm."
+password_required: "Fjalëkalimi është i nevojshëm."
+username_exists: "Emri i përdoruesit tashmë ekziston."
+email_exists: "Email-i tashmë i regjistruar."
