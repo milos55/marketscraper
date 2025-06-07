@@ -1,171 +1,256 @@
-# Created by Milos Smiljkovikj
-# Github: https://github.com/milos55
-# Date: 08/02/2025
-
-
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# !!!!!!! DO NOT RUN THIS FILE !!!!!!!!!!!!!!
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# !!!!!! IN THE WORKS STILL DOESNT WORK !!!!!
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-import aiohttp
-import asyncio
-import asyncpg
-from bs4 import BeautifulSoup
 from datetime import datetime
+import asyncio
+from bs4 import BeautifulSoup
+import time
+import re
 from ad import Ad
+from playwright.async_api import async_playwright
+import psycopg2
 
-
-
-
-
-#CONFIG
-
-DB_CONFIG = {
-    "user": "milos55",
-    "password": "smil55",
-    "database": "reklami",
-    "host": "localhost",
-    "port": 5432,
-}
-#Made config parameters in seperate block for readability and scalability
-
+# CONFIG
 START_PAGE = 1
-END_PAGE = 100
-BATCH_SIZE = 5 + 1 #dirty hack, to not create a secondary variable
-URL = "https://www.reklama5.mk/Search?city=&cat=0&q="
+END_PAGE = 1
+BATCH_SIZE = 1
+BASE_URL = "https://forum.it.mk/oglasnik/"
+ASYNC_TIMEOUT = 2
 
+async def fetch_page(page, url):
+    try:
+        await page.goto(url, timeout=60000)
+        #await page.goto("https://forum.it.mk/oglasnik/?page=1")
+        await page.wait_for_selector(".structItem.structItem--listing", state="visible")
 
+        return await page.content()
+    except Exception as e:
+        print(f"Error loading {url}: {e}")
+        return None
 
+async def fetch_ads(BASE_URL, START_PAGE, END_PAGE, BATCH_SIZE):
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        context = await browser.new_context()
+        page = await context.new_page()
 
-
-
-
-#MAIN CODE
-
-async def fetch_page(session, URL):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Referer": "https://www.google.com/",
-        "DNT": "1",
-        "Upgrade-Insecure-Requests": "1",
-    }
-
-    async with session.get(URL, headers=headers) as response:
-        if response.status != 200:
-            print(f"Page failed to load: {URL} (status code {response.status})")
-            return None
-        return await response.text()
-
-def convert_today_date(date_str):
-    if date_str.startswith("Денес"):
-        today = datetime.now().strftime("%d.%m.%Y")
-        return date_str.replace("Денес", today)
-    return date_str
-
-async def fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE):
-    baseurl = "https://www.reklama5.mk"
-    ads = []
-    
-    async with aiohttp.ClientSession() as session:
         for batch_start in range(START_PAGE, END_PAGE + 1, BATCH_SIZE):
             batch_end = min(batch_start + BATCH_SIZE - 1, END_PAGE)
             print(f"Scraping pages {batch_start} to {batch_end}")
 
-            tasks = [fetch_page(session, f"{URL}&page={page}") for page in range(batch_start, batch_end + 1)]
-            pages_responses = await asyncio.gather(*tasks)
+            for page_num in range(batch_start, batch_end + 1):
+                url = f"{BASE_URL}?page={page_num}"
+                page_content = await fetch_page(page, url)
 
-            for page_num, page_content in zip(range(batch_start, batch_end + 1), pages_responses):
                 if page_content is None:
                     continue
 
                 soup = BeautifulSoup(page_content, "html.parser")
-                helper = soup.find_all('div', class_='ad-desc-div col-lg-6 text-left')
-                image_helper = soup.find_all('div', class_='ad-image-div col-lg-4 text-left')
+                ad_wrappers = soup.find_all('div', class_='structItem--listing')
 
-                if not helper or not image_helper:
+                if not ad_wrappers:
                     print(f"No ads found on page {page_num}.")
                     continue
 
-                for ad, image_ad in zip(helper, image_helper):
+                for wrapper in ad_wrappers:
                     try:
-                        title = ad.find('a', class_='SearchAdTitle').text.strip()
-                        price_text = ad.find('span', class_='search-ad-price').text.strip().replace('\r\n', '').replace(' ', '')
-                        category = ad.find('a', class_='text-secondary').find('small').text if ad.find('a', class_='text-secondary').find('small') else None
-                        rk5adlink = baseurl + ad.find('a', class_='SearchAdTitle')['href']
+                        title_tag = wrapper.find('div', class_='structItem-title').find('a')
+                        print(f"Title tag found: {title_tag}")
+                        if not title_tag:
+                            continue
 
-                        image_url = image_ad.find("div", class_="ad-image")["style"].split("url(")[-1].split(")")[0].strip("'\"")
-                        image_url = "https:" + image_url if image_url.startswith("//") else image_url
+                        link = title_tag['href']
+                        full_link = link if link.startswith("http") else BASE_URL.rstrip("/") + link.split("/oglasnik")[1]
+                        print(f"Processing ad: {full_link} on page {page_num}...")
+                        title = title_tag.text.strip()
+                        print(f"Title: {title}")
 
-                        # FIXED MISO 10.02.25 proveri za efikasnost
-                        pos = next((i for i, c in enumerate(price_text) if not (c.isdigit() or c == '.')), len(price_text))
-                        price_str = price_text[:pos].replace('.', '')
-                        price = int(price_str) if price_str else 0
-                        currency = price_text[pos:]
-
-                        store = "reklama5"  # Script only works for reklama5, other scripts will be needed for other sites (different web structure)
-
-                        #Updated to work with class !! IMPLEMENTRAJ MESTO VAR STORE DA VIKA SAMO REKLAMA5 VIDI ROLLBACK main.py ili nemoze !!
-                        ad = Ad(title, None, rk5adlink, image_url, category, None, None, price, currency, store)
-
-                        #Ti ga 2 put proverues dali postoi link (preko rk5adlink i ad_response), sg ga proverue 1 put
-                        #Code reformated to work with class (more readible and functional)
-                        ad_response = await fetch_page(session, rk5adlink)
-                        if ad_response:
-                            ad_soup = BeautifulSoup(ad_response, "html.parser")
-                            ad.description = ad_soup.find('p', class_='mt-3').text.strip() if ad_soup.find('p', class_='mt-3') else None
-                            ad.phone = ad_soup.find('h6').get_text(strip=True) if ad_soup.find('h6') else None
-                            date_element = ad_soup.find_all('div', class_='col-4 align-self-center')
-                            ad.date = convert_today_date(date_element[2].find('span').text.strip()) if len(date_element) > 2 else None  
-
-                        ads.append(ad)
+                        
 
 
-                    #Check page on which an error occured
+                        # Use a fresh page for detail navigation to avoid interruption
+                        detail_page = await context.new_page()
+                        await detail_page.goto(full_link, timeout=60000)
+                        await asyncio.sleep(1)  # Allow time for the page to load
+                        await detail_page.wait_for_selector(".bbWrapper", timeout=40000)
+                        ad_page_content = await detail_page.content()
+                        await detail_page.close()
+
+                        ad_soup = BeautifulSoup(ad_page_content, "html.parser")
+
+                        """ category = None
+
+                        category_handle = await ad.query_selector('ul.structItem-parts')
+                        if category_handle:
+                            li_elements = await category_handle.query_selector_all('li')
+                            if len(li_elements) > 2:
+                                category_text = await li_elements[2].inner_text()
+                                category = category_text.strip()
+                            else:
+                                category = None
+                        else:
+                            category = None
+                        print(f"Category: {category}") """
+
+
+                        location = None
+                        phone = None
+
+                        image_url = None
+                        image_tag = wrapper.find('img')
+                        if image_tag:
+                            image_url = image_tag.get('data-src') or image_tag.get('src')
+                            print(f"Image URL: {image_url}")
+
+                        price_text = wrapper.find('span', class_='ribbon ribbon--green')
+                        # print(f"Price tag found: {price_text}")
+                        price_text = price_text.text.strip() if price_text else None
+                        price, currency = split_price_and_currency(price_text) if price_text else (None, None)
+                        print(f"Price: {price}, Currency: {currency}")
+
+                        if currency == "ЕУР":
+                            currency = "€"
+                        elif currency == "Ден.":
+                            currency = "МКД"
+                        else:
+                            price = "По Договор"
+                            currency = ""
+
+                        description = None
+                        desc_tag = ad_soup.find('div', class_='bbWrapper')
+                        if desc_tag:
+                            description = clean_description(desc_tag.text.strip())
+                            print(f"Description: {description}")
+
+                        date_text = None
+                        date_tag = ad_soup.find('time', class_='u-dt')
+                        if date_tag:
+                            date_text = date_tag.text.strip()
+                            print(f"Date text found: {date_text}")
+                        formatted_date = parse_date(date_text) if date_text else None
+
+                        phone=[]
+                        location=[]
+
+                        ad_instance = Ad(
+                            title=title,
+                            description=description,
+                            link=full_link,
+                            image_url=image_url,
+                            category=None,
+                            phone=phone,  # Phone numbers are not extracted in this version
+                            date=formatted_date,
+                            price=price,
+                            currency=currency,
+                            location=location,  # Location is not extracted in this version
+                            store="it.mk"
+                        )
+
+                        print("Phone field before insert:", ad_instance.phone)
+
+                        #print("=" * 80)
+                        print("TUPLE DEBUG:", ad_instance.to_tuple())
+                        print("AD DEBUG:", ad_instance)
+                        print('\n')
+                        #print("=" * 30)
+                        insert_ad_to_db(ad_instance)
+
                     except Exception as e:
                         print(f"Error processing ad on page {page_num}: {e}")
 
             print(f"Finished scraping pages {batch_start} to {batch_end}")
-            await save_to_db(ads)
-            #Test lowest time with no error
-            await asyncio.sleep(2)
+            await asyncio.sleep(ASYNC_TIMEOUT)
 
-    return ads
-
-#Updated to work with class ad
-async def save_to_db(ads):
-    conn = await asyncpg.connect(**DB_CONFIG)
-    
-    for ad in ads:
-        try:
-            if isinstance(ad.date, str) and ad.date != "N/A":
-                ad.date = datetime.strptime(ad.date, "%d.%m.%Y %H:%M")
-            elif ad.date == "N/A":
-                ad.date = None  
-  
-            await conn.execute(
-                """
-                INSERT INTO reklami (title, description, link, image_url, category, phone, date, price, currency, store)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-                ON CONFLICT (link) DO NOTHING;
-                """,
-                ad.title, ad.description, ad.link, ad.image_url, ad.category, 
-                ad.phone, ad.date, ad.price, ad.currency, ad.store
-            )
-        except Exception as e:
-            print(f"Error inserting ad: {e}")
-
-    await conn.close()
-
-async def main(URL, START_PAGE, END_PAGE, BATCH_SIZE):
-    ads = await fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE)
-    print(f"Scraped {len(ads)} ads.")
-    await save_to_db(ads)
+        await browser.close()
 
 
+def split_price_and_currency(price_text):
+    price_text = price_text.replace(' ', '')
+    digits = ''.join(c for c in price_text if c.isdigit())
+    currency = ''.join(c for c in price_text if not c.isdigit())
+    return (int(digits), currency) if digits else (None, None)
+
+def clean_description(description):
+    cleaned_text = re.sub(r'(?:\n\s*){3,}', '\n\n===CUT===\n\n', description)
+    if '===CUT===' in cleaned_text:
+        cleaned_text = cleaned_text.split('===CUT===')[0]
+    return cleaned_text.strip()
+
+MONTHS_SHORT = {
+    "јануари": "January",
+    "февруари": "February",
+    "март": "March",
+    "април": "April",
+    "мај": "May",
+    "јуни": "June",
+    "јули": "July",
+    "август": "August",
+    "септември": "September",
+    "октомври": "October",
+    "ноември": "November",
+    "декември": "December"
+}
+
+def parse_date(date_text):
+    try:
+        parts = date_text.split()
+        month_short = parts[1]
+        day = int(parts[0])
+        year = int(parts[2])
+        month_full = MONTHS_SHORT.get(month_short.lower(), None)
+        if month_full:
+            date_str = f"{day:02d}/{datetime.strptime(month_full, '%B').month:02d}/{year}"
+            return date_str
+        else:
+            print(f"Unknown month abbreviation: {month_short}")
+            return None
+    except Exception as e:
+        print(f"Error parsing date '{date_text}': {e}")
+        return None
+
+DB_HOST = "localhost"
+DB_USER = "milos55"
+DB_PASSWORD = "smil55"
+DB_NAME = "reklami_pazar"
+
+def insert_ad_to_db(ad_instance):
+    conn = None
+    try:
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            dbname=DB_NAME
+        )
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO ads (title, description, link, image_url, category, phone, date, price, currency, location, store)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ''', (
+            ad_instance.title,
+            ad_instance.description,
+            ad_instance.link,
+            ad_instance.image_url,
+            ad_instance.category,
+            ", ".join([p for p in (ad_instance.phone or []) if isinstance(p, str) and p.strip()]),
+            ad_instance.date,
+            ad_instance.price,
+            ad_instance.currency,
+            ad_instance.location,
+            ad_instance.store
+        ))
+        conn.commit()
+        print(f"Ad '{ad_instance.title}' inserted into the database.")
+    except psycopg2.Error as e:
+        print(f"Error inserting ad: {e}")
+    finally:
+        if conn:
+            conn.close()
+
+async def main():
+    start_time = time.time()
+    await fetch_ads(BASE_URL, START_PAGE, END_PAGE, BATCH_SIZE)
+    end_time = time.time()
+    print(f"Total time: {end_time - start_time:.2f} seconds")
+    print(f"Total pages scraped: {END_PAGE - START_PAGE + 1}")
+    print(f"Estimated ads scraped: {(END_PAGE - START_PAGE + 1) * BATCH_SIZE}")
 
 if __name__ == "__main__":
-    asyncio.run(main(URL, START_PAGE, END_PAGE, BATCH_SIZE))
+    asyncio.run(main())

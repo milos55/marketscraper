@@ -1,1 +1,6 @@
 main/helper.ipynb
+main/helper.py
+main/__pycache__/
+web/__pycache__/
+Web/.env
+main/helper.py
