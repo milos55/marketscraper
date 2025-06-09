@@ -2,6 +2,8 @@ language: "mkd"
 category : "Категории"
 search_type: "Тип на пребарување"
 
+search_placeholder: "Барај зборови, одделени со запирка (,) "
+
 search_select:
   search_type_every: "Само огласи кои ги содржат сите зборови"
   search_type_some: "Огласи што содржат барем еден од зборовите"
@@ -22,6 +24,7 @@ currency: "Валута"
 
 city: "Град"
 city_select:
+  search_location: "Барај за локација"
   city_all: "Сите градови"
 
 checkbox_title: "Барај по наслов"
@@ -32,6 +35,9 @@ checkbox_price_1: "Отстрани огласи со цена 1"
 ads_title: "Огласи"
 
 pagination:
-  prev: "Претходно"
-  page: "Страна 1"
-  next: "Следно"
+  prev: "Претходна"
+  page: "Страна"
+  next: "Следна"
+
+all_categories: "Сите категории"
+search_category: "Барај категорија"

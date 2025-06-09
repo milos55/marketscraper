@@ -482,7 +482,7 @@ def index_lang(lang, page_number=1):
     ads_pagination = Ad.query.paginate(page=page_number, per_page=per_page, error_out=False)
     ads = ads_pagination.items
 
-    # For locations
+    # For locations server-side, categories is client-side (FIX: maybe change?)
     locations = [loc[0] for loc in db.session.query(Ad.location).distinct() if loc[0]]
 
     # Render the template with ads, pagination, and translations
@@ -633,6 +633,12 @@ def contact(lang):
 @app.route('/background')
 def background():
     return render_template('/routes/background.html')
+
+@app.route('/robots.txt')
+def robots():
+    response = make_response(render_template('/routes/robots.txt'), 200)
+    response.headers['Content-Type'] = 'text/plain'
+    return response
 
 if __name__ == '__main__':
     app.debug = True

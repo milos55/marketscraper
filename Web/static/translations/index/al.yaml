@@ -2,6 +2,8 @@ language: "al"
 category : "Kategori"
 search_type: "Kërko për..."
 
+search_placeholder: "Kërko fjalë, të ndara me presje (,)"
+
 search_select:
   search_type_every: "Vetëm shpalljet që përmbajnë të gjithë fjalët"
   search_type_some: "Shpalljet që përmbajnë të paktën një nga fjalët"
@@ -22,6 +24,7 @@ currency: "Monedha"
 
 city: "Qytet"
 city_select:
+  search_location: "Kërko sipas vendndodhjes"
   city_all: "Të gjitha qytetet"
 
 checkbox_title: "Kërko sipas titullit"
@@ -33,6 +36,8 @@ ads_title: "Reklamë"
 
 pagination:
   prev: "E mëparshme"
-  page: "Faqja 1"
+  page: "Faqja"
   next: "E ardhshme"
 
+all_categories: "Të gjitha kategoritë"
+search_category: "Kërko kategori"

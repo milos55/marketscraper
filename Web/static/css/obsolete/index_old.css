@@ -1,0 +1,350 @@
+/* Main Container */
+#main_container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #007bff;
+}
+
+/* #main_container > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+} */
+
+/* Search Bar Styles */
+.parent-container-search-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.search-bar{
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-search-type-menu, .dropdown-date-menu {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown:hover .dropdown-search-type-menu, .dropdown:hover .dropdown-date-menu {
+  display: block;
+}
+
+.dropdown-search-btn {
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.search-type-btn {
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.sort-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+
+.search-btn{
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.search-btn:hover {
+  background-color: #0056b3;
+}
+
+.search-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Ads Container */
+#ads-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Category Styles */
+.category-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 10px;
+}
+
+.category-btn{
+  padding: 10px;
+  margin: 5px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Ads Header */
+.ads-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+/* Dropdown filter */
+.dropdown-filter-btn {
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Grid-List Selector */
+.view-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+
+.selector-img {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+}
+
+.grid-view-btn, .list-view-btn {
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.grid-view-btn:hover, .list-view-btn:hover {
+  background-color: #e0e0e0;
+}
+
+/* Filter Sidebar */
+.filter-sidebar {
+  width: 250px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-right: 1px solid #ccc;
+}
+
+/* Price */
+.price-selector-container {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.price-selector-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.price-selector-input {
+  display: flex;
+  justify-content: space-between;
+}
+
+#min-price, #max-price {
+  width: 45%;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#min-price:focus, #max-price:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Currency */
+.currency-toggle-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.currency-label {
+  font-weight: bold;
+}
+
+.currency-toggle-btn {
+  padding: 5px 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.currency-toggle-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.currency-text {
+  margin-left: 10px;
+  font-weight: bold;
+}
+
+
+/* Location */
+.location-container {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.dropdown-location-btn {
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.dropdown-location-menu {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-location-btn:hover .dropdown-location-menu {
+  display: block;
+}
+
+.location-btn{
+  padding: 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.location-btn:hover {
+  background-color: #e0e0e0;
+}
+
+
+/* Checkbox Styles */
+.checkbox-container {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.checkbox-div {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.checkbox-label {
+  margin-bottom: 5px;
+}
+
+.checkbox-input {
+  margin-right: 10px;
+}
+
+.checkbox-input:checked + .checkbox-label {
+  font-weight: bold;
+}
+
+.checkbox-input:checked + .checkbox-label::before {
+  content: "✓";
+  color: green;
+  margin-right: 5px;
+}
+
+.checkbox-input:checked + .checkbox-label::after {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background-color: green;
+  border-radius: 50%;
+}
+
+.checkbox-input:checked + .checkbox-label:hover {
+  background-color: #e0e0e0;
+}
+
+.checkbox-input:focus + .checkbox-label {
+  outline: 2px solid #007bff;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+}
+
+.pagination{
+  display: flex;
+  align-items: center;
+}
+
+.page-btn {
+  padding: 10px;
+  margin: 0 5px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.page-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.page-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}

@@ -157,7 +157,7 @@ class AdsManager {
     }
     
     populateCategoryDropdown(categories) {
-        const gridContainer = document.querySelector('.dropdown-cat-menu .grid-container');
+        const gridContainer = document.querySelector('.category-list .categories-container');
         
         if (!gridContainer || !categories || categories.length === 0) {
             console.error('No categories found or grid container not available');
@@ -172,6 +172,7 @@ class AdsManager {
             button.className = 'category-btn';
             button.dataset.category = category;
             button.textContent = category;
+            button.setAttribute('data-fulltext', category);
             li.appendChild(button);
             gridContainer.appendChild(li);
         });
@@ -218,9 +219,10 @@ class ElementsManager {
         this.mainContainer = document.getElementById('main-container');
         this.searchInput = document.getElementById('search-input');
         this.adsGrid = document.querySelector('.ads-grid');
-        this.categoryMenu = document.querySelector('.dropdown-cat-menu');
         this.dateMenu = document.querySelector('.dropdown-date-menu');
+        this.searchTypeMenu = document.querySelector('.dropdown-search-type-menu');
         this.categoryBtn = document.querySelector('.dropdown-cat-btn');
+        this.searchTypeBtn = document.querySelector('.dropdown-search-btn');
         this.dateBtn = document.querySelector('.dropdown-date-btn');
         this.searchSomeBtn = document.getElementById('search-some');
         this.searchEveryBtn = document.getElementById('search-every');
@@ -578,7 +580,179 @@ class UiManager {
         this.initializeCurrency();
     }
 
-    // Add this to your UiManager class
+setupCategorySearchListeners() {
+    const categorySearchInput = document.querySelector('#category-search');
+    const clearBtn = document.querySelector('#clear-category-btn');
+    const allCategoryBtn = document.querySelector('#all-category-btn');
+    
+    if (!categorySearchInput) {
+        console.warn('Category search input not found');
+        return;
+    }
+
+    categorySearchInput.addEventListener('input', () => {
+        const query = categorySearchInput.value.trim().toLowerCase();
+        const categoryBtns = document.querySelectorAll('.category-btn');
+
+            categoryBtns.forEach(btn => {
+
+                if (btn.id === 'all-category-btn') {
+                btn.style.display = '';
+                const parentLi = btn.closest('li');
+                if (parentLi) {
+                    parentLi.style.display = '';
+                }
+                return;
+                }
+                
+                const categoryText = btn.textContent.trim().toLowerCase();
+                const categoryData = btn.dataset.category ? btn.dataset.category.toLowerCase() : '';
+                
+                // Use the same enhanced matching logic
+                const match = this.categoryMatches(query, categoryText, categoryData);
+                btn.style.display = match ? '' : 'none';
+                
+                // Also hide/show parent li if it exists
+                const parentLi = btn.closest('li');
+                if (parentLi) {
+                    parentLi.style.display = match ? '' : 'none';
+                }
+            });
+        });
+
+        // Clear button functionality
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+            categorySearchInput.value = '';
+            categorySearchInput.dispatchEvent(new Event('input')); // Trigger the input event to show all categories
+            categorySearchInput.focus();
+        });
+        }
+
+        // Show all categories when clicking the "All Categories" button
+        if (allCategoryBtn) {
+        allCategoryBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Clear the selected category to show all ads
+            this.adsManager.selectedCategory = null;
+            this.adsManager.currentPage = 1;
+            this.adsManager.handleSearch();
+            
+            // Optional: Update button appearance to show it's selected
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            allCategoryBtn.classList.add('active');
+        });
+    }
+}
+
+
+categoryMatches(query, categoryText, categoryData = '') {
+        if (!query) return true; // Show all if no query
+        
+        // Split text into words for better matching
+        const textWords = categoryText.split(/\s+/);
+        const dataWords = categoryData.split(/\s+/);
+        const allWords = [...textWords, ...dataWords];
+        
+        // Check if any word matches using multiple strategies
+        return allWords.some(word => 
+            word.startsWith(query) || 
+            word.includes(query) || 
+            this.fuzzyMatch(query, word) ||
+            this.transliterateMatch(query, word)
+        );
+    }
+
+ fuzzyMatch(input, word) {
+        input = input.toLowerCase();
+        word = word.toLowerCase();
+        let i = 0, j = 0;
+        while (i < input.length && j < word.length) {
+            if (input[i] === word[j]) i++;
+            j++;
+        }
+        return i === input.length;
+    }
+
+     transliterateMatch(query, word) {
+        // Use the same transliteration logic from SearchManager
+        const transliteratedQuery = this.transliterate(query);
+        const transliteratedWord = this.transliterate(word);
+        
+        return transliteratedWord.includes(transliteratedQuery) || 
+               word.includes(transliteratedQuery) ||
+               transliteratedWord.includes(query);
+    }
+
+    transliterate(text) {
+        const translitmap = {
+            'a': 'а', 'b': 'б', 'v': 'в', 'g': 'г', 'd': 'д',
+            'gj': 'ѓ', 'e': 'е', 'zh': 'ж', 'z': 'з', 'dz': 'ѕ',
+            'i': 'и', 'j': 'ј', 'k': 'к', 'l': 'л', 'lj': 'љ',
+            'm': 'м', 'n': 'н', 'nj': 'њ', 'o': 'о', 'p': 'п',
+            'r': 'р', 's': 'с', 't': 'т', 'kj': 'ќ', 'u': 'у',
+            'f': 'ф', 'h': 'х', 'c': 'ц', 'ch': 'ч', 'dj': 'џ',
+            'sh': 'ш'
+        };
+
+        let result = text.toLowerCase();
+
+        // Replace multi-character sequences first
+        Object.entries(translitmap).forEach(([lat, cyr]) => {
+            if (lat.length > 1) {
+                result = result.replace(new RegExp(lat, 'g'), cyr);
+            }
+        });
+        
+        // Then replace single characters
+        Object.entries(translitmap).forEach(([lat, cyr]) => {
+            if (lat.length === 1) {
+                result = result.replace(new RegExp(lat, 'g'), cyr);
+            }
+        });
+        
+        return result;
+    }
+
+    // Category expand fuctionality
+    setupCategoryExpandListeners() {
+    const headerWrapper = document.querySelector('.categories-container');
+    const expandBtn = document.querySelector('.expand-btn');
+
+    if (!headerWrapper || !expandBtn) {
+        console.error('Missing required elements for expand/collapse');
+        return;
+    }
+
+    const collapsedHeight = 500; // px, height to show when collapsed (adjust as needed)
+
+    // Start collapsed
+    let isCollapsed = true;
+    headerWrapper.style.maxHeight = `${collapsedHeight}px`;
+    headerWrapper.classList.add('collapsed');
+    expandBtn.innerHTML = '<i class="fa-solid fa-angle-down"></i>';
+    
+
+    expandBtn.addEventListener('click', () => {
+        if (isCollapsed) {
+            // Expand fully
+            headerWrapper.style.maxHeight = 'none';
+            headerWrapper.classList.remove('collapsed');
+            expandBtn.innerHTML = '<i class="fa-solid fa-angle-up"></i>';
+            isCollapsed = false;
+        } else {
+            // Collapse back
+            headerWrapper.style.maxHeight = `${collapsedHeight}px`;
+            headerWrapper.classList.add('collapsed');
+            expandBtn.innerHTML = '<i class="fa-solid fa-angle-down"></i>';
+            isCollapsed = true;
+        }
+    });
+}
+
+    // Set up view toggle buttons
 setupViewToggleListeners() {
     const gridButton = document.querySelector('.selector-img[src*="grid_1.png"]');
     const slidesButton = document.querySelector('.selector-img[src*="slides_1.png"]');
@@ -623,9 +797,10 @@ setupViewToggleListeners() {
     }
     
     setupDropdownListeners() {
-        this.elements.categoryBtn.addEventListener('click', () => {
-            this.elements.categoryMenu.style.display = 
-                this.elements.categoryMenu.style.display === 'block' ? 'none' : 'block';
+        // Toggle dropdowns on button clicks
+        this.elements.searchTypeBtn.addEventListener('click', () => {
+            this.elements.searchTypeMenu.style.display = 
+                this.elements.searchTypeMenu.style.display === 'block' ? 'none' : 'block';
         });
         
         this.elements.dateBtn.addEventListener('click', () => {
@@ -635,8 +810,11 @@ setupViewToggleListeners() {
         
         // Close dropdowns when clicking outside
         document.addEventListener('click', (e) => {
-            if (!e.target.matches('.dropdown-cat-btn')) {
-                this.elements.categoryMenu.style.display = 'none';
+            if (
+                !this.elements.searchTypeBtn.contains(e.target) &&
+                !this.elements.searchTypeMenu.contains(e.target)
+            ) {
+                this.elements.searchTypeMenu.style.display = 'none';
             }
             if (!e.target.matches('.dropdown-date-btn')) {
                 this.elements.dateMenu.style.display = 'none';
@@ -787,18 +965,180 @@ setupViewToggleListeners() {
                     locationMenu.classList.remove('show');
                 }
             });
+
+            // Setup initial location search listeners
+            this.setupLocationSearchListeners();
         }
     }
+
+    setupLocationClickHandlers() {
+        const locationBtns = document.querySelectorAll('.location-btn');
+        const locationBtn = document.querySelector('.dropdown-location-btn');
+        const locationMenu = document.querySelector('.dropdown-location-menu');
+
+        locationBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const selectedLocation = e.target.dataset.location;
+                const buttonText = selectedLocation || 'Сите градови';
+
+                locationBtn.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${buttonText}`;
+                this.adsManager.filterManager.selectedLocation = selectedLocation;
+                this.adsManager.currentPage = 1;
+                this.adsManager.handleSearch();
+                locationMenu.classList.remove('show');
+            });
+        });
+    }
+
+    setupLocationSearchListeners() {
+    const searchInput = document.querySelector('.location-search-input');
+    const clearBtn = document.querySelector('#clear-location-btn');
+    const allLocationBtn = document.querySelector('#all-location-btn');
+
+    if (!searchInput) {
+        console.warn('Location search input not found');
+        return;
+    }
+
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim().toLowerCase();
+        const locationBtns = document.querySelectorAll('.location-btn');
+
+        locationBtns.forEach(btn => {
+            // Always show "All Locations" button
+            if (btn.id === 'all-location-btn') {
+                btn.style.display = '';
+                const parentLi = btn.closest('li');
+                if (parentLi) {
+                    parentLi.style.display = '';
+                }
+                return;
+            }
+            
+            const locationText = btn.textContent.trim().toLowerCase();
+            const locationData = btn.dataset.location ? btn.dataset.location.toLowerCase() : '';
+            
+            // Use the same enhanced matching logic
+            const match = this.locationMatches(query, locationText, locationData);
+            btn.style.display = match ? '' : 'none';
+            
+            // Also hide/show parent li if it exists
+            const parentLi = btn.closest('li');
+            if (parentLi) {
+                parentLi.style.display = match ? '' : 'none';
+            }
+        });
+    });
+
+    // Clear button functionality
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            searchInput.dispatchEvent(new Event('input')); // Trigger the input event to show all locations
+            searchInput.focus();
+        });
+    }
+
+    // Show all locations when clicking the "All Locations" button
+    if (allLocationBtn) {
+        allLocationBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Clear the selected location to show all ads
+            this.adsManager.selectedLocation = null;
+            this.adsManager.currentPage = 1;
+            this.adsManager.handleSearch();
+            
+            // Optional: Update button appearance to show it's selected
+            document.querySelectorAll('.location-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            allLocationBtn.classList.add('active');
+        });
+    }
+}
+
+locationMatches(query, locationText, locationData = '') {
+    if (!query) return true; // Show all if no query
+    
+    // Split text into words for better matching
+    const textWords = locationText.split(/\s+/);
+    const dataWords = locationData.split(/\s+/);
+    const allWords = [...textWords, ...dataWords];
+    
+    // Check if any word matches using multiple strategies
+    return allWords.some(word => 
+        word.startsWith(query) || 
+        word.includes(query) || 
+        this.fuzzyMatch(query, word) ||
+        this.transliterateMatch(query, word)
+    );
+}
+
+fuzzyMatch(input, word) {
+    input = input.toLowerCase();
+    word = word.toLowerCase();
+    let i = 0, j = 0;
+    while (i < input.length && j < word.length) {
+        if (input[i] === word[j]) i++;
+        j++;
+    }
+    return i === input.length;
+}
+
+transliterateMatch(query, word) {
+    // Use the same transliteration logic from SearchManager
+    const transliteratedQuery = this.transliterate(query);
+    const transliteratedWord = this.transliterate(word);
+    
+    return transliteratedWord.includes(transliteratedQuery) || 
+           word.includes(transliteratedQuery) ||
+           transliteratedWord.includes(query);
+}
+
+transliterate(text) {
+    const translitmap = {
+        'a': 'а', 'b': 'б', 'v': 'в', 'g': 'г', 'd': 'д',
+        'gj': 'ѓ', 'e': 'е', 'zh': 'ж', 'z': 'з', 'dz': 'ѕ',
+        'i': 'и', 'j': 'ј', 'k': 'к', 'l': 'л', 'lj': 'љ',
+        'm': 'м', 'n': 'н', 'nj': 'њ', 'o': 'о', 'p': 'п',
+        'r': 'р', 's': 'с', 't': 'т', 'kj': 'ќ', 'u': 'у',
+        'f': 'ф', 'h': 'х', 'c': 'ц', 'ch': 'ч', 'dj': 'џ',
+        'sh': 'ш'
+    };
+
+    let result = text.toLowerCase();
+
+    // Replace multi-character sequences first
+    Object.entries(translitmap).forEach(([lat, cyr]) => {
+        if (lat.length > 1) {
+            result = result.replace(new RegExp(lat, 'g'), cyr);
+        }
+    });
+    
+    // Then replace single characters
+    Object.entries(translitmap).forEach(([lat, cyr]) => {
+        if (lat.length === 1) {
+            result = result.replace(new RegExp(lat, 'g'), cyr);
+        }
+    });
+    
+    return result;
+}
 
     setupCategoryListeners() {
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 this.adsManager.selectedCategory = e.target.dataset.category;
-                this.elements.categoryMenu.style.display = 'none';
                 this.adsManager.currentPage = 1;
                 this.adsManager.handleSearch();
             });
         });
+
+        // Initialize category search input
+        this.setupCategorySearchListeners();
+
+        // Initialize category expand functionality
+        this.setupCategoryExpandListeners();
     }
     
     setupSortListeners() {
@@ -830,11 +1170,13 @@ setupViewToggleListeners() {
         this.elements.searchSomeBtn.addEventListener('click', () => {
             this.adsManager.matchMethod = "some";
             this.adsManager.handleSearch();
+            this.elements.searchTypeMenu.style.display = 'none';
         });
         
         this.elements.searchEveryBtn.addEventListener('click', () => {
             this.adsManager.matchMethod = "every";
             this.adsManager.handleSearch();
+            this.elements.searchTypeMenu.style.display = 'none';
         });
     }
     
@@ -852,7 +1194,7 @@ setupViewToggleListeners() {
     }
     
     createAdHTML(ad) {
-        // Check the current view mode
+        // Check the current view mode FIX: update to new site
         if (this.currentView === 'grid') {
             return `
                 <a href="${ad.adlink}" target="_blank" class="ad-link">
@@ -867,7 +1209,7 @@ setupViewToggleListeners() {
                                     </span>
                                 </div>
                             </div>
-                            <div class="ad-email">Град: ${ad.adlocation}</div>
+                            <div class="ad-location">Град: ${ad.adlocation}</div>
                         </div>
                         ${this.getImageHTML(ad.adimage)}
                         <div class="ad-category">${ad.adcategory}</div>
@@ -879,24 +1221,33 @@ setupViewToggleListeners() {
             return `
                 <a href="${ad.adlink}" target="_blank" class="ad-link">
                     <div class="ad-block">
-                        <div class="ad-header">
-                            <div class="ad-title-info">
-                                <div class="ad-title">${ad.adtitle}</div>
-                                <div class="ad-info">
-                                    <time datetime="${ad.addate}">${ad.addate}</time>
-                                    <span class="ad-price">
-                                        ${this.formatPrice(ad.adprice, ad.adcurrency)}
-                                    </span>
+                        <div class="ad-content-wrapper">
+                        
+                        <!-- LEFT COLUMN -->
+                        <div class="ad-meta">
+                            <div class="ad-title">${ad.adtitle}</div>
+                            <div class="ad-info">
+                                <time datetime="${ad.addate}">${ad.addate}</time>
+                                <div class="ad-price">
+                                    ${this.formatPrice(ad.adprice, ad.adcurrency)}
                                 </div>
                             </div>
-                            <div class="ad-email">Град: ${ad.adlocation}</div>
-                            <div class="ad-phone">Тел: ${this.formatPhone(ad.adphone)}</div>
+                                <div class="ad-location">Град: ${ad.adlocation}</div>
+                                <div class="ad-phone">Тел: ${this.formatPhone(ad.adphone)}</div>
+                                <div class="ad-category">${ad.adcategory}</div>
                         </div>
+
+                        <!-- MIDDLE COLUMN -->
                         <div class="ad-description">
                             <div class="ad-description-text">${ad.addesc}</div>
-                            ${this.getImageHTML(ad.adimage)} 
                         </div>
-                        <div class="ad-category">${ad.adcategory}</div>
+
+                        <!-- RIGHT COLUMN -->
+                        <div class="ad-image">
+                            ${this.getImageHTML(ad.adimage)}
+                        </div>
+                        
+                        </div>
                     </div>
                 </a>
             `;

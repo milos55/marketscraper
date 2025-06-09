@@ -2,6 +2,8 @@ language: "en"
 category : "Categories"
 search_type: "Search type"
 
+search_placeholder: "Search words, seperated by a comma (,)"
+
 search_select:
   search_type_every: "Ads which contain all words"
   search_type_some: "Ads which contain at least one of the words"
@@ -22,6 +24,7 @@ currency: "Currency"
 
 city: "City"
 city_select:
+  search_location: "Search for location"
   city_all: "All cities"
 
 checkbox_title: "Search by title"
@@ -33,5 +36,8 @@ ads_title: "Ads"
 
 pagination:
   prev: "Previous"
-  page: "Page 1"
+  page: "Page"
   next: "Next"
+
+all_categories: "All categories"
+search_category: "Search for category"

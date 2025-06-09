@@ -641,7 +641,8 @@ h2 {
 /* Ads Styling */
 #ads-container {
     display: block;
-    padding: 20px;
+    padding-left: 30vh;
+    padding-right: 10vh;
 }
 
 .ads-grid {
