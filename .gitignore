@@ -1,7 +1,15 @@
+# Development files
 main/helper.ipynb
 main/helper.py
-main/__pycache__/*
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment variables
 Web/.env
-main/helper.py
-__pycache__/*
-Web/__pycache__/*
+
+# IDE files
+/.idea/*
+

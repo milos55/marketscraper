@@ -11,7 +11,7 @@ change_title: "Промени ги вашите информации"
 change_controls:
   email: "E-пошта"
   preferred_language: "Префериран јазик"
-  password_title: "Промени ја вашата лозинка"
+  password_title: "Промени лозинка"
   current_password: "Тековна лозинка"
   new_password: "Нова лозинка"
   confirm_password: "Потврди ја новата лозинка"

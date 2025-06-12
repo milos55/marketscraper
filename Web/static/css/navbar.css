@@ -19,12 +19,13 @@
   --secondary-white: #ffffff;
 
   --disabled-color: #c6c8ca;
-  --active-color: #bcdff1;
+  --active-color: #afc2bb;
+  --active-bg-color: #e9efec;
 
-  --success-color: #1cc88a;
-  --warning-color: #f6c23e;
-  --danger-color: #e74a3b;
-  --info-color: #36b9cc;
+  --success-color: #1FAE89;
+  --warning-color: #E6B422;
+  --danger-color: #D64045;
+  --info-color: #2C9AB7;
 
   --light-color: #f8f9fc;
   --dark-color: #343a40;
@@ -32,9 +33,12 @@
   --dark-gray: #6c757d;
 
   --gradient-bg: linear-gradient(135deg, #16423C 0%, #3D7F70 50%, #6A9C89 100%);
+  --gradient-bg-180: linear-gradient(180deg, #16423C 0%, #3D7F70 50%, #6A9C89 100%);
+  --gradient-bg-0: linear-gradient(0deg, #16423C 0%, #3D7F70 50%, #6A9C89 100%);
   --gradient-bg-hover: linear-gradient(135deg, #1b4f45 0%, #4d9986 50%, #7FB4A2 100%);
   --gradient-bg-active: linear-gradient(135deg, #12322e 0%, #35685f 50%, #5d8c7c 100%);
   --gradient-bg-secondary: linear-gradient(135deg, #6A9C89 0%, #A3C8BC 50%, #C4DAD2 100%);
+  --gradient-bg-secondary-180: linear-gradient(180deg, #6A9C89 0%, #A3C8BC 50%, #C4DAD2 100%);
   --gradient-bg-secondary-hover: linear-gradient(135deg, #5c8f7f 0%, #91b7ac 50%, #b7d1c9 100%);
   --gradient-bg-secondary-active: linear-gradient(135deg, #4f7e71 0%, #7daaa0 50%, #a6c3bc 100%);
 
@@ -143,10 +147,10 @@ header {
   top: 60px;
   left: 0;
   right: 0;
-  background-color: rgba(78, 115, 223, 0.95);
+  background: var(--gradient-bg-180);
   backdrop-filter: blur(10px);
   padding: 1rem;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  /* box-shadow: 0 8px 16px rgba(0,0,0,0.2); */
   transform: translateY(-100%);
   transition: transform 0.3s ease, opacity 0.3s ease;
   opacity: 0;
@@ -201,3 +205,69 @@ footer {
     display: block;
   }
 }
+
+/* REUSABLE COMPONENTS */
+
+/* Shimmer Effect */
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  /* no transform, box-shadow, or border here */
+}
+
+.shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.shimmer:hover::before {
+  left: 100%;
+}
+
+.shimmer:disabled {
+  background: var(--disabled-color);
+  cursor: not-allowed;
+}
+
+/* Alerts */
+
+.alert {
+  text-align: center;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  border: solid 1px var(--border-color);
+}
+
+.alert-success {
+  background: var(--success-color);
+  color: var(--text-color-white);
+}
+
+.alert-warning {
+  background: var(--warning-color);
+  color: var(--text-color-white);
+}
+
+.alert-danger {
+  background: var(--danger-color);
+  color: var(--text-color-white);
+}
+
+.alert-info {
+  background: var(--info-color);
+  color: var(--text-color-white);
+}
+
+
+

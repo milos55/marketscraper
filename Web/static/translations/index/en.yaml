@@ -5,6 +5,7 @@ search_type: "Search type"
 search_placeholder: "Search words, seperated by a comma (,)"
 
 search_select:
+  search_type_ordered: "Search by ordered words"
   search_type_every: "Ads which contain all words"
   search_type_some: "Ads which contain at least one of the words"
 

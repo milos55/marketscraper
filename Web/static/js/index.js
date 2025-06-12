@@ -192,11 +192,14 @@ class AdsManager {
         }, 150);
     }
     
-    handlePageChange(newPage) {
+    handlePageChange(newPage, shouldScrollToTop = false) {
         this.currentPage = newPage;
         this.urlManager.updateUrl(newPage);
         this.displayAds(); // No need to fetch again
+
+        if (shouldScrollToTop) {
         this.uiManager.scrollToTop();
+        }
     }
     
     
@@ -224,6 +227,7 @@ class ElementsManager {
         this.categoryBtn = document.querySelector('.dropdown-cat-btn');
         this.searchTypeBtn = document.querySelector('.dropdown-search-btn');
         this.dateBtn = document.querySelector('.dropdown-date-btn');
+        this.searchOrderedBtn = document.getElementById('search-ordered');
         this.searchSomeBtn = document.getElementById('search-some');
         this.searchEveryBtn = document.getElementById('search-every');
         this.checkboxes = {
@@ -236,6 +240,8 @@ class ElementsManager {
             prevBtns: document.querySelectorAll('.prev-page'),
             nextBtns: document.querySelectorAll('.next-page'),
             pageNumbers: document.querySelectorAll('.page-number'),
+            bottomPrevBtn: document.getElementById('bottom-pagination-prev-btn'),
+            bottomNextBtn: document.getElementById('bottom-pagination-next-btn'),
         };
         this.priceSelector = {
             minPrice: document.getElementById('min-price'),
@@ -308,10 +314,248 @@ class SearchManager {
         
         return result;
     }
+
+
+    // FIX: ALL METHODS don't work too well with current db descriptions
+    // Calculate Levenshtein distance between two strings
+    levenshteinDistance(str1, str2) {
+        const matrix = [];
+        
+        // Initialize matrix
+        for (let i = 0; i <= str2.length; i++) {
+            matrix[i] = [i];
+        }
+        for (let j = 0; j <= str1.length; j++) {
+            matrix[0][j] = j;
+        }
+        
+        // Fill matrix
+        for (let i = 1; i <= str2.length; i++) {
+            for (let j = 1; j <= str1.length; j++) {
+                if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                    matrix[i][j] = matrix[i - 1][j - 1];
+                } else {
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j - 1] + 1, // substitution
+                        matrix[i][j - 1] + 1,     // insertion
+                        matrix[i - 1][j] + 1      // deletion
+                    );
+                }
+            }
+        }
+        
+        return matrix[str2.length][str1.length];
+    }
+
+    // Subsequence matching - checks if all characters of term appear in text in order
+    subsequenceMatch(text, term) {
+        text = text.toLowerCase();
+        term = term.toLowerCase();
+        
+        let textIndex = 0;
+        let termIndex = 0;
+        
+        while (textIndex < text.length && termIndex < term.length) {
+            if (text[textIndex] === term[termIndex]) {
+                termIndex++;
+            }
+            textIndex++;
+        }
+        
+        return termIndex === term.length;
+    }
     
-    matches(text, term, matchMethod) {
+     // Word boundary fuzzy matching for better relevance
+    wordBoundaryFuzzy(text, term) {
+        const words = text.toLowerCase().split(/\s+/);
+        const termLower = term.toLowerCase();
+        
+        // Check if any word is similar to the search term
+        return words.some(word => {
+            // Exact match
+            if (word === termLower) return true;
+            
+            // Starts with term
+            if (word.startsWith(termLower)) return true;
+            
+            // Term starts with word (for partial matches)
+            if (termLower.startsWith(word) && word.length >= 3) return true;
+            
+            // Fuzzy match for longer words (avoid matching very short words)
+            if (word.length >= 4 && termLower.length >= 4) {
+                const distance = this.levenshteinDistance(word, termLower);
+                const maxDistance = Math.floor(Math.max(word.length, termLower.length) * 0.3); // 30% error tolerance
+                return distance <= maxDistance;
+            }
+            
+            return false;
+        });
+    }
+
+     // Smart fuzzy matching that combines multiple techniques
+    smartFuzzyMatch(text, term) {
+        const textLower = text.toLowerCase();
+        const termLower = term.toLowerCase();
+        
+        // Skip fuzzy matching for very short terms to avoid false positives
+        if (termLower.length < 3) {
+            return textLower.includes(termLower);
+        }
+        
+        // 1. Exact substring match (highest priority) 
+        // FIX: Strict word boundary match, if desc extraction method (backend) changes uncomment line below, else keep
+        // !!!! DON'T REMOVE COMMENT ABOVE !!!!
+        /* if (textLower.includes(termLower)) {
+            return true;
+        } */
+        
+        const wordBoudaryRegex = new RegExp(`\\b${termLower}\\b`);
+        if (wordBoudaryRegex.test(termLower)) {
+            return true;
+        }
+        
+        // 2. Transliteration match
+        const transliteratedText = this.transliterate(textLower);
+        const transliteratedTerm = this.transliterate(termLower);
+        if (transliteratedText.includes(transliteratedTerm) || textLower.includes(transliteratedTerm)) {
+            return true;
+        }
+        
+        // 3. Word boundary fuzzy matching
+        if (this.wordBoundaryFuzzy(text, term)) {
+            return true;
+        }
+        
+        // 4. Subsequence matching for very specific cases
+        if (termLower.length >= 5 && this.subsequenceMatch(textLower, termLower)) {
+            // Additional check: ensure enough characters match
+            const matchRatio = termLower.length / textLower.length;
+            if (matchRatio >= 0.3) { // At least 30% of the text should be the search term
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+     matches(text, term, _matchMethod) {
+        if (!text || !term) return false;
+        
+        // Clean the inputs
+        const cleanText = text.toString().trim();
+        const cleanTerm = term.toString().trim();
+        
+        if (!cleanText || !cleanTerm) return false;
+        
+        // Use smart fuzzy matching
+        return this.smartFuzzyMatch(cleanText, cleanTerm);
+    }
+
+    // Additional helper method for scoring matches (for potential future ranking)
+    getMatchScore(text, term) {
+        const textLower = text.toLowerCase();
+        const termLower = term.toLowerCase();
+        
+        // Exact match gets highest score
+        if (textLower.includes(termLower)) {
+            // Check if it's at word boundary for even higher score
+            const regex = new RegExp(`\\b${termLower}\\b`);
+            if (regex.test(textLower)) {
+                return 100; // Perfect word match
+            }
+            return 90; // Substring match
+        }
+
+          // Transliteration match
+        const transliteratedText = this.transliterate(textLower);
+        const transliteratedTerm = this.transliterate(termLower);
+        if (transliteratedText.includes(transliteratedTerm)) {
+            return 80;
+        }
+        
+        // Word boundary fuzzy match
+        if (this.wordBoundaryFuzzy(text, term)) {
+            return 70;
+        }
+        
+        // Subsequence match
+        if (this.subsequenceMatch(textLower, termLower)) {
+            return 50;
+        }
+        
+        return 0; // No match
+    }
+
+     // Method to get ranked results (optional enhancement)
+    getRankedMatches(ads, searchTerms) {
+        if (!searchTerms || searchTerms[0] === '') return ads;
+        
+        const scoredAds = ads.map(ad => {
+            let totalScore = 0;
+            let matches = 0;
+            
+            searchTerms.forEach(term => {
+                const titleScore = this.elements.checkboxes.title.checked ? 
+                    this.getMatchScore(ad.adtitle, term) : 0;
+                const descScore = this.elements.checkboxes.desc.checked ? 
+                    this.getMatchScore(ad.addesc, term) : 0;
+                
+                const maxScore = Math.max(titleScore, descScore);
+                if (maxScore > 0) {
+                    totalScore += maxScore;
+                    matches++;
+                }
+            });
+            
+            return {
+                ad: ad,
+                score: matches > 0 ? totalScore / matches : 0,
+                matches: matches
+            };
+        });
+        
+        // Filter out non-matches and sort by score
+        return scoredAds
+            .filter(item => item.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .map(item => item.ad);
+    }
+
+    matchesTermsInOrder(text, terms) {
+        const textLower = text.toLowerCase();
+        let currentIndex = 0;
+
+        for (const term of terms) {
+            const foundIndex = this._findNextMatchIndex(textLower, term.toLowerCase(), currentIndex);
+            if (foundIndex === -1) {
+                return false;
+            }
+            currentIndex = foundIndex + 1; // move past match for next term
+        }
+
+        return true;
+    }
+
+    // Helper that tries to find the term using smart fuzzy logic and returns its position
+    _findNextMatchIndex(text, term, fromIndex) {
+        const substr = text.slice(fromIndex);
+        
+        // Use transliterated matching if needed
+        const transliteratedSubstr = this.transliterate(substr);
         const transliteratedTerm = this.transliterate(term);
-        return text.toLowerCase().includes(term) || text.toLowerCase().includes(transliteratedTerm);
+
+        // Use your fuzzy match logic to scan from `fromIndex`
+        for (let i = 0; i < substr.length; i++) {
+            const window = substr.slice(i);
+            if (
+                this.smartFuzzyMatch(window, term) ||
+                this.smartFuzzyMatch(window, transliteratedTerm)
+            ) {
+                return fromIndex + i;
+            }
+        }
+
+        return -1;
     }
 }
 
@@ -344,7 +588,8 @@ class FilterManager {
     applySearchTerms(ads, searchTerms) {
         if (searchTerms[0] === '') return ads;
         
-        return ads.filter(ad => {
+        // Option 1: Use regular filtering with enhanced fuzzy matching
+        const filtered = ads.filter(ad => {
             const titleMatch = this.elements.checkboxes.title.checked && 
                 this.matchesAllTerms(ad.adtitle, searchTerms);
                 
@@ -353,15 +598,43 @@ class FilterManager {
                 
             return titleMatch || descMatch;
         });
+        
+        // FIX: check which is better, opt 2 should be better
+        // FIX: search type all or some needs to be looked at
+
+        return filtered;
+        
+        // Option 2: Use ranked results for better relevance (uncomment to use)
+        //return this.adsManager.searchManager.getRankedMatches(ads, searchTerms);
     }
-    
+
     matchesAllTerms(text, terms) {
-        if (this.adsManager.matchMethod === "every") {
-            return terms.every(term => this.searchManager.matches(text, term));
+        const ordered = this.adsManager.matchOrdered;  // boolean: is ordered checkbox checked?
+        const matchType = this.adsManager.matchMethod; // "every" or "some"
+
+        if (ordered) {
+            if (matchType === "every") {
+                // ALL terms must appear in order
+                return this.searchManager.matchesTermsInOrder(text, terms);
+            } else if (matchType === "some") {
+                // ANY term must appear in order (at least one term in order)
+                // So check if at least one term appears in order by itself (single term)
+                return terms.some(term => this.searchManager.matchesTermsInOrder(text, [term]));
+            }
         } else {
-            return terms.some(term => this.searchManager.matches(text, term));
+            if (matchType === "every") {
+                // ALL terms anywhere (unordered)
+                return terms.every(term => this.searchManager.matches(text, term));
+            } else if (matchType === "some") {
+                // ANY term anywhere (unordered)
+                return terms.some(term => this.searchManager.matches(text, term));
+            }
         }
+
+        // fallback default to every unordered
+        return terms.every(term => this.searchManager.matches(text, term));
     }
+
     
     applyPriceFilters(ads) {
     let filtered = [...ads];
@@ -502,7 +775,8 @@ class PaginationManager {
             this.elements.prevBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
                     if (this.adsManager.currentPage > 1) {
-                        this.adsManager.handlePageChange(this.adsManager.currentPage - 1);
+                        const shouldScrollToTop = btn.id === 'bottom-pagination-prev-btn';
+                        this.adsManager.handlePageChange(this.adsManager.currentPage - 1, shouldScrollToTop);
                     }
                 });
             });
@@ -513,7 +787,8 @@ class PaginationManager {
                 btn.addEventListener('click', () => {
                     const maxPages = Math.ceil(this.adsManager.filteredAds.length / this.adsManager.adsPerPage);
                     if (this.adsManager.currentPage < maxPages) {
-                        this.adsManager.handlePageChange(this.adsManager.currentPage + 1);
+                        const shouldScrollToTop = btn.id === 'bottom-pagination-next-btn';
+                        this.adsManager.handlePageChange(this.adsManager.currentPage + 1, shouldScrollToTop);
                     }
                 });
             });
@@ -754,8 +1029,8 @@ categoryMatches(query, categoryText, categoryData = '') {
 
     // Set up view toggle buttons
 setupViewToggleListeners() {
-    const gridButton = document.querySelector('.selector-img[src*="grid_1.png"]');
-    const slidesButton = document.querySelector('.selector-img[src*="slides_1.png"]');
+    const gridButton = document.querySelector('#grid-view-btn');
+    const slidesButton = document.querySelector('#list-view-btn');
     
     if (!gridButton || !slidesButton) {
         console.warn('View toggle buttons not found');
@@ -765,7 +1040,7 @@ setupViewToggleListeners() {
     // Set initial state - slides (list) view is default
     this.currentView = 'slides';
     this.elements.adsGrid.classList.add('slides-view');
-    slidesButton.classList.add('active-view');
+    slidesButton.classList.add('active');
     
     // Grid view button click handler
     gridButton.addEventListener('click', () => {
@@ -774,8 +1049,8 @@ setupViewToggleListeners() {
         this.elements.adsGrid.classList.add('grid-view');
         
         // Update button states
-        gridButton.classList.add('active-view');
-        slidesButton.classList.remove('active-view');
+        gridButton.classList.add('active');
+        slidesButton.classList.remove('active');
         
         // Re-render ads in the current page with grid layout
         this.adsManager.displayAds();
@@ -788,8 +1063,8 @@ setupViewToggleListeners() {
         this.elements.adsGrid.classList.add('slides-view');
         
         // Update button states
-        slidesButton.classList.add('active-view');
-        gridButton.classList.remove('active-view');
+        slidesButton.classList.add('active');
+        gridButton.classList.remove('active');
         
         // Re-render ads in the current page with list layout
         this.adsManager.displayAds();
@@ -1167,6 +1442,12 @@ transliterate(text) {
     }
     
     setupSearchTypeListeners() {
+        this.elements.searchOrderedBtn.addEventListener('click', () => {
+            this.adsManager.matchMethod = "ordered";
+            this.adsManager.handleSearch();
+            //this.elements.searchTypeMenu.style.display = 'none';
+        });
+
         this.elements.searchSomeBtn.addEventListener('click', () => {
             this.adsManager.matchMethod = "some";
             this.adsManager.handleSearch();

@@ -92,8 +92,8 @@ def add_security_headers(response):
     # Add the Content Security Policy header
     response.headers["Content-Security-Policy"] = (
         f"default-src 'self'; "
-        f"script-src 'self' 'nonce-{g.nonce}' https://cdnjs.cloudflare.com; "
-        f"style-src 'self' 'nonce-{g.nonce}' https://cdnjs.cloudflare.com ; "
+        f"script-src 'self' 'nonce-{g.nonce}' https://cdnjs.cloudflare.com;"
+        f"style-src 'self' 'nonce-{g.nonce}' https://cdnjs.cloudflare.com;"
         f"font-src 'self' https://cdnjs.cloudflare.com; "
         f"img-src 'self' data: blob: https://flagcdn.com https://*.com https://reklama5.mk; "
     )
