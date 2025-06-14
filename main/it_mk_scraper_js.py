@@ -7,12 +7,29 @@ from ad import Ad
 from playwright.async_api import async_playwright
 import psycopg2
 
+# Config import from Web
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../Web')))
+from config import Config
+
 # CONFIG
 START_PAGE = 1
 END_PAGE = 1
 BATCH_SIZE = 1
 BASE_URL = "https://forum.it.mk/oglasnik/"
 ASYNC_TIMEOUT = 2
+
+DB_HOST = Config.DB_HOST
+DB_USER = Config.DB_USER
+DB_PASSWORD = Config.DB_PASSWORD
+DB_NAME = Config.DB_NAME
+
+# === COLOR CONSTANTS FOR ERROR PRINTS ===
+RED = '\033[31m'
+RESET = '\033[0m'
+YELLOW = '\033[33m'
+GREEN = '\033[32m'
 
 async def fetch_page(page, url):
     try:
@@ -120,9 +137,10 @@ async def fetch_ads(BASE_URL, START_PAGE, END_PAGE, BATCH_SIZE):
                             print(f"Description: {description}")
 
                         date_text = None
-                        date_tag = ad_soup.find('time', class_='u-dt')
+                        date_tag = ad_soup.find('div', class_='p-description').find('time', class_='u-dt')['title']
+                        print(f"Date tag found: {date_tag}")
                         if date_tag:
-                            date_text = date_tag.text.strip()
+                            date_text = date_tag.split(" во")[0].strip()
                             print(f"Date text found: {date_text}")
                         formatted_date = parse_date(date_text) if date_text else None
 
@@ -205,44 +223,36 @@ def parse_date(date_text):
         print(f"Error parsing date '{date_text}': {e}")
         return None
 
-DB_HOST = "localhost"
-DB_USER = "milos55"
-DB_PASSWORD = "smil55"
-DB_NAME = "reklami_pazar"
 
 def insert_ad_to_db(ad_instance):
-    conn = None
     try:
-        conn = psycopg2.connect(
-            host=DB_HOST,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            dbname=DB_NAME
-        )
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO ads (title, description, link, image_url, category, phone, date, price, currency, location, store)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ''', (
-            ad_instance.title,
-            ad_instance.description,
-            ad_instance.link,
-            ad_instance.image_url,
-            ad_instance.category,
-            ", ".join([p for p in (ad_instance.phone or []) if isinstance(p, str) and p.strip()]),
-            ad_instance.date,
-            ad_instance.price,
-            ad_instance.currency,
-            ad_instance.location,
-            ad_instance.store
-        ))
-        conn.commit()
-        print(f"Ad '{ad_instance.title}' inserted into the database.")
+        with psycopg2.connect(
+                host=DB_HOST,
+                user=DB_USER,
+                password=DB_PASSWORD,
+                dbname=DB_NAME
+        ) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute('''
+                    INSERT INTO ads.ads (title, description, link, image_url, category, phone, date, price, currency, location, store)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ''', (
+                    ad_instance.title,
+                    ad_instance.description,
+                    ad_instance.link,
+                    ad_instance.image_url,
+                    ad_instance.category,
+                    ad_instance.phone,
+                    ad_instance.date,
+                    ad_instance.price,
+                    ad_instance.currency,
+                    ad_instance.location,
+                    ad_instance.store
+                ))
+                print(f"{GREEN}Ad '{ad_instance.title}' inserted into the database.{RESET}")
     except psycopg2.Error as e:
-        print(f"Error inserting ad: {e}")
-    finally:
-        if conn:
-            conn.close()
+        print(f"{RED}Error inserting ad: {e}{RESET}")
+
 
 async def main():
     start_time = time.time()

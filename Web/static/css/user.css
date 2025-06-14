@@ -94,7 +94,6 @@ form {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s ease;
   flex-grow: 0.08; /* Allow it to fill remaining space */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;

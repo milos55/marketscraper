@@ -128,7 +128,7 @@
 }
 
 .filter-sidebar input[type="text"]::placeholder {
-  color: var(--secondary-text-color);
+  color: var(--text-color);
   font-weight: 400;
 }
 

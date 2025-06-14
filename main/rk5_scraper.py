@@ -9,6 +9,11 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from ad import Ad
 import time
+import re
+# Config import from Web
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../Web')))
 from config import Config
 
 
@@ -29,6 +34,14 @@ DB_CONFIG = {
     "host": Config.DB_HOST,
     "port": 5432,
 }
+
+# === COLOR CONSTANTS FOR ERROR PRINTS ===
+RED = '\033[31m'
+RESET = '\033[0m'
+YELLOW = '\033[33m'
+GREEN = '\033[32m'
+
+
 #Made config parameters in seperate block for readability and scalability
 
 START_PAGE = 1
@@ -37,8 +50,7 @@ BATCH_SIZE = 5 #dirty hack, to not create a secondary variable
 URL = "https://www.reklama5.mk/Search?city=&cat=0&q="
 ASYNC_TIMEOUT = 2
 
-
-
+ADMIN_NUMBERS = [] # # List of admin numbers to be used for notifications or checks, currently empty, haven't checked
 
 
 
@@ -75,6 +87,46 @@ def convert_today_date(date_str):
         today = datetime.now().strftime("%d.%m.%Y")
         return date_str.replace("Денес", today)
     return date_str
+
+def normalize_phone_number(phone): #FIXME for retards that have phones like this 078 427 757 078 404 406, aboslute idiots
+    phone = phone.strip().replace(' ', '') # TODO add in next update to read description for numbers with regex
+
+    # Collapse multiple leading pluses to one
+    while phone.startswith('++'):
+        phone = phone[1:]
+
+    # Helper for Macedonian numbers
+    def macedonian_local_format(ndigits):
+        ndigits = re.sub(r'\D', '', ndigits)
+        # Add leading zero if number is 8 digits (e.g., '78326371' -> '078326371')
+        if len(ndigits) == 8:
+            ndigits = '0' + ndigits
+        if len(ndigits) == 9:
+            return f"{ndigits[:3]} {ndigits[3:6]} {ndigits[6:]}"
+        return None
+
+    # +389 or 00389
+    if phone.startswith('+389'):
+        return macedonian_local_format(phone[4:])
+    if phone.startswith('00389'):
+        return macedonian_local_format(phone[5:])
+
+    # Foreign number: starts with + but not +389
+    if phone.startswith('+'):
+        return phone
+
+    # Local number (possibly with leading zero or just 8 digits)
+    return macedonian_local_format(phone)
+
+def format_phone_numbers(phone_numbers):
+    """Format and filter phone numbers, removing admin numbers"""
+    formatted_numbers = set()
+    for num in phone_numbers:
+        norm = normalize_phone_number(num)
+        if norm and norm not in ADMIN_NUMBERS:
+            formatted_numbers.add(norm)
+    return list(formatted_numbers)
+
 
 async def fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE):
     baseurl = "https://www.reklama5.mk"
@@ -134,7 +186,18 @@ async def fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE):
                         if ad_response:
                             ad_soup = BeautifulSoup(ad_response, "html.parser")
                             ad.description = ad_soup.find('p', class_='mt-3').text.strip() if ad_soup.find('p', class_='mt-3') else None
-                            ad.phone = ad_soup.find('h6').get_text(strip=True) if ad_soup.find('h6') else None
+
+                            # Get raw phone number(s)
+                            raw_phone = ad_soup.find('h6').get_text(strip=True) if ad_soup.find('h6') else None
+                            
+                            # Format and filter phone numbers
+                            if raw_phone:
+                                # Split multiple phone numbers if they exist (assuming comma or semicolon separated)
+                                phone_numbers = [p.strip() for p in re.split(r'[,;]', raw_phone)]
+                                ad.phone = format_phone_numbers(phone_numbers)
+                            else:
+                                ad.phone = []
+                                
                             date_element = ad_soup.find_all('div', class_='col-4 align-self-center')
                             ad.date = convert_today_date(date_element[2].find('span').text.strip()) if len(date_element) > 2 else None
 
@@ -154,7 +217,12 @@ async def fetch_ads(URL, START_PAGE, END_PAGE, BATCH_SIZE):
 
 #Updated to work with class ad
 async def save_to_db(ads):
-    conn = await asyncpg.connect(**DB_CONFIG)
+    conn = await asyncpg.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        database=DB_NAME
+    )
 
     for ad in ads:
         try:
@@ -176,24 +244,26 @@ async def save_to_db(ads):
                 ad.price = str(ad.price)
 
             required_fields = [ad.title, ad.description, ad.link, ad.image_url, ad.category, ad.phone, ad.date, ad.price, ad.currency, ad.store]
-            if any(field is None for field in required_fields): # Protection agaiisnt null values so it doesn't break code, most liklley a deleted ad so not important
+            if any(field is None for field in required_fields): # Protection against null values so it doesn't break code, most likely a deleted ad so not important
                 print(f"Skipping ad {ad.link} with missing required fields.")
                 continue
 
             await conn.execute(
                 """
-                INSERT INTO ads.ads (title, description, link, image_url, category, phone, date, price, currency,location ,store)
+                INSERT INTO ads.ads (title, description, link, image_url, category, phone, date, price, currency, location, store)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                 ON CONFLICT (link) DO NOTHING;
                 """,
                 ad.title, ad.description, ad.link, ad.image_url, ad.category,
-                ad.phone, ad.date, ad.price, ad.currency,ad.location ,ad.store
+                ad.phone, ad.date, ad.price, ad.currency, ad.location, ad.store
             )
+            print(f"{GREEN}Ad '{ad.title}' inserted into the database.{RESET}")
         except Exception as e:
-            print(f"Error inserting ad: {e}")
+            print(f"{RED}Error inserting ad: {e}{RESET}")
 
     await conn.close()
 
+            
 async def main():
     start_time = time.time()
 

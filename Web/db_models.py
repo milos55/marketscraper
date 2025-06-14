@@ -1,10 +1,57 @@
 from datetime import datetime, date
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import db  # Replace 'your_app' with your actual app module name
+from datetime import date
+from extensions import db
+from sqlalchemy.dialects.postgresql import ARRAY
 
 class Ad(db.Model):
-    __tablename__ = "reklami" # test 1
+    __tablename__ = "ads"
+    __table_args__ = {'schema': 'ads'}  # Because your table is in the ads schema
+
+    id = db.Column(db.Integer, primary_key=True, server_default=db.text("nextval('ads.ads_id_seq'::regclass)"))
+    title = db.Column(db.Text, nullable=False)
+    description = db.Column(db.Text, nullable=False)  # NOT NULL in SQL
+    link = db.Column(db.Text, nullable=False, unique=True)
+    image_url = db.Column(db.Text, nullable=True)
+    category = db.Column(db.Text, nullable=True)  # nullable in SQL
+    phone = db.Column(ARRAY(db.Text), nullable=False)  # Postgres text[] array, NOT NULL
+    date = db.Column(db.Date, nullable=False)
+    price = db.Column(db.Text, nullable=True)  # price is text in SQL (maybe better to change later)
+    currency = db.Column(db.Text, nullable=True)
+    location = db.Column(db.Text, nullable=False)
+    store = db.Column(db.Text, nullable=False)
+
+    def __init__(self, title, description, link, image_url, category, phone, date, price, currency, store, location):
+        self.title = title
+        self.description = description
+        self.link = link
+        self.image_url = image_url
+        self.category = category
+        self.phone = phone  # should be a list of strings
+        self.date = date
+        self.price = price
+        self.currency = currency
+        self.location = location
+        self.store = store
+
+    def to_dict(self):
+        return {
+            'adlink': self.link,
+            'adtitle': self.title,
+            'adprice': self.price,
+            'adcurrency': self.currency,
+            'adcategory': self.category,
+            'adimage': self.image_url,
+            'adphone': self.phone if self.phone else [],
+            'adlocation': self.location,
+            'addate': self.date.strftime("%d.%m.%Y") if self.date else "N/A",
+            'addesc': self.description,
+            'adstore': self.store
+        }
+
+""" class Ad(db.Model):
+    __tablename__ = "ads" # test 1
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
@@ -44,7 +91,7 @@ class Ad(db.Model):
             'addate': self.date.strftime("%d.%m.%Y") if self.date else "N/A",
             'addesc': self.description,
             'adstore': self.store
-        }
+        } """
 
 class User(db.Model, UserMixin):
     __tablename__ = "users"

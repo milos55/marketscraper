@@ -6,6 +6,10 @@ import re
 import time
 import psycopg2
 from ad import Ad
+# Config import from Web
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../Web')))
 from config import Config
 
 # === COLOR CONSTANTS FOR ERROR PRINTS ===
