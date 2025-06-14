@@ -50,7 +50,6 @@ h2 {
     gap: 20px;
 }
 
-
 .grid-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));

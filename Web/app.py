@@ -1,10 +1,7 @@
 # For flask site
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, make_response, g, abort#, send_file, Response # FIXME removed send_file, Response, check if need to return
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user # FIXME removed UserMixin, check if need to re
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, make_response, g, abort#, send_file, Response # FIXME removed send_file, Response, check if need to return
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user # FIXME removed UserMixin, check if need to re
 from flask_mail import Mail
-# For security implementaton 
 # For security implementaton 
 from flask_wtf.csrf import CSRFProtect, CSRFError, validate_csrf
 from flask_cors import CORS
@@ -14,17 +11,12 @@ from flask_limiter.util import get_remote_address
 import secrets
 # For password hashing
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired # FIXME removed, check if need to re-implement
-from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired # FIXME removed, check if need to re-implement
 from werkzeug.security import generate_password_hash
 # for DB
-from extensions import db
 from extensions import db
 # Random utils for site
 from email_utils import send_verification_email, send_reset_email, verify_token # for email verification and reset password
 from translation_utils import init_translation_system, translate  # Import translation utilities
-#import requests # FIXME UNUSED, check if need to re-implement
-#from io import BytesIO # FIXME UNUSED, check if need to re-implement
-#import yaml # FIXME UNUSED, check if need to re-implement
 #import requests # FIXME UNUSED, check if need to re-implement
 #from io import BytesIO # FIXME UNUSED, check if need to re-implement
 #import yaml # FIXME UNUSED, check if need to re-implement
@@ -34,13 +26,8 @@ from config import Config
 
 from db_models import User, Ad
 
-# Model imports ( Ads, Users)
-
-from db_models import User, Ad
-
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.config.from_object(Config)
-db.init_app(app)  # Initialize the database with the app
 db.init_app(app)  # Initialize the database with the app
 
 
@@ -57,11 +44,8 @@ limiter.init_app(app)  # Attach it to the app separately
 
 # Exempt CSRF for image loading # Unnecessary, as images are not forms and do not require CSRF protection I guess
 """ @csrf.exempt
-# Exempt CSRF for image loading # Unnecessary, as images are not forms and do not require CSRF protection I guess
-""" @csrf.exempt
 @app.route('/static/<path:filename>')
 def serve_static(filename):
-    return send_from_directory(app.static_folder, filename) """
     return send_from_directory(app.static_folder, filename) """
 
 mail = Mail(app)
@@ -74,7 +58,6 @@ login_manager.login_message = 'Please log in to access this page.'
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id)) # TODO soon to be legacy replace
     return User.query.get(int(user_id)) # TODO soon to be legacy replace
 
 @app.before_request
@@ -111,7 +94,6 @@ def add_security_headers(response):
         f"script-src 'self' 'nonce-{g.nonce}' https://cdnjs.cloudflare.com;"
         f"style-src 'self' 'nonce-{g.nonce}' https://cdnjs.cloudflare.com;"
         f"font-src 'self' https://cdnjs.cloudflare.com; "
-        f"img-src 'self' data: blob: https://flagcdn.com https://*.com https://reklama5.mk https://media.pazar3.mk; "
         f"img-src 'self' data: blob: https://flagcdn.com https://*.com https://reklama5.mk https://media.pazar3.mk; "
     )
     
@@ -213,7 +195,6 @@ def confirm_email(lang, token):
     try:
         email = verify_token(token)
     except (BadSignature, SignatureExpired):
-    except (BadSignature, SignatureExpired):
         flash(translate('link_invalid', module='messages', lang=lang), 'danger')
         return redirect(url_for('login', lang=lang))
     
@@ -243,7 +224,6 @@ def login(lang):
         lang = 'en'  # Fallback to English if the language is invalid
     
     if request.method == 'POST':
-        username = request.form.get('username') # FIXME Allow email login as well
         username = request.form.get('username') # FIXME Allow email login as well
         password = request.form.get('password')
         remember_me = 'remember_me' in request.form
@@ -275,7 +255,6 @@ def login(lang):
                 flash(translate('login_failed', module='messages', lang=lang), 'danger')
         else:
             # User doesn't exist
-            flash(translate('login_failed', module='messages', lang=lang), 'danger')
             flash(translate('login_failed', module='messages', lang=lang), 'danger')
     
     return render_template('/routes/login.html', lang=lang)
@@ -372,9 +351,6 @@ def admin_users():
 # Admin user management routes
 # Allow admin to have more functions such as viewing passwords
 
-# Admin user management routes
-# Allow admin to have more functions such as viewing passwords
-
 @app.route('/admin/users/toggle/<int:user_id>', methods=['POST'])
 @login_required
 def toggle_user_status(user_id):
@@ -383,7 +359,6 @@ def toggle_user_status(user_id):
         flash('You do not have permission to perform this action.', 'danger')
         return redirect(url_for('index'))
     
-    user = User.query.get_or_404(user_id) # TODO soon to be legacy replace
     user = User.query.get_or_404(user_id) # TODO soon to be legacy replace
     
     # Don't allow deactivating your own account
@@ -406,7 +381,6 @@ def delete_user(user_id):
         flash('You do not have permission to perform this action.', 'danger')
         return redirect(url_for('index'))
 
-    user = User.query.get_or_404(user_id) # TODO soon to be legacy replace
     user = User.query.get_or_404(user_id) # TODO soon to be legacy replace
 
     if user.id == current_user.id:
@@ -487,10 +461,8 @@ def reset_password(lang, token):
 def index():
     lang = request.cookies.get('lang', 'en')
     return redirect(url_for('index_lang', lang=lang, page=1))
-    return redirect(url_for('index_lang', lang=lang, page=1))
 
 @app.route('/<lang>/')
-def index_lang(lang):
 def index_lang(lang):
     # Validate language
     if lang not in ['mkd', 'al', 'en']:
@@ -509,17 +481,11 @@ def index_lang(lang):
     if page is None:
         return redirect(url_for('index', lang=lang, page=1))
 
-    page = request.args.get('page', type=int)
-    if page is None:
-        return redirect(url_for('index', lang=lang, page=1))
-
     # Fetch ads for the specified page
     per_page = 48  # Number of ads per page
     ads_pagination = Ad.query.paginate(page=page, per_page=per_page, error_out=False)
-    ads_pagination = Ad.query.paginate(page=page, per_page=per_page, error_out=False)
     ads = ads_pagination.items
 
-    # For locations server-side, categories is client-side (TODO: maybe change?)
     # For locations server-side, categories is client-side (TODO: maybe change?)
     locations = [loc[0] for loc in db.session.query(Ad.location).distinct() if loc[0]]
 
@@ -527,7 +493,6 @@ def index_lang(lang):
     return render_template('/routes/index.html', 
                            ads=ads,
                            locations=locations, 
-                           current_page=page, 
                            current_page=page, 
                            pagination=ads_pagination,
                            translations=translations,
@@ -598,8 +563,6 @@ def fetch_ads():
         validate_csrf(request.headers.get('X-CSRFToken'))
     except (CSRFError, KeyError):
         app.logger.error("CSRF token validation failed.")
-    except (CSRFError, KeyError):
-        app.logger.error("CSRF token validation failed.")
         abort(400, description="CSRF token is missing or invalid")
 
     try:
@@ -607,19 +570,9 @@ def fetch_ads():
         category = data.get('category')
         sort_type = data.get('sort')
         app.logger.info(f"Fetching ads with category: {category}, sort: {sort_type}")
-    try:
-        data = request.json
-        category = data.get('category')
-        sort_type = data.get('sort')
-        app.logger.info(f"Fetching ads with category: {category}, sort: {sort_type}")
 
         query = Ad.query
-        query = Ad.query
 
-        if category:
-            category = category.strip()
-            query = query.filter_by(category=category)
-            
         if category:
             category = category.strip()
             query = query.filter_by(category=category)
@@ -634,28 +587,12 @@ def fetch_ads():
             query = query.order_by(Ad.price.asc())
         elif sort_type == "Најскапи":
             query = query.order_by(Ad.price.desc())
-        # Sorting logic
-        if sort_type == "Најнови":
-            query = query.order_by(Ad.date.desc())
-        elif sort_type == "Најстари":
-            query = query.order_by(Ad.date.asc())
-        elif sort_type == "Најефтини":
-            query = query.order_by(Ad.price.asc())
-        elif sort_type == "Најскапи":
-            query = query.order_by(Ad.price.desc())
 
-        ads = query.all()
-        app.logger.info(f"Fetched {len(ads)} ads from the database.")
         ads = query.all()
         app.logger.info(f"Fetched {len(ads)} ads from the database.")
 
         ads_list = [ad.to_dict() for ad in ads]
-        ads_list = [ad.to_dict() for ad in ads]
 
-        return jsonify(ads_list)
-    except Exception as e:
-        app.logger.error(f"Error fetching ads: {e}")
-        return jsonify({"error": "An error occurred while fetching ads."}), 500
         return jsonify(ads_list)
     except Exception as e:
         app.logger.error(f"Error fetching ads: {e}")
@@ -716,5 +653,4 @@ def robots():
 
 if __name__ == '__main__':
     app.debug = True
-    app.run(host='0.0.0.0', port=5000, debug=True, threaded=False)
     app.run(host='0.0.0.0', port=5000, debug=True, threaded=False)
