@@ -22,32 +22,35 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="card-body-items">
                     <div class="form-group">
-                        <label for="username">{{ translate('username', 'register', lang) }}</label>
-                        <input type="text" id="username" name="username" required>
+                        <label for="username" class="form-label">{{ translate('username', 'register', lang) }}</label>
+                        <input type="text" id="username" name="username" required class="form-control">
                     </div>
                     
                     <div class="form-group">
-                        <label for="email">{{ translate('email', 'register', lang) }}</label>
-                        <input type="email" id="email" name="email" required>
+                        <label for="email" class="form-label">{{ translate('email', 'register', lang) }}</label>
+                        <input type="email" id="email" name="email" required class="form-control">
                     </div>
                     
                     <div class="form-group">
-                        <label for="password">{{ translate('password', 'register', lang) }}</label>
-                        <input type="password" id="password" name="password" required>
+                        <label for="password" class="form-label">{{ translate('password', 'register', lang) }}</label>
+                        <input type="password" id="password" name="password" required class="form-control">
                         <div class="feedback-container">
                             <small id="password-feedback" class="form-text"></small>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="confirm_password">{{ translate('password_confirm', 'register', lang) }}</label>
-                        <input type="password" id="confirm_password" name="confirm_password" required>
+                        <label for="confirm_password" class="form-label">{{ translate('password_confirm', 'register', lang) }}</label>
+                        <input type="password" id="confirm_password" name="confirm_password" required class="form-control">
+                        <div class="feedback-container">
+                            <small id="confirm-password-feedback" class="form-text"></small>
+                        </div>
                     </div>
                     
-                    <button type="submit" class="submit-btn">{{ translate('register', 'register', lang) }}</button>
+                    <button type="submit" class="btn shimmer">{{ translate('register', 'register', lang) }}</button>
                 </div>
             </form>
-            <p>{{ translate('profile_exist', 'register', lang) }}<a href="{{ url_for('login', lang=request.cookies.get('lang', 'en')) }}">{{ translate('login', 'register', lang) }}</a></p>
+            <p class="forgot-password">{{ translate('profile_exist', 'register', lang) }}<a href="{{ url_for('login', lang=request.cookies.get('lang', 'en')) }}">{{ translate('login', 'register', lang) }}</a></p>
     </div>
 </div>
 

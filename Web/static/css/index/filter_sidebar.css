@@ -128,7 +128,7 @@
 }
 
 .filter-sidebar input[type="text"]::placeholder {
-  color: var(--secondary-text-color);
+  color: var(--text-color);
   font-weight: 400;
 }
 
@@ -151,37 +151,6 @@
   position: relative;
   overflow: hidden;
   justify-self: right;
-}
-
-.close-filter-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s ease;
-}
-
-.close-filter-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-}
-
-.close-filter-btn:hover::before {
-  left: 100%;
-}
-
-.close-filter-btn:active {
-  transform: translateY(0);
-}
-
-.close-filter-btn:disabled {
-  background: #cbd5e0;
-  cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
 }
 
 /* Price Selector Container */

@@ -23,6 +23,7 @@
                 <div class="dropdown">
                     <button class="dropdown-search-btn" aria-label="Search type">{{ translate('search_type', 'index', lang) }}</button>
                     <ul class="dropdown-search-type-menu">
+                        <li id="search-ordered-li"><input type="checkbox" id="search-ordered"><label for="search-ordered">{{ translate('search_select.search_type_ordered', 'index', lang) }}</label></li>
                         <li><button class="search-type-btn" id="search-every">{{ translate('search_select.search_type_every', 'index', lang) }}</button></li>
                         <li><button class="search-type-btn" id="search-some">{{ translate('search_select.search_type_some', 'index', lang) }}</button></li>
                     </ul>
@@ -38,7 +39,7 @@
                     </ul>
                 </div>
                 <!-- Search Button -->
-                <button class="search-btn" 
+                <button class="search-btn shimmer" 
                         id="search-btn" 
                         aria-label="Search">
                     <i class="fa-solid fa-magnifying-glass"></i>
@@ -88,7 +89,7 @@
 
         <!-- View Selector -->
         <div class="view-selector">
-          <button id="grid-view-btn" class="view-btn active">
+          <button id="grid-view-btn" class="view-btn">
             <img class="selector-img" src="{{ url_for('static', filename='images/icons/index/grid_1.png') }}" alt="Grid View">
           </button>
           <button id="list-view-btn" class="view-btn">
@@ -98,7 +99,7 @@
 
         <!-- Filter Sidebar -->
         <div id="filter-sidebar" class="filter-sidebar">
-          <button class="close-filter-btn">&times;</button>
+          <button class="close-filter-btn shimmer">&times;</button>
           <h3>{{ translate('filters', 'index', lang) }}</h3>
 
           <!-- Price Selector -->
@@ -112,7 +113,7 @@
 
           <div class="currency-toggle-container">
                 <span class="currency-label">{{ translate('currency', 'index', lang) }}</span>
-                <button class="currency-toggle-btn" aria-label="Toggle currency">
+                <button class="currency-toggle-btn shimmer" aria-label="Toggle currency">
                   <span class="currency-text">MKD</span>
                   <i class="fa-solid fa-repeat"></i>
                 </button>
@@ -120,7 +121,7 @@
 
           <!-- Location Dropdown -->
           <div class="location-container dropdown">
-            <button class="dropdown-location-btn" aria-label="Location filter">
+            <button class="dropdown-location-btn shimmer" aria-label="Location filter">
               <i class="fa-solid fa-location-dot"></i> {{ translate('city', 'index', lang) }}
             </button>
             <ul class="dropdown-location-menu">
@@ -165,9 +166,9 @@
       <!-- Top Pagination -->
       <div class="pagination-container">
         <div class="pagination">
-          <button class="page-btn prev-page">{{ translate('pagination.prev', 'index', lang) }}</button>
+          <button class="page-btn prev-page shimmer" id="top-pagination-prev-btn">{{ translate('pagination.prev', 'index', lang) }}</button>
           <span class="page-number">{{ translate('pagination.page', 'index', lang) }}</span>
-          <button class="page-btn next-page">{{ translate('pagination.next', 'index', lang) }}</button>
+          <button class="page-btn next-page shimmer" id="top-pagination-next-btn">{{ translate('pagination.next', 'index', lang) }}</button>
         </div>
       </div>
 
@@ -177,9 +178,9 @@
       <!-- Bottom Pagination -->
       <div class="pagination-container">
         <div class="pagination">
-          <button class="page-btn prev-page">{{ translate('pagination.prev', 'index', lang) }}</button>
+          <button class="page-btn prev-page shimmer" id="bottom-pagination-prev-btn">{{ translate('pagination.prev', 'index', lang) }}</button>
           <span class="page-number">{{ translate('pagination.page', 'index', lang) }}</span>
-          <button class="page-btn next-page">{{ translate('pagination.next', 'index', lang) }}</button>
+          <button class="page-btn next-page shimmer" id="bottom-pagination-next-btn">{{ translate('pagination.next', 'index', lang) }}</button>
         </div>
       </div>
     </div> <!-- End .main-ads-section -->

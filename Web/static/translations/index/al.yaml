@@ -5,6 +5,7 @@ search_type: "Kërko për..."
 search_placeholder: "Kërko fjalë, të ndara me presje (,)"
 
 search_select:
+  search_type_ordered: "Këro fjalët e rregulluar"
   search_type_every: "Vetëm shpalljet që përmbajnë të gjithë fjalët"
   search_type_some: "Shpalljet që përmbajnë të paktën një nga fjalët"
 

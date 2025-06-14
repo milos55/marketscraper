@@ -11,7 +11,7 @@ change_title: "Change your information"
 change_controls:
   email: "Email"
   preferred_language: "Preferred language"
-  password_title: "Change your password"
+  password_title: "Change password"
   current_password: "Current password"
   new_password: "New password"
   confirm_password: "Confirm new password"

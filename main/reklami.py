@@ -1,18 +1,19 @@
 import psycopg2
+from config import Config
 
 def connect_to_db():
     conn = psycopg2.connect(
-        host="localhost",
-        database="reklami",
-        user="boro",
-        password="boro1234"
+        host=Config.DB_HOST,
+        database=Config.DB_NAME,
+        user=Config.DB_USER,
+        password=Config.DB_PASSWORD
     )
     return conn
 #Added store, currency, image_url
 def create_table(conn):
     with conn.cursor() as cursor:
         cursor.execute("""
-              CREATE TABLE IF NOT EXISTS reklami (
+              CREATE TABLE IF NOT EXISTS ads (
                 id SERIAL PRIMARY KEY,
                 title TEXT,
                 description TEXT,
