@@ -36,9 +36,9 @@ class AdsManager {
     }
     
     getInitialPage() {
-        const path = window.location.pathname;
-        const pageMatch = path.match(/\/page\/(\d+)/);
-        return pageMatch ? parseInt(pageMatch[1]) : 1;
+        const params = new URLSearchParams(window.location.search);
+        const page = parseInt(params.get('page'));
+        return isNaN(page) ? 1 : page;
     }
     
     setupEventListeners() {
@@ -108,7 +108,9 @@ class AdsManager {
                 this.allAds = await response.json();
     
                 this.allAds = this.allAds.map(ad => {
-                    if (typeof ad.adprice !== 'number' || !ad.adcurrency) {
+                    ad.adprice = Number(ad.adprice);
+
+                    if (typeof ad.adprice !== 'number' /* || !ad.adcurrency */) {
                         console.error("Invalid ad:", ad);
                         return null;
                     }
@@ -123,7 +125,7 @@ class AdsManager {
     
             // Precompute prices for the default currency
             this.precomputePrices(this.currentCurrency);
-            this.handleSearch();
+            this.handleSearch(true);
         } catch (error) {
             console.error('Error fetching ads:', error);
             this.elements.adsGrid.innerHTML = '<p>Error loading ads. Please try again later.</p>';
@@ -181,12 +183,16 @@ class AdsManager {
         this.uiManager.setupCategoryListeners();
     }
     
-    handleSearch() {
+    handleSearch(preservePage = false) {
         this.uiManager.showSearchLoading();
         setTimeout(() => {
             this.searchTerms = this.searchManager.parseSearchTerms();
             this.filteredAds = this.filterManager.getFilteredAds(this.allAds, this.searchTerms);
-            this.currentPage = 1;
+
+            if (!preservePage) {
+                this.currentPage = 1;
+            }
+
             this.displayAds();
             this.uiManager.hideSearchLoading();
         }, 150);
@@ -268,8 +274,8 @@ class UrlManager {
     
     updateUrl(page) {
         const lang = this.getLanguageFromUrl();
-        const newUrl = page === 1 ? `/${lang}/` : `/${lang}/page/${page}`;
-        history.pushState({page: page}, '', newUrl);
+        const newUrl = `/${lang}/?page=${page}`;
+        history.pushState({ page }, '', newUrl);
     }
 }
 
@@ -316,7 +322,7 @@ class SearchManager {
     }
 
 
-    // FIX: ALL METHODS don't work too well with current db descriptions
+    // FIXME : ALL METHODS don't work too well with current db descriptions
     // Calculate Levenshtein distance between two strings
     levenshteinDistance(str1, str2) {
         const matrix = [];
@@ -393,7 +399,7 @@ class SearchManager {
     }
 
      // Smart fuzzy matching that combines multiple techniques
-    smartFuzzyMatch(text, term) {
+    /* /smartFuzzyMatch(text, term) {
         const textLower = text.toLowerCase();
         const termLower = term.toLowerCase();
         
@@ -403,11 +409,11 @@ class SearchManager {
         }
         
         // 1. Exact substring match (highest priority) 
-        // FIX: Strict word boundary match, if desc extraction method (backend) changes uncomment line below, else keep
+        // FIXME ?: Strict word boundary match, if desc extraction method (backend) changes uncomment line below, else keep
         // !!!! DON'T REMOVE COMMENT ABOVE !!!!
-        /* if (textLower.includes(termLower)) {
-            return true;
-        } */
+        // if (textLower.includes(termLower)) {
+        //    return true;
+        //} 
         
         const wordBoudaryRegex = new RegExp(`\\b${termLower}\\b`);
         if (wordBoudaryRegex.test(termLower)) {
@@ -436,54 +442,104 @@ class SearchManager {
         }
         
         return false;
-    }
+    } */
 
-     matches(text, term, _matchMethod) {
+     matches(text, term) {
         if (!text || !term) return false;
         
-        // Clean the inputs
-        const cleanText = text.toString().trim();
-        const cleanTerm = term.toString().trim();
+        const cleanText = text.toString().trim().toLowerCase();
+        const cleanTerm = term.toString().trim().toLowerCase();
         
         if (!cleanText || !cleanTerm) return false;
         
-        // Use smart fuzzy matching
-        return this.smartFuzzyMatch(cleanText, cleanTerm);
+        // Skip very short terms to avoid false positives
+        if (cleanTerm.length < 2) {
+            return cleanText === cleanTerm;
+        }
+        
+        // 1. Direct substring match
+        if (cleanText.includes(cleanTerm)) {
+            return true;
+        }
+        
+        // 2. Transliteration match (Latin <-> Cyrillic)
+        const transliteratedText = this.transliterate(cleanText);
+        const transliteratedTerm = this.transliterate(cleanTerm);
+        
+        if (transliteratedText.includes(cleanTerm) || cleanText.includes(transliteratedTerm)) {
+            return true;
+        }
+        
+        // 3. Word boundary matching for partial matches
+        if (cleanTerm.length >= 3) {
+            const words = cleanText.split(/\s+/);
+            return words.some(word => {
+                // Exact word match
+                if (word === cleanTerm) return true;
+                // Word starts with term
+                if (word.startsWith(cleanTerm)) return true;
+                // Term starts with word (for partial matches like "iphone" matching "iph")
+                if (cleanTerm.startsWith(word) && word.length >= 3) return true;
+                return false;
+            });
+        }
+        
+        return false;
+    }
+
+    findTermInText(text, term, startIndex = 0) {
+        const searchText = text.substring(startIndex);
+        const cleanTerm = term.toLowerCase();
+        
+        // Direct search
+        let index = searchText.indexOf(cleanTerm);
+        if (index !== -1) {
+            return startIndex + index;
+        }
+        
+        // Transliteration search
+        const transliteratedText = this.transliterate(searchText);
+        const transliteratedTerm = this.transliterate(cleanTerm);
+        
+        index = transliteratedText.indexOf(cleanTerm);
+        if (index !== -1) {
+            return startIndex + index;
+        }
+        
+        index = searchText.indexOf(transliteratedTerm);
+        if (index !== -1) {
+            return startIndex + index;
+        }
+        
+        return -1;
     }
 
     // Additional helper method for scoring matches (for potential future ranking)
     getMatchScore(text, term) {
-        const textLower = text.toLowerCase();
-        const termLower = term.toLowerCase();
+        if (!this.matches(text, term)) return 0;
+        
+        const cleanText = text.toLowerCase();
+        const cleanTerm = term.toLowerCase();
         
         // Exact match gets highest score
-        if (textLower.includes(termLower)) {
-            // Check if it's at word boundary for even higher score
-            const regex = new RegExp(`\\b${termLower}\\b`);
-            if (regex.test(textLower)) {
-                return 100; // Perfect word match
-            }
-            return 90; // Substring match
-        }
-
-          // Transliteration match
-        const transliteratedText = this.transliterate(textLower);
-        const transliteratedTerm = this.transliterate(termLower);
-        if (transliteratedText.includes(transliteratedTerm)) {
-            return 80;
-        }
+        if (cleanText === cleanTerm) return 100;
         
-        // Word boundary fuzzy match
-        if (this.wordBoundaryFuzzy(text, term)) {
-            return 70;
-        }
+        // Word boundary match
+        const regex = new RegExp(`\\b${cleanTerm}\\b`);
+        if (regex.test(cleanText)) return 90;
         
-        // Subsequence match
-        if (this.subsequenceMatch(textLower, termLower)) {
-            return 50;
-        }
+        // Starts with term
+        if (cleanText.startsWith(cleanTerm)) return 80;
         
-        return 0; // No match
+        // Contains term
+        if (cleanText.includes(cleanTerm)) return 70;
+        
+        // Transliteration match
+        const transliteratedText = this.transliterate(cleanText);
+        if (transliteratedText.includes(cleanTerm)) return 60;
+        
+        // Partial word match
+        return 50;
     }
 
      // Method to get ranked results (optional enhancement)
@@ -522,22 +578,25 @@ class SearchManager {
     }
 
     matchesTermsInOrder(text, terms) {
-        const textLower = text.toLowerCase();
-        let currentIndex = 0;
-
+        if (!text || !terms || terms.length === 0) return false;
+        
+        const cleanText = text.toLowerCase();
+        let searchStartIndex = 0;
+        
         for (const term of terms) {
-            const foundIndex = this._findNextMatchIndex(textLower, term.toLowerCase(), currentIndex);
+            const foundIndex = this.findTermInText(cleanText, term, searchStartIndex);
             if (foundIndex === -1) {
                 return false;
             }
-            currentIndex = foundIndex + 1; // move past match for next term
+            searchStartIndex = foundIndex + term.length;
         }
-
+        
         return true;
     }
 
     // Helper that tries to find the term using smart fuzzy logic and returns its position
-    _findNextMatchIndex(text, term, fromIndex) {
+    // UNUSED
+    /* _findNextMatchIndex(text, term, fromIndex) {
         const substr = text.slice(fromIndex);
         
         // Use transliterated matching if needed
@@ -556,7 +615,7 @@ class SearchManager {
         }
 
         return -1;
-    }
+    } */
 }
 
 // Manages filtering and sorting
@@ -586,52 +645,66 @@ class FilterManager {
     }
     
     applySearchTerms(ads, searchTerms) {
-        if (searchTerms[0] === '') return ads;
+        // If no search terms, return all ads
+        if (!searchTerms || searchTerms.length === 0 || searchTerms[0] === '') {
+            return ads;
+        }
         
-        // Option 1: Use regular filtering with enhanced fuzzy matching
-        const filtered = ads.filter(ad => {
-            const titleMatch = this.elements.checkboxes.title.checked && 
-                this.matchesAllTerms(ad.adtitle, searchTerms);
-                
-            const descMatch = this.elements.checkboxes.desc.checked && 
-                this.matchesAllTerms(ad.addesc, searchTerms);
-                
+        return ads.filter(ad => {
+            // Check if we should search in title and/or description
+            const searchInTitle = this.elements.checkboxes.title.checked;
+            const searchInDesc = this.elements.checkboxes.desc.checked;
+            
+            // If neither is checked, default to searching both
+            if (!searchInTitle && !searchInDesc) {
+                return this.matchesAllTerms(ad.adtitle, searchTerms) || 
+                       this.matchesAllTerms(ad.addesc, searchTerms);
+            }
+            
+            let titleMatch = false;
+            let descMatch = false;
+            
+            if (searchInTitle) {
+                titleMatch = this.matchesAllTerms(ad.adtitle, searchTerms);
+            }
+            
+            if (searchInDesc) {
+                descMatch = this.matchesAllTerms(ad.addesc, searchTerms);
+            }
+            
             return titleMatch || descMatch;
         });
-        
-        // FIX: check which is better, opt 2 should be better
-        // FIX: search type all or some needs to be looked at
-
-        return filtered;
-        
-        // Option 2: Use ranked results for better relevance (uncomment to use)
-        //return this.adsManager.searchManager.getRankedMatches(ads, searchTerms);
     }
 
-    matchesAllTerms(text, terms) {
-        const ordered = this.adsManager.matchOrdered;  // boolean: is ordered checkbox checked?
-        const matchType = this.adsManager.matchMethod; // "every" or "some"
+     matchesAllTerms(text, terms) {
+        if (!text || !terms || terms.length === 0) return false;
+        
+        const ordered = this.adsManager.matchOrdered || false;  // boolean: is ordered checkbox checked?
+        const matchType = this.adsManager.matchMethod || "every"; // "every" or "some"
 
         if (ordered) {
+            // Terms must appear in order
             if (matchType === "every") {
                 // ALL terms must appear in order
                 return this.searchManager.matchesTermsInOrder(text, terms);
             } else if (matchType === "some") {
-                // ANY term must appear in order (at least one term in order)
-                // So check if at least one term appears in order by itself (single term)
-                return terms.some(term => this.searchManager.matchesTermsInOrder(text, [term]));
+                // ANY single term must match (in order doesn't matter for single terms)
+                return terms.some(term => this.searchManager.matches(text, term));
             }
         } else {
+            // Terms can appear anywhere (unordered)
             if (matchType === "every") {
-                // ALL terms anywhere (unordered)
+                // ALL terms must appear somewhere in the text
+                // Example: "iphone 15 17" requires text to contain "iphone" AND "15" AND "17"
                 return terms.every(term => this.searchManager.matches(text, term));
             } else if (matchType === "some") {
-                // ANY term anywhere (unordered)
+                // ANY term must appear in the text
+                // Example: "iphone 15 17" matches if text contains "iphone" OR "15" OR "17"
                 return terms.some(term => this.searchManager.matches(text, term));
             }
         }
 
-        // fallback default to every unordered
+        // Default to "every" unordered
         return terms.every(term => this.searchManager.matches(text, term));
     }
 
@@ -1475,7 +1548,7 @@ transliterate(text) {
     }
     
     createAdHTML(ad) {
-        // Check the current view mode FIX: update to new site
+        // Check the current view mode FIXME: update to new site
         if (this.currentView === 'grid') {
             return `
                 <a href="${ad.adlink}" target="_blank" class="ad-link">
@@ -1514,7 +1587,7 @@ transliterate(text) {
                                 </div>
                             </div>
                                 <div class="ad-location">Град: ${ad.adlocation}</div>
-                                <div class="ad-phone">Тел: ${this.formatPhone(ad.adphone)}</div>
+                                <div class="ad-phone">Тел: ${/* this.formatPhone */ad.adphone}</div>
                                 <div class="ad-category">${ad.adcategory}</div>
                         </div>
 
@@ -1540,7 +1613,7 @@ transliterate(text) {
         return price === 0 ? currency : `${price} ${currency}`;
     }
     
-    formatPhone(phone) {
+    /* formatPhone(phone) {
         if (!phone) return "N/A";
         
         const cleanedPhone = phone.replace(/\D/g, '');
@@ -1551,9 +1624,16 @@ transliterate(text) {
         
         return phone;
     }
-    
+     */
     getImageHTML(imageUrl) {
     const noImageUrl = window.location.origin + "/static/images/icons/noimage/no_image_2x.png";
+    const noImage2 = "noImage2.jpg";
+
+        if (typeof imageUrl === 'string' && typeof noImage2 === 'string' && imageUrl.includes(noImage2)) {
+        return `<div class="ad-image">
+            <img class="ad-img" src="${noImageUrl}" loading="lazy" alt="No image available">
+        </div>`;
+    }
     
     // Create a unique ID for this image
     const imgId = 'img_' + Math.random().toString(36).substring(2, 15);
