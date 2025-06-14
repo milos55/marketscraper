@@ -1,25 +1,21 @@
 # For flask site
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, make_response, g, send_file, Response
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, make_response, g, \
+    send_from_directory, abort
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_mail import Mail
 # For security implementaton
 from flask_wtf.csrf import CSRFProtect, CSRFError, validate_csrf
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_wtf import FlaskForm
 import secrets
 # For password hashing
-from itsdangerous import URLSafeTimedSerializer
 from werkzeug.security import generate_password_hash
 # for DB
 from flask_sqlalchemy import SQLAlchemy
 # Random utils for site
 from email_utils import send_verification_email, send_reset_email, verify_token # for email verification and reset password
 from translation_utils import init_translation_system, translate  # Import translation utilities
-import requests
-from io import BytesIO
-import yaml
 from config import Config
 
 app = Flask(__name__, static_folder='static', template_folder='templates')

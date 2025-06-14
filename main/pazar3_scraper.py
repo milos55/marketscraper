@@ -38,9 +38,9 @@ MONTHS_SHORT = {
     "јун": "June",
     "јул": "July",
     "авг": "August",
-    "септ": "September",
+    "сеп": "September",
     "окт": "October",
-    "ноем": "November",
+    "ное": "November",
     "дек": "December"
 }
 

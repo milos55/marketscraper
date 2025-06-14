@@ -4,14 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5287c9fe-3a05-4dda-b0bf-0a33a740cc89" name="Changes" comment="fixed phone hormalization logic, fixed phone parsing bug, fixed stuck on page 1 bug">
-      <change afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/checkDeletedAds.py" afterDir="false" />
+    <list default="true" id="5287c9fe-3a05-4dda-b0bf-0a33a740cc89" name="Changes" comment="Fixed config file env loading, small pazar fixes, fixed rk5 to function with ne db setup (dirty fix, formatting requiredD)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Web/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/Web/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Web/config.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Web/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/it_mk_scraper.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/it_mk_scraper.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main/pazar3_scraper.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/pazar3_scraper.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/rk5_scraper.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/rk5_scraper.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,6 +21,17 @@
       <list>
         <option value="Python Script" />
       </list>
+    </option>
+  </component>
+  <component name="FlaskConsoleOptions" custom-start-script="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))">
+    <envs>
+      <env key="FLASK_APP" value="app" />
+    </envs>
+    <option name="myCustomStartScript" value="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))" />
+    <option name="myEnvs">
+      <map>
+        <entry key="FLASK_APP" value="app" />
+      </map>
     </option>
   </component>
   <component name="Git.Settings">
@@ -42,28 +51,55 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Flask server.Flask (app.py:app.py).executor": "Run",
+    "Flask server.Flask.executor": "Run",
     "Python.app.executor": "Run",
     "Python.checkDeletedAds.executor": "Run",
     "Python.config.executor": "Run",
+    "Python.it_mk_scraper.executor": "Run",
     "Python.pazar3_scraper.executor": "Run",
     "Python.reklami.executor": "Run",
     "Python.rk5_scraper.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
+    "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/Borko/Documents/Desktop/Projects/MarketScraper",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Borko\Documents\Desktop\Projects\MarketScraper" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Borko\Documents\Desktop\Projects\MarketScraper" />
     </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="Flask" type="Python.FlaskServer" nameIsGenerated="true">
+      <option name="additionalOptions" value="--host 0.0.0.0 --port 5000" />
+      <option name="flaskDebug" value="true" />
+      <module name="MarketScraper" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="C:\Users\Borko\AppData\Local\Programs\Python\Python312\python.exe" />
+      <option name="SDK_NAME" value="Python 3.12" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="launchJavascriptDebuger" value="false" />
+      <method v="2" />
+    </configuration>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -93,7 +129,10 @@
       <workItem from="1740779961903" duration="15000" />
       <workItem from="1749303364721" duration="67000" />
       <workItem from="1749303432815" duration="7228000" />
-      <workItem from="1749314359836" duration="3275000" />
+      <workItem from="1749314359836" duration="3377000" />
+      <workItem from="1749575884961" duration="571000" />
+      <workItem from="1749576470372" duration="2518000" />
+      <workItem from="1749832816347" duration="1563000" />
     </task>
     <task id="LOCAL-00001" summary="pazar 3 init commit&#10;fixed some rk5_scraper things">
       <option name="closed" value="true" />
@@ -127,7 +166,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749311735234</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Fixed config file env loading, small pazar fixes, fixed rk5 to function with ne db setup (dirty fix, formatting requiredD)">
+      <option name="closed" value="true" />
+      <created>1749317682981</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1749317682981</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -149,12 +196,16 @@
     <MESSAGE value="Previous commit errors fixed" />
     <MESSAGE value="pazar3 updated" />
     <MESSAGE value="fixed phone hormalization logic, fixed phone parsing bug, fixed stuck on page 1 bug" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed phone hormalization logic, fixed phone parsing bug, fixed stuck on page 1 bug" />
+    <MESSAGE value="Fixed config file env loading, small pazar fixes, fixed rk5 to function with ne db setup (dirty fix, formatting requiredD)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed config file env loading, small pazar fixes, fixed rk5 to function with ne db setup (dirty fix, formatting requiredD)" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/MarketScraper$app.coverage" NAME="app Coverage Results" MODIFIED="1749833463707" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Web" />
     <SUITE FILE_PATH="coverage/MarketScraper$checkDeletedAds.coverage" NAME="checkDeletedAds Coverage Results" MODIFIED="1749313276195" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/main" />
+    <SUITE FILE_PATH="coverage/MarketScraper$it_mk_scraper.coverage" NAME="it_mk_scraper Coverage Results" MODIFIED="1749579106168" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/main" />
     <SUITE FILE_PATH="coverage/marketscraper$pazar3_scraper.coverage" NAME="pazar3_scraper Coverage Results" MODIFIED="1740506274876" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/main" />
-    <SUITE FILE_PATH="coverage/MarketScraper$pazar3_scraper.coverage" NAME="pazar3_scraper Coverage Results" MODIFIED="1749316413740" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/main" />
+    <SUITE FILE_PATH="coverage/MarketScraper$pazar3_scraper.coverage" NAME="pazar3_scraper Coverage Results" MODIFIED="1749834231434" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/main" />
+    <SUITE FILE_PATH="coverage/MarketScraper$Flask__app_py_app_py_.coverage" NAME="Flask Coverage Results" MODIFIED="1749833572670" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/marketscraper$rk5_scraper.coverage" NAME="rk5_scraper Coverage Results" MODIFIED="1740505253570" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/main" />
     <SUITE FILE_PATH="coverage/marketscraper$app.coverage" NAME="app Coverage Results" MODIFIED="1739888879520" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Web" />
     <SUITE FILE_PATH="coverage/MarketScraper$rk5_scraper.coverage" NAME="rk5_scraper Coverage Results" MODIFIED="1749317554171" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/main" />
